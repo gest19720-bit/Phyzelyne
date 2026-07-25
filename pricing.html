@@ -458,7 +458,7 @@
       <div class="plan-badge-top">Most Popular</div>
       <div class="plan-name">Personal</div>
       <div class="plan-price-wrap">
-        <div class="plan-price" id="price-personal"><sup>$</sup>20</div>
+        <div class="plan-price" id="price-personal"><sup>$</sup>5.99</div>
       </div>
       <div class="plan-period" id="period-personal">per month</div>
       <div class="plan-yearly-note" id="note-personal"></div>
@@ -475,7 +475,7 @@
         <li><i class="fas fa-times"></i> AI coach</li>
         <li><i class="fas fa-times"></i> Invoices & receipts</li>
       </ul>
-      <button class="btn btn-gold plan-cta" onclick="selectPlan('personal', 20)">
+      <button class="btn btn-gold plan-cta" onclick="selectPlan('personal', 5.99)">
         <i class="fas fa-rocket"></i> Get Personal
       </button>
     </div>
@@ -484,7 +484,7 @@
     <div class="plan-card">
       <div class="plan-name">Cooperate</div>
       <div class="plan-price-wrap">
-        <div class="plan-price" id="price-cooperate"><sup>$</sup>80</div>
+        <div class="plan-price" id="price-cooperate"><sup>$</sup>15.99</div>
       </div>
       <div class="plan-period" id="period-cooperate">per month</div>
       <div class="plan-yearly-note" id="note-cooperate"></div>
@@ -500,7 +500,7 @@
         <li><i class="fas fa-check"></i> API access</li>
         <li><i class="fas fa-check"></i> Priority support</li>
       </ul>
-      <button class="btn btn-glass plan-cta" onclick="selectPlan('cooperate', 80)">
+      <button class="btn btn-glass plan-cta" onclick="selectPlan('cooperate', 15.99)">
         Get Cooperate
       </button>
     </div>
@@ -578,13 +578,13 @@
   const PRICES = {
     monthly: {
       free:        0,
-	      personal:    20,
-	      cooperate:   80,
+      personal:    5.99,
+      cooperate:   15.99,
     },
     yearly: {
       free:        0,
-	      personal:    parseFloat((20 * 12 * 0.8).toFixed(2)),   // $192.00
-	      cooperate:   parseFloat((80 * 12 * 0.8).toFixed(2)),   // $768.00
+      personal:    parseFloat((5.99 * 12 * 0.8).toFixed(2)),   // $57.50
+      cooperate:   parseFloat((15.99 * 12 * 0.8).toFixed(2)),  // $153.50
     }
   };
 

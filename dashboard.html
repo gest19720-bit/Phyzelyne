@@ -147,6 +147,25 @@
       </div>`;
   }
 
+  function parseTxn(t) {
+    if (!t) return null;
+    const match = (t.description || '').match(/(.*) \[(weekly|monthly|yearly)\]$/);
+    if (match) {
+      return {
+        ...t,
+        uiType: 'subscription',
+        uiDesc: match[1],
+        cycle: match[2]
+      };
+    }
+    return {
+      ...t,
+      uiType: t.type,
+      uiDesc: t.description || '',
+      cycle: null
+    };
+  }
+
   function renderRecentTxns() {
     const txns = Store.getTransactions().slice(0, 6);
     const el   = document.getElementById('recent-txn-list');
@@ -154,18 +173,28 @@
       el.innerHTML = `<div class="empty-state"><i class="fas fa-receipt"></i><p>No transactions yet.<br>Add your first one!</p></div>`;
       return;
     }
-    el.innerHTML = txns.map(t => `
+    el.innerHTML = txns.map(parseTxn).map(t => {
+      let icon = Utils.getCategoryIcon(t.category);
+      if (t.uiType === 'subscription') {
+        icon = 'fa-repeat';
+      }
+      const badgeText = t.uiType === 'subscription'
+        ? `${t.category} • ${t.cycle.charAt(0).toUpperCase() + t.cycle.slice(1)}`
+        : t.category;
+
+      return `
       <div class="txn-item">
-        <div class="txn-icon ${t.type}"><i class="fas ${Utils.getCategoryIcon(t.category)}"></i></div>
+        <div class="txn-icon ${t.uiType}"><i class="fas ${icon}"></i></div>
         <div class="txn-info">
-          <div class="txn-name">${t.description}</div>
+          <div class="txn-name">${t.uiDesc}</div>
           <div class="txn-meta">
-            <span class="txn-cat-badge">${t.category}</span>
+            <span class="txn-cat-badge">${badgeText}</span>
             ${Utils.formatDate(t.date)}
           </div>
         </div>
-        <div class="txn-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${Utils.formatCurrency(t.amount)}</div>
-      </div>`).join('');
+        <div class="txn-amount ${t.uiType}">${t.uiType === 'income' ? '+' : '-'}${Utils.formatCurrency(t.amount)}</div>
+      </div>`;
+    }).join('');
   }
 
   function renderAITip() {

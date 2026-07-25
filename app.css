@@ -424,6 +424,11 @@ select.form-input { cursor: pointer; }
   border-color: rgba(192,57,43,0.35);
   color: var(--red);
 }
+.type-btn.subscription.active {
+  background: var(--gold-dim);
+  border-color: rgba(212,160,23,0.35);
+  color: var(--gold);
+}
 
 /* ─── Transaction List ─── */
 .txn-list { display: flex; flex-direction: column; gap: 1px; }
@@ -454,6 +459,7 @@ select.form-input { cursor: pointer; }
 }
 .txn-icon.income { background: var(--green-dim); color: var(--green); }
 .txn-icon.expense { background: var(--red-dim); color: var(--red); }
+.txn-icon.subscription { background: var(--gold-dim); color: var(--gold); }
 
 .txn-info { flex: 1; min-width: 0; }
 .txn-name {
@@ -492,6 +498,7 @@ select.form-input { cursor: pointer; }
 }
 .txn-amount.income { color: var(--green); }
 .txn-amount.expense { color: var(--red); }
+.txn-amount.subscription { color: var(--gold); }
 
 .txn-delete {
   background: none;

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     category TEXT,
     type TEXT CHECK (type IN ('income', 'expense')) NOT NULL,
     "originalCurrency" TEXT,
+    image TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 

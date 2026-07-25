@@ -875,9 +875,9 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
       <div class="price-card featured">
         <div class="featured-badge">Launch Special</div>
         <div class="plan-name">Personal</div>
-        <div class="price-num" id="personalPrice">$10<span style="text-decoration:line-through;font-size:1.1rem;margin-left:6px;">$20</span></div>
+        <div class="price-num" id="personalPrice">$5.99</div>
         <div class="price-period" id="personalPeriod">per month</div>
-        <div class="price-offer"><i class="fas fa-bolt"></i> 50% off — lifetime member deal</div>
+        <div class="price-offer"><i class="fas fa-bolt"></i> Lock in your price today</div>
         <ul class="price-feats">
           <li><i class="fas fa-check"></i> Unlimited transactions</li>
           <li><i class="fas fa-check"></i> Full dashboards & insights</li>
@@ -893,9 +893,9 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
 
       <div class="price-card">
         <div class="plan-name">Corporate</div>
-        <div class="price-num" id="corpPrice">$40<span style="text-decoration:line-through;font-size:1.1rem;margin-left:6px;">$80</span></div>
+        <div class="price-num" id="corpPrice">$15.99</div>
         <div class="price-period" id="corpPeriod">per month</div>
-        <div class="price-offer"><i class="fas fa-bolt"></i> 50% off — lifetime member deal</div>
+        <div class="price-offer"><i class="fas fa-bolt"></i> Lock in your price today</div>
         <ul class="price-feats">
           <li><i class="fas fa-check"></i> Everything in Personal</li>
           <li><i class="fas fa-check"></i> Smart AI Finance Coach 24/7</li>
@@ -1254,14 +1254,14 @@ document.getElementById('billingToggle').addEventListener('change', (e) => {
   const personalPeriod = document.getElementById('personalPeriod');
   const corpPeriod = document.getElementById('corpPeriod');
   if (yearly){
-    personalPrice.innerHTML = '$8<span style="text-decoration:line-through;font-size:1.1rem;margin-left:6px;">$16</span>';
-    personalPeriod.textContent = 'per month, billed annually ($96)';
-    corpPrice.innerHTML = '$32<span style="text-decoration:line-through;font-size:1.1rem;margin-left:6px;">$64</span>';
-    corpPeriod.textContent = 'per month, billed annually ($384)';
+    personalPrice.innerHTML = '$4.79';
+    personalPeriod.textContent = 'per month, billed annually ($57.50)';
+    corpPrice.innerHTML = '$12.79';
+    corpPeriod.textContent = 'per month, billed annually ($153.50)';
   } else {
-    personalPrice.innerHTML = '$10<span style="text-decoration:line-through;font-size:1.1rem;margin-left:6px;">$20</span>';
+    personalPrice.innerHTML = '$5.99';
     personalPeriod.textContent = 'per month';
-    corpPrice.innerHTML = '$40<span style="text-decoration:line-through;font-size:1.1rem;margin-left:6px;">$80</span>';
+    corpPrice.innerHTML = '$15.99';
     corpPeriod.textContent = 'per month';
   }
 });

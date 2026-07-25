@@ -790,8 +790,8 @@
 	    const plan = PlanGate.currentPlan();
 	    const plans = {
 	      free: { label: 'Free', monthly: 0 },
-	      personal: { label: 'Personal', monthly: 20 },
-	      cooperate: { label: 'Cooperate', monthly: 80 },
+	      personal: { label: 'Personal', monthly: 5.99 },
+	      cooperate: { label: 'Cooperate', monthly: 15.99 },
 	    };
 	    const meta = plans[plan] || plans.free;
 	    const billing = (s.billingCycle || 'monthly').toLowerCase();

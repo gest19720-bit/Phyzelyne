@@ -604,9 +604,13 @@ async function _upsert(table, rowOrRows) {
   }
   idsToTrack.forEach(id => _inFlightWrites.add(id));
 
-  const payload = Array.isArray(rowOrRows)
+  let payload = Array.isArray(rowOrRows)
     ? rowOrRows.map(row => ({ ...row, user_id: _cache.userId }))
     : { ...rowOrRows, user_id: _cache.userId };
+
+  if (table === 'transactions') {
+    // Keep image payload intact for Supabase sync
+  }
 
   try {
     const { error } = await _sb.from(table).upsert(payload, _upsertOptions(table));
@@ -1398,8 +1402,8 @@ const PlanGate = {
 
   // ── Upgrade copy per plan ─────────────────────────────────────────────────
   UPGRADE_COPY: {
-	    personal:  { price: '$20/mo', cta: 'Upgrade to Personal' },
-	    cooperate: { price: '$80/mo', cta: 'Upgrade to Cooperate' },
+    personal:  { price: '$5.99/mo', cta: 'Upgrade to Personal' },
+    cooperate: { price: '$15.99/mo', cta: 'Upgrade to Cooperate' },
   },
 
   // ── Get current plan ──────────────────────────────────────────────────────

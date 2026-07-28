@@ -273,27 +273,41 @@
   // Social signup — uses Supabase OAuth
   async function socialSignup(provider) {
     const btn = document.getElementById('btn-' + provider);
+    if (!btn) return;
     btn.disabled = true;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Connecting to ${provider === 'google' ? 'Google' : 'Apple'}…`;
+
     document.getElementById('oauth-modal-title').textContent = 'Sign up with ' + (provider === 'google' ? 'Google' : 'Apple');
-    document.getElementById('oauth-modal-sub').textContent   = 'Redirecting…';
+    document.getElementById('oauth-modal-sub').textContent   = 'Redirecting to secure sign-up…';
     document.getElementById('oauth-overlay').classList.add('open');
+
+    const redirectUrl = (typeof _getOAuthRedirectUrl === 'function')
+      ? _getOAuthRedirectUrl('onboarding.html')
+      : new URL('onboarding.html', window.location.href).href;
+
     try {
+      if (!_sb) throw new Error('Supabase client not initialised');
       const { error } = await _sb.auth.signInWithOAuth({
         provider: provider,
-        options: { redirectTo: window.location.origin + '/onboarding.html' }
+        options: { redirectTo: redirectUrl }
       });
       if (error) throw error;
     } catch (err) {
+      console.error('[Klyro OAuth Error]', err);
       closeOAuthModal();
       btn.disabled = false;
-      showError('Could not connect to ' + (provider === 'google' ? 'Google' : 'Apple') + '. Please try again.');
+      btn.innerHTML = originalText;
+      showError('Could not connect to ' + (provider === 'google' ? 'Google' : 'Apple') + '. ' + (err.message || 'Please try again.'));
     }
   }
 
   function closeOAuthModal() {
     document.getElementById('oauth-overlay').classList.remove('open');
-    document.getElementById('btn-google').disabled = false;
-    document.getElementById('btn-apple').disabled  = false;
+    const gBtn = document.getElementById('btn-google');
+    const aBtn = document.getElementById('btn-apple');
+    if (gBtn) { gBtn.disabled = false; gBtn.innerHTML = '<i class="fab fa-google"></i> Sign up with Google'; }
+    if (aBtn) { aBtn.disabled = false; aBtn.innerHTML = '<i class="fab fa-apple"></i> Sign up with Apple'; }
   }
   document.getElementById('oauth-overlay').addEventListener('click', function(e) {
     if (e.target === this) closeOAuthModal();

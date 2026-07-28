@@ -292,11 +292,11 @@
 
 <!-- Bottom Nav (mobile only) -->
 <nav class="bottom-nav">
-  <a href="dashboard.html" class="bottom-nav-item" data-page="dashboard"><i class="fas fa-house"></i>Home</a>
-  <a href="transactions.html" class="bottom-nav-item" data-page="transactions"><i class="fas fa-right-left"></i>Transactions</a>
-  <a href="analysis.html" class="bottom-nav-item" data-page="analysis"><i class="fas fa-chart-pie"></i>Analysis</a>
+  <a href="dashboard.html" class="bottom-nav-item" data-page="dashboard"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="transactions.html" class="bottom-nav-item" data-page="transactions"><i class="fas fa-right-left"></i><span>Transactions</span></a>
+  <a href="analysis.html" class="bottom-nav-item" data-page="analysis"><i class="fas fa-chart-pie"></i><span>Analysis</span></a>
   <span id="bnav-smart-tab"></span>
-  <a href="settings.html" class="bottom-nav-item" data-page="settings"><i class="fas fa-gear"></i>Settings</a>
+  <a href="settings.html" class="bottom-nav-item" data-page="settings"><i class="fas fa-gear"></i><span>Settings</span></a>
 </nav>
 <script>
 (function(){
@@ -305,9 +305,9 @@
     var smartEl = document.getElementById('bnav-smart-tab');
     if (smartEl && typeof PlanGate !== 'undefined') {
       if (PlanGate.isBusiness()) {
-        smartEl.outerHTML = '<a href="business.html" class="bottom-nav-item" data-page="business"><i class="fas fa-briefcase"></i>Business</a>';
+        smartEl.outerHTML = '<a href="business.html" class="bottom-nav-item" data-page="business"><i class="fas fa-briefcase"></i><span>Business</span></a>';
       } else {
-        smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i>AI</a>';
+        smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i><span>AI</span></a>';
       }
     }
     document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){

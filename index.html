@@ -189,17 +189,24 @@ h1,h2,h3,h4{ font-family:var(--font-display); font-weight:700; color:var(--ink);
 
 .mobile-sheet{
   position:fixed; inset:82px 0 0 0; z-index:999;
-  background:rgba(7,11,9,0.97); backdrop-filter:var(--blur);
-  display:flex; flex-direction:column; gap:6px; padding:28px 6%;
-  transform:translateY(-12px); opacity:0; pointer-events:none;
-  transition:all 0.35s var(--ease);
+  background:rgba(10,14,12,0.88);
+  backdrop-filter:blur(40px) saturate(160%); -webkit-backdrop-filter:blur(40px) saturate(160%);
+  display:flex; flex-direction:column; gap:4px; padding:32px 6%;
+  transform:translateY(-16px); opacity:0; pointer-events:none;
+  transition:all 0.4s var(--ease);
+  border-top:1px solid rgba(255,255,255,0.06);
 }
 .mobile-sheet.open{ transform:translateY(0); opacity:1; pointer-events:auto; }
 .mobile-sheet a{
   font-family:var(--font-display); font-size:1.6rem; font-weight:600; color:var(--ink);
-  text-decoration:none; padding:14px 4px; border-bottom:1px solid var(--border);
+  text-decoration:none; padding:16px 18px; border-radius:16px;
+  transition:all 0.25s var(--ease);
 }
-.mobile-sheet .btn{ margin-top:18px; }
+.mobile-sheet a:hover{
+  background:rgba(var(--gold-rgb),0.10);
+  color:var(--gold-2);
+}
+.mobile-sheet .btn{ margin-top:18px; border-radius:var(--radius-pill); }
 
 /* ============================================================
    HERO

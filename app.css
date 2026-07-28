@@ -900,9 +900,11 @@ select.form-input { cursor: pointer; }
   #currency-select { width: 100% !important; }
 }
 
-/* ═══════════════════════════════════════
-   BOTTOM NAV  (mobile only, ≤ 640px)
-═══════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════════
+   BOTTOM NAV — iOS 26/27 Liquid Glass (mobile only, ≤ 640px)
+   Floating pill-shaped nav bar with deep glassmorphism, active
+   indicator pill, and subtle micro-interactions.
+════════════════════════════════════════════════════════════════ */
 .bottom-nav {
   display: none;
 }
@@ -912,85 +914,375 @@ select.form-input { cursor: pointer; }
   .sidebar { display: none !important; }
   .sidebar-toggle-btn { display: none !important; }
 
-  /* Show bottom nav */
+  /* ── Floating Liquid Glass Bottom Nav ── */
   .bottom-nav {
     display: flex;
     position: fixed;
-    bottom: 0; left: 0; right: 0;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 300;
-    background: var(--glass-heavy);
-    backdrop-filter: var(--blur);
-    -webkit-backdrop-filter: var(--blur);
-    border-top: 1px solid var(--glass-border);
-    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
-    gap: 0;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+    width: calc(100% - 32px);
+    max-width: 420px;
+    padding: 6px 8px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    gap: 2px;
+    border-radius: 34px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(50px) saturate(200%);
+    -webkit-backdrop-filter: blur(50px) saturate(200%);
+    border: 1px solid rgba(255,255,255,0.20);
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.12),
+      0 2px 8px rgba(0,0,0,0.06),
+      inset 0 0.5px 0.5px rgba(255,255,255,0.4);
+    transition: transform 0.3s cubic-bezier(0.16,1,0.3,1),
+                box-shadow 0.3s cubic-bezier(0.16,1,0.3,1);
   }
+
+  /* Dark mode: deeper glass with lighter border */
+  body.dark .bottom-nav,
+  html.dark-pre .bottom-nav {
+    background: rgba(22,22,35,0.40);
+    border-color: rgba(255,255,255,0.06);
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.3),
+      0 2px 8px rgba(0,0,0,0.15),
+      inset 0 0.5px 0.5px rgba(255,255,255,0.05);
+  }
+
   .bottom-nav-item {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    padding: 6px 2px;
+    gap: 2px;
+    padding: 10px 4px 8px;
     text-decoration: none;
     color: var(--text-dim);
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    transition: color var(--transition);
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
     border: none;
     background: none;
     cursor: pointer;
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    will-change: transform;
   }
   .bottom-nav-item i {
-    font-size: 1.1rem;
-    transition: transform var(--transition), color var(--transition);
+    font-size: 1.2rem;
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
+                color 0.35s cubic-bezier(0.16,1,0.3,1);
+    margin-bottom: 1px;
+  }
+  .bottom-nav-item span:not(.bnav-badge) {
+    font-size: 0.52rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.3s cubic-bezier(0.16,1,0.3,1),
+                transform 0.3s cubic-bezier(0.16,1,0.3,1);
   }
   .bottom-nav-item.active {
     color: var(--gold);
   }
-  .bottom-nav-item.active i {
-    transform: translateY(-2px);
+  .bottom-nav-item.active span:not(.bnav-badge) {
+    opacity: 1;
+    transform: translateY(0);
   }
-  .bottom-nav-item:hover { color: var(--text); }
+  .bottom-nav-item.active i {
+    transform: translateY(-1px) scale(1.05);
+  }
 
-  /* Adjust main content for bottom nav */
+  /* Active pill indicator — slides behind the active tab */
+  .bottom-nav .active-indicator {
+    display: none;
+  }
+  .bottom-nav-item.active::before {
+    content: '';
+    position: absolute;
+    inset: 4px 6px;
+    border-radius: 16px;
+    background: rgba(var(--accent-rgb, 212,160,23), 0.12);
+    z-index: -1;
+    animation: pill-in 0.35s cubic-bezier(0.16,1,0.3,1);
+  }
+  @keyframes pill-in {
+    from {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+
+
+  /* Badge dot for notifications */
+  .bnav-badge {
+    position: absolute;
+    top: 5px;
+    right: calc(50% - 15px);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 1.5px solid var(--bg);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    display: none;
+  }
+  .bnav-badge.show { display: block; }
+
+  /* Haptic-style press feedback */
+  .bottom-nav-item:active {
+    transform: scale(0.92);
+  }
+  .bottom-nav-item.active:active {
+    transform: scale(0.94);
+  }
+  .bottom-nav-item:active i {
+    transform: scale(0.9);
+  }
+  .bottom-nav-item.active:active i {
+    transform: translateY(-1px) scale(0.95);
+  }
+
+  /* ── Adjust main content for floating bottom nav ── */
   .main-content {
     margin-left: 0 !important;
-    padding: 20px 16px 88px !important;
+    padding: 20px 16px 100px !important;
     padding-top: 24px !important;
   }
 
-  /* Toast goes above bottom nav */
+  /* ── Toast repositions above floating nav ── */
   .toast {
-    bottom: 84px;
+    bottom: 96px;
     right: 16px;
     left: 16px;
     max-width: none;
+    border-radius: 18px;
   }
 
-  /* Smaller headings on phones */
+  /* ── Smaller headings on phones ── */
   .page-header h1 { font-size: 1.8rem; }
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
   .stat-value { font-size: 1.6rem; }
-  .stat-card  { padding: 18px 14px; }
+  .stat-card  { padding: 18px 14px; border-radius: 18px; }
 
-  /* Full-width modals */
+  /* ── Glass card mobile enhancement ── */
+  .glass-card {
+    border-radius: 18px;
+  }
+
+  /* ── Full-width bottom-sheet modals ── */
   .modal-overlay { align-items: flex-end; }
   .modal {
     width: 100%;
     max-width: 100%;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    padding-bottom: calc(24px + env(safe-area-inset-bottom));
-    animation: slide-up 0.35s cubic-bezier(0.16,1,0.3,1);
+    border-radius: 28px 28px 0 0;
+    border-bottom: none;
+    padding: 28px 24px calc(24px + env(safe-area-inset-bottom));
+    animation: slide-up 0.4s cubic-bezier(0.16,1,0.3,1);
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.1);
+  }
+  body.dark .modal,
+  html.dark-pre .modal {
+    background: rgba(20,20,32,0.82);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
+  }
+  .modal::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--text-dim);
+    opacity: 0.3;
+  }
+  .modal-header {
+    margin-top: 8px;
   }
   @keyframes slide-up {
     from { transform: translateY(100%); }
     to   { transform: translateY(0); }
+  }
+
+  /* ── Bottom sheet grab handle ── */
+  .sheet-handle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .sheet-handle::before {
+    content: '';
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--text-dim);
+    opacity: 0.25;
+  }
+
+  /* ── Liquid glass stat cards ── */
+  .stat-card {
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  body.dark .stat-card,
+  html.dark-pre .stat-card {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.08);
+  }
+
+  /* ── Enhanced period tabs for mobile ── */
+  .period-tabs {
+    border-radius: 16px;
+    padding: 3px;
+  }
+
+  /* ── Transaction items ── */
+  .txn-item {
+    border-radius: 16px;
+    background: rgba(255,255,255,0.30);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 14px 16px;
+  }
+  body.dark .txn-item,
+  html.dark-pre .txn-item {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.06);
+  }
+  .txn-icon {
+    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+  }
+
+  /* ── AI chat bubbles ── */
+  .chat-msg { max-width: 100%; }
+  .chat-input-row { align-items: stretch; }
+  .chat-input-row .btn { padding-inline: 16px; }
+  .settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .txn-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px;
+  }
+  .txn-amount {
+    margin-left: auto;
+    font-size: 1.05rem;
+  }
+  .txn-meta {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  /* ── Navigation section labels ── */
+  .nav-section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+  }
+}
+
+@media (max-width: 480px) {
+  .bottom-nav {
+    bottom: 12px;
+    width: calc(100% - 20px);
+    border-radius: 28px;
+    padding: 5px 6px;
+    padding-bottom: calc(5px + env(safe-area-inset-bottom, 0px));
+  }
+  .bottom-nav-item {
+    padding: 8px 2px 6px;
+  }
+  .bottom-nav-item i {
+    font-size: 1.1rem;
+  }
+  .bottom-nav-item span:not(.bnav-badge) {
+    font-size: 0.48rem;
+  }
+
+  .stats-grid { grid-template-columns: 1fr !important; }
+  #data-stats { grid-template-columns: 1fr !important; }
+  .period-tab {
+    padding: 7px 12px;
+    font-size: 0.75rem;
+  }
+  .page-header h1 { font-size: 1.65rem; }
+  .modal {
+    border-radius: 24px 24px 0 0;
+    padding: 24px 18px calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ── Liquid Glass: extra polish for bottom sheets and nav ── */
+@media (max-width: 640px) {
+  /* Input fields get glassier on mobile */
+  .form-input {
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+
+  /* Type toggle gets pill treatment */
+  .type-toggle {
+    gap: 6px;
+  }
+  .type-btn {
+    border-radius: 14px;
+    padding: 11px 8px;
+  }
+
+  /* Section title refresh */
+  .section-title {
+    font-size: 1.2rem;
+  }
+
+  /* Goal cards */
+  .goal-progress-wrap {
+    border-radius: 6px;
+    height: 10px;
+  }
+  .goal-progress-bar {
+    border-radius: 6px;
+  }
+
+  /* Category items */
+  .cat-item {
+    padding: 4px 0;
+  }
+  .cat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  /* AI bubbles */
+  .ai-bubble {
+    border-radius: 18px;
+    padding: 18px;
   }
 }
 
@@ -1196,4 +1488,25 @@ canvas { max-width: 100%; }
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
   70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
   100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* ─── Subscription Reminder Prompt ─── */
+#sub-prompt-overlay .modal {
+  text-align: center;
+  padding: 32px 28px 28px;
+}
+#sub-prompt-overlay .modal-header {
+  justify-content: center;
+  margin-bottom: 8px;
+}
+#sub-prompt-overlay .modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+#sub-prompt-overlay .btn {
+  transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s ease;
+}
+#sub-prompt-overlay .btn:active {
+  transform: scale(0.96);
 }

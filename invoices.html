@@ -52,6 +52,68 @@
       color: var(--text);
     }
 
+    /* ── Business Onboarding Modal ── */
+    .biz-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: modal-fade-in 0.25s ease;
+    }
+    .biz-modal-overlay.open { display: flex; }
+    @keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+    .biz-modal {
+      background: var(--surface, #1a1612);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 36px;
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      animation: modal-scale-in 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes modal-scale-in {
+      from { opacity: 0; transform: translateY(20px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .biz-modal-close {
+      position: absolute;
+      top: 18px; right: 18px;
+      background: var(--glass-dim);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      transition: all var(--transition);
+    }
+    .biz-modal-close:hover { background: var(--glass); color: var(--text); }
+
+    .biz-modal-banner {
+      background: linear-gradient(135deg, rgba(212,160,23,0.14), rgba(212,160,23,0.05));
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .biz-modal-banner i { color: var(--gold); font-size: 1.2rem; margin-top: 2px; flex-shrink: 0; }
+    .biz-modal-banner p { font-size: 0.85rem; color: var(--text-mid); line-height: 1.55; margin: 0; }
+
     /* ── Form panel ── */
     .form-panel {
       display: flex;
@@ -409,6 +471,9 @@
       <button class="inv-tab" id="tab-receipts" onclick="showTab('receipts')">
         <i class="fas fa-receipt"></i> Receipts
       </button>
+      <button class="inv-tab" style="margin-left:auto;background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);" onclick="openBizOnboardingModal()">
+        <i class="fas fa-building-user"></i> Business Profile
+      </button>
     </div>
 
     <!-- ── CREATE / EDIT tab ── -->
@@ -420,7 +485,12 @@
 
           <!-- From -->
           <div class="form-section">
-            <div class="form-section-title"><i class="fas fa-building"></i> From (Your Business)</div>
+            <div class="form-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+              <span><i class="fas fa-building"></i> From (Your Business)</span>
+              <button type="button" class="btn btn-glass btn-sm" style="font-size:0.75rem;padding:4px 10px;" onclick="openBizOnboardingModal()">
+                <i class="fas fa-pen-to-square"></i> Edit Profile
+              </button>
+            </div>
             <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;">
               <div class="logo-upload" id="logo-preview-trigger" onclick="document.getElementById('logo-input').click()" title="Upload logo">
                 <i class="fas fa-image" id="logo-placeholder-icon"></i>
@@ -647,6 +717,80 @@
     </div>
 
   </main>
+</div>
+
+<!-- Business Onboarding Modal -->
+<div class="biz-modal-overlay" id="biz-onboarding-modal">
+  <div class="biz-modal">
+    <button class="biz-modal-close" onclick="closeBizOnboardingModal()"><i class="fas fa-times"></i></button>
+
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="width:44px;height:44px;border-radius:12px;background:var(--gold-dim);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">
+        <i class="fas fa-building"></i>
+      </div>
+      <div>
+        <h2 style="font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--text);margin:0;">Business Profile Setup</h2>
+        <div style="font-size:0.8rem;color:var(--text-dim);">Configure your business once for automated invoicing</div>
+      </div>
+    </div>
+
+    <div class="biz-modal-banner">
+      <i class="fas fa-wand-magic-sparkles"></i>
+      <p>Enter your business details below. Klyro will automatically pre-fill your <strong>"FROM (YOUR BUSINESS)"</strong> section every time you create an invoice or receipt!</p>
+    </div>
+
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">
+      <div class="logo-upload" id="biz-logo-trigger" onclick="document.getElementById('biz-logo-input').click()" title="Upload company logo">
+        <i class="fas fa-image" id="biz-logo-icon"></i>
+        <span id="biz-logo-text">Logo</span>
+        <img id="biz-logo-img" style="display:none;" alt="Company Logo">
+      </div>
+      <input type="file" id="biz-logo-input" accept="image/*" onchange="handleBizLogoUpload(this)" style="display:none;">
+      <div style="flex:1;">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label class="form-label">Company Name <span style="color:var(--gold);">*</span></label>
+          <input type="text" class="form-input" id="ob-biz-name" placeholder="e.g. Acme Enterprise Ltd">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Tagline or Registration No.</label>
+          <input type="text" class="form-input" id="ob-biz-tagline" placeholder="e.g. Reg: CS123456789">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row-2" style="margin-bottom:14px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Business Email</label>
+        <input type="email" class="form-input" id="ob-biz-email" placeholder="billing@acme.com">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Business Phone</label>
+        <input type="text" class="form-input" id="ob-biz-phone" placeholder="+233 55 000 0000">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">Business Street Address</label>
+      <input type="text" class="form-input" id="ob-biz-address" placeholder="123 Financial District, Accra, Ghana">
+    </div>
+
+    <div class="form-group" style="margin-bottom:14px;">
+      <label class="form-label">Default Payment Notes</label>
+      <textarea class="form-input" id="ob-biz-notes" rows="2" placeholder="e.g. Bank: Ecobank · Account: 144100028491 · Swift: ECOGHAC"></textarea>
+    </div>
+
+    <div class="form-group" style="margin-bottom:24px;">
+      <label class="form-label">Default Terms &amp; Conditions</label>
+      <textarea class="form-input" id="ob-biz-terms" rows="2" placeholder="e.g. Payment due within 14 days of invoice date."></textarea>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <button class="btn btn-glass" onclick="closeBizOnboardingModal()">Maybe Later</button>
+      <button class="btn btn-gold" onclick="saveBizProfileFromModal()">
+        <i class="fas fa-check"></i> Save Business Profile &amp; Auto-Fill
+      </button>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1011,6 +1155,9 @@ if (!window.__invGated) {
     // Reset accent
     document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.color === '#d4a017'));
 
+    // Auto-fill company details from saved Business Profile
+    autoFillBusinessProfile();
+
     addLineItem(); addLineItem(); addLineItem();
     liveUpdate();
   }
@@ -1251,10 +1398,114 @@ if (!window.__invGated) {
     win.print();
   }
 
+  // ── Business Onboarding & Auto-Fill ─────────────────────────────────────
+  let bizLogoDataUrl = null;
+
+  function autoFillBusinessProfile() {
+    const prof = Store.getBusinessProfile();
+    if (!prof) return;
+
+    if (prof.name)    document.getElementById('from-name').value    = prof.name;
+    if (prof.tagline) document.getElementById('from-tagline').value = prof.tagline;
+    if (prof.email)   document.getElementById('from-email').value   = prof.email;
+    if (prof.phone)   document.getElementById('from-phone').value   = prof.phone;
+    if (prof.address) document.getElementById('from-address').value = prof.address;
+    if (prof.notes && !document.getElementById('inv-notes').value)   document.getElementById('inv-notes').value    = prof.notes;
+    if (prof.terms && !document.getElementById('inv-terms').value)   document.getElementById('inv-terms').value    = prof.terms;
+
+    if (prof.logo) {
+      logoDataUrl = prof.logo;
+      const img = document.getElementById('logo-preview-img');
+      if (img) {
+        img.src = prof.logo;
+        img.style.display = 'block';
+        document.getElementById('logo-placeholder-icon').style.display = 'none';
+        document.getElementById('logo-placeholder-text').style.display = 'none';
+      }
+    }
+  }
+
+  function openBizOnboardingModal() {
+    const prof = Store.getBusinessProfile() || {};
+    document.getElementById('ob-biz-name').value    = prof.name || '';
+    document.getElementById('ob-biz-tagline').value = prof.tagline || '';
+    document.getElementById('ob-biz-email').value   = prof.email || '';
+    document.getElementById('ob-biz-phone').value   = prof.phone || '';
+    document.getElementById('ob-biz-address').value = prof.address || '';
+    document.getElementById('ob-biz-notes').value   = prof.notes || '';
+    document.getElementById('ob-biz-terms').value   = prof.terms || '';
+
+    if (prof.logo) {
+      bizLogoDataUrl = prof.logo;
+      const img = document.getElementById('biz-logo-img');
+      if (img) {
+        img.src = prof.logo;
+        img.style.display = 'block';
+        document.getElementById('biz-logo-icon').style.display = 'none';
+        document.getElementById('biz-logo-text').style.display = 'none';
+      }
+    }
+
+    document.getElementById('biz-onboarding-modal').classList.add('open');
+  }
+
+  function closeBizOnboardingModal() {
+    document.getElementById('biz-onboarding-modal').classList.remove('open');
+  }
+
+  function handleBizLogoUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      bizLogoDataUrl = e.target.result;
+      const img = document.getElementById('biz-logo-img');
+      img.src = bizLogoDataUrl;
+      img.style.display = 'block';
+      document.getElementById('biz-logo-icon').style.display = 'none';
+      document.getElementById('biz-logo-text').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function saveBizProfileFromModal() {
+    const name = document.getElementById('ob-biz-name').value.trim();
+    if (!name) {
+      showToast('Please enter your Company Name', 'error');
+      document.getElementById('ob-biz-name').focus();
+      return;
+    }
+
+    const profile = {
+      name,
+      tagline: document.getElementById('ob-biz-tagline').value.trim(),
+      email:   document.getElementById('ob-biz-email').value.trim(),
+      phone:   document.getElementById('ob-biz-phone').value.trim(),
+      address: document.getElementById('ob-biz-address').value.trim(),
+      notes:   document.getElementById('ob-biz-notes').value.trim(),
+      terms:   document.getElementById('ob-biz-terms').value.trim(),
+      logo:    bizLogoDataUrl || null,
+    };
+
+    Store.saveBusinessProfile(profile);
+    closeBizOnboardingModal();
+    showToast('Business profile saved! Details auto-filled ✓');
+    autoFillBusinessProfile();
+    liveUpdate();
+  }
+
+  function checkBizOnboarding() {
+    const s = Store.getSettings();
+    if (!s.businessOnboarded) {
+      setTimeout(openBizOnboardingModal, 400);
+    }
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────
   document.getElementById('sidebar-mount').innerHTML = renderSidebar();
   initSidebar();
   resetForm();
+  checkBizOnboarding();
 
   // Support tab query parameter (e.g., invoices.html?tab=receipts)
   const urlParams = new URLSearchParams(window.location.search);
@@ -1278,11 +1529,11 @@ if (!window.__invGated) {
 
 <!-- Bottom Nav (mobile only) -->
 <nav class="bottom-nav">
-  <a href="dashboard.html"    class="bottom-nav-item" data-page="dashboard"><i class="fas fa-house"></i>Home</a>
-  <a href="transactions.html" class="bottom-nav-item" data-page="transactions"><i class="fas fa-right-left"></i>Transactions</a>
-  <a href="analysis.html"     class="bottom-nav-item" data-page="analysis"><i class="fas fa-chart-pie"></i>Analysis</a>
+  <a href="dashboard.html"    class="bottom-nav-item" data-page="dashboard"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="transactions.html" class="bottom-nav-item" data-page="transactions"><i class="fas fa-right-left"></i><span>Transactions</span></a>
+  <a href="analysis.html"     class="bottom-nav-item" data-page="analysis"><i class="fas fa-chart-pie"></i><span>Analysis</span></a>
   <span id="bnav-smart-tab"></span>
-  <a href="settings.html"     class="bottom-nav-item" data-page="settings"><i class="fas fa-gear"></i>Settings</a>
+  <a href="settings.html"     class="bottom-nav-item" data-page="settings"><i class="fas fa-gear"></i><span>Settings</span></a>
 </nav>
 <script>
 (function(){
@@ -1291,9 +1542,9 @@ if (!window.__invGated) {
     var smartEl = document.getElementById('bnav-smart-tab');
     if (smartEl && typeof PlanGate !== 'undefined') {
       if (PlanGate.isBusiness()) {
-        smartEl.outerHTML = '<a href="business.html" class="bottom-nav-item" data-page="business"><i class="fas fa-briefcase"></i>Business</a>';
+        smartEl.outerHTML = '<a href="business.html" class="bottom-nav-item" data-page="business"><i class="fas fa-briefcase"></i><span>Business</span></a>';
       } else {
-        smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i>AI</a>';
+        smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i><span>AI</span></a>';
       }
     }
     document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){

@@ -683,6 +683,9 @@ async function _initData() {
   await _syncCacheToSupabase(); // upload device-only records for same-account sync
   migrateFromLocalStorage(); // one-shot: move any old localStorage data to Supabase
   document.dispatchEvent(new Event('klyro:ready'));
+
+  // Boot subscription reminders after data is loaded
+  try { SubReminder.start(); } catch (e) { /* SubReminder not available */ }
 }
 
 /* ══════════════════════════════════════
@@ -1128,6 +1131,77 @@ const MakeWebhook = (() => {
 })();
 
 /* ══════════════════════════════════════
+   RESEND EMAIL INTEGRATION
+══════════════════════════════════════ */
+const ResendEmail = (() => {
+  const API_KEY = 're_DDhL5QJP_MD6nbRJsMzD3BtFc2CGaynN4';
+
+  return {
+    async sendWelcomeEmail(userEmail, userName) {
+      if (!userEmail) return;
+      const firstName = (userName || 'there').split(' ')[0];
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Inter', Arial, sans-serif; background-color: #070b09; color: #f5f1e8; margin: 0; padding: 40px 20px; }
+            .container { max-width: 560px; margin: 0 auto; background: #0f1612; border: 1px solid rgba(212,160,23,0.3); border-radius: 16px; padding: 40px; }
+            .logo { font-size: 24px; font-weight: bold; color: #d4a017; margin-bottom: 24px; font-family: Georgia, serif; }
+            h1 { font-size: 22px; color: #ffffff; margin-bottom: 16px; }
+            p { font-size: 15px; color: rgba(245,241,232,0.8); line-height: 1.6; margin-bottom: 20px; }
+            .btn { display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #d4a017, #f3ca5a); color: #191204; font-weight: bold; text-decoration: none; border-radius: 999px; margin: 10px 0 20px; }
+            .footer { font-size: 12px; color: rgba(245,241,232,0.4); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; margin-top: 30px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="logo">Klyro</div>
+            <h1>Welcome to Klyro, ${firstName}! 👋</h1>
+            <p>We're thrilled to have you join Klyro — your intelligent financial operating system.</p>
+            <p>With Klyro, you can track income &amp; expenses across 150+ currencies, draft professional invoices in seconds, hit your savings goals, and get 24/7 financial insights from your AI Coach.</p>
+            <p><a href="https://klyro.app" class="btn">Explore Klyro Dashboard</a></p>
+            <p>If you have any questions or feedback, simply reply to this email. We're here to help you build your financial future.</p>
+            <div class="footer">
+              © 2026 Klyro. All rights reserved.<br>
+              You received this email because you signed up for a Klyro account.
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      try {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: 'Klyro <onboarding@resend.dev>',
+            to: [userEmail],
+            subject: `Welcome to Klyro, ${firstName}! 🎉`,
+            html: htmlContent
+          })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          console.warn('[Resend] Could not send welcome email:', errData.message || response.statusText);
+        } else {
+          console.log('[Resend] Welcome email sent successfully to', userEmail);
+        }
+      } catch (err) {
+        console.warn('[Resend] Network error sending welcome email:', err.message);
+      }
+    }
+  };
+})();
+
+/* ══════════════════════════════════════
    CURRENCY CONVERTER SYSTEM
 ══════════════════════════════════════ */
 const CurrencyConverter = {
@@ -1183,6 +1257,14 @@ const CurrencyConverter = {
   }
 };
 
+function _getOAuthRedirectUrl(targetPage = 'dashboard.html') {
+  try {
+    return new URL(targetPage, window.location.href).href;
+  } catch {
+    return window.location.origin + '/' + targetPage;
+  }
+}
+
 /* ══════════════════════════════════════
    AUTH  (Supabase-backed)
    Public API identical to original so no
@@ -1237,8 +1319,8 @@ const Auth = {
     return {
       id:        raw.id,
       email:     raw.email,
-      name:      raw.user_metadata?.name || raw.email?.split('@')[0] || 'User',
-      avatar:    raw.user_metadata?.avatar_url || raw.user_metadata?.avatar || null,
+      name:      raw.user_metadata?.name || raw.user_metadata?.full_name || raw.email?.split('@')[0] || 'User',
+      avatar:    raw.user_metadata?.avatar_url || raw.user_metadata?.picture || raw.user_metadata?.avatar || null,
       onboarded: raw.user_metadata?.onboarded || false,
     };
   },
@@ -1254,6 +1336,7 @@ const Auth = {
     _sessionCache = data.user;
     _cache.userId = data.user?.id || null;
     MakeWebhook.send('user.signup', { name, email, signupDate: new Date().toISOString() });
+    ResendEmail.sendWelcomeEmail(email, name);
     return { success: true, user: data.user };
   },
 
@@ -1668,17 +1751,31 @@ const Store = {
   /* ── Settings ─────────────────────────────────────────────────────── */
   getSettings() { return { ...(_cache.settings || {}) }; },
 
-	  saveSettings(s) {
-	    _cache.settings = { ...s };
-	    _persistCache('settings');
-	    // Mirror theme to localStorage for the pre-render flash fix
+  saveSettings(s) {
+    _cache.settings = { ...s };
+    _persistCache('settings');
+    // Mirror theme to localStorage for the pre-render flash fix
     if (s.darkMode !== undefined) localStorage.setItem('klyro_theme', s.darkMode ? 'dark' : 'light');
     if (s.accentTheme !== undefined) localStorage.setItem('klyro_accent', s.accentTheme);
-		    _afterRemoteWrite('settings', _upsert('settings', { ...s, user_id: _cache.userId }));
+    _afterRemoteWrite('settings', _upsert('settings', { ...s, user_id: _cache.userId }));
     if (s.onboarded !== undefined && _sb) {
       _sb.auth.updateUser({ data: { onboarded: s.onboarded } }).catch(() => {});
     }
     _broadcastChange('settings', { eventType: 'UPDATE', new: s });
+  },
+
+  getBusinessProfile() {
+    const s = this.getSettings();
+    return s.businessProfile || null;
+  },
+
+  saveBusinessProfile(profile) {
+    const s = this.getSettings();
+    const updatedProfile = { ...(s.businessProfile || {}), ...profile, updatedAt: new Date().toISOString() };
+    s.businessProfile = updatedProfile;
+    s.businessOnboarded = true;
+    this.saveSettings(s);
+    return updatedProfile;
   },
 
   /* ── Goals ────────────────────────────────────────────────────────── */
@@ -2103,6 +2200,260 @@ function handleLogout() {
     setTimeout(() => Auth.logout(), 900);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   SUBSCRIPTION REMINDER SYSTEM
+   ───────────────────────────────────────────────────────────────────
+   • Parses subscription transactions (those ending with [weekly|
+     monthly|yearly] in the description).
+   • Calculates the next due date based on the original transaction
+     date and the billing cycle.
+   • Sends two reminders:
+       1. 2 days before the due date
+       2. On the due day (before 10 AM) — "due today" reminder
+   • On the due day after 10 AM, shows a payment confirmation modal.
+     - If the user confirms payment → an expense transaction is
+       automatically added and income is effectively reduced.
+     - If the user declines → nothing is recorded, and the prompt
+       won't show again until the next cycle.
+   • Uses localStorage to avoid re-showing reminders the same day.
+   • Checks: on page load, on tab focus, on visibility change, and
+     every 30 minutes while the app is open.
+═══════════════════════════════════════════════════════════════════ */
+const SubReminder = (() => {
+  const SEEN_KEY = 'klyro_sub_reminders_seen';
+  const CHECK_INTERVAL = 30 * 60 * 1000; // 30 min
+
+  /* ── Read/write seen-reminders tracker ── */
+  function _getSeen() {
+    try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}'); }
+    catch { return {}; }
+  }
+  function _markSeen(subId, type) {
+    const seen = _getSeen();
+    const today = new Date().toISOString().split('T')[0];
+    if (!seen[subId]) seen[subId] = {};
+    seen[subId][type] = today;
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch {}
+  }
+  function _wasSeenToday(subId, type) {
+    const seen = _getSeen();
+    const today = new Date().toISOString().split('T')[0];
+    return seen[subId]?.[type] === today;
+  }
+
+  /* ── Parse a transaction into a subscription object ── */
+  function _parse(txn) {
+    if (!txn || txn.type !== 'expense') return null;
+    const m = (txn.description || '').match(/^(.+?)\s+\[(weekly|monthly|yearly)\]$/);
+    if (!m) return null;
+    return {
+      id: txn.id,
+      name: m[1],
+      cycle: m[2],
+      amount: txn.amount,
+      createdDate: txn.date || new Date().toISOString().split('T')[0],
+      originalTxn: txn
+    };
+  }
+
+  /* ── Calculate the next due date ── */
+  function _nextDue(sub) {
+    const created = new Date(sub.createdDate + 'T00:00:00');
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (sub.cycle === 'monthly') {
+      const day = Math.min(created.getDate(), 28); // safe base
+      let next = new Date(today.getFullYear(), today.getMonth(), day);
+      if (next <= today) {
+        next = new Date(today.getFullYear(), today.getMonth() + 1, day);
+      }
+      // Clamp to last day of month if day overflows (e.g. Jan 31 -> Feb 28)
+      if (next.getDate() !== day) {
+        next = new Date(next.getFullYear(), next.getMonth() + 1, 0);
+      }
+      return next;
+    }
+    if (sub.cycle === 'yearly') {
+      let next = new Date(today.getFullYear(), created.getMonth(), created.getDate());
+      if (next <= today) next.setFullYear(next.getFullYear() + 1);
+      return next;
+    }
+    if (sub.cycle === 'weekly') {
+      const dow = created.getDay();
+      const diff = (dow - today.getDay() + 7) % 7;
+      let next = new Date(today);
+      next.setDate(today.getDate() + (diff === 0 ? 7 : diff));
+      return next;
+    }
+    return today;
+  }
+
+  function _daysUntil(d) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return Math.round((d.getTime() - today.getTime()) / 86400000);
+  }
+
+  /* ── Show the payment confirmation modal ── */
+  function _showPrompt(sub) {
+    const cur = typeof getCurrency === 'function' ? getCurrency() : { symbol: '$' };
+    let overlay = document.getElementById('sub-prompt-overlay');
+
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'sub-prompt-overlay';
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal" style="max-width:380px;">
+          <div class="modal-header">
+            <div class="modal-title"><i class="fas fa-repeat" style="color:var(--gold);margin-right:8px;"></i> Subscription Due</div>
+            <button class="modal-close" id="sub-prompt-close"><i class="fas fa-times"></i></button>
+          </div>
+          <div style="text-align:center;padding:8px 0 20px;">
+            <div style="font-size:1.3rem;font-weight:700;margin-bottom:2px;" id="sub-prompt-name"></div>
+            <div style="font-size:1.6rem;font-weight:700;color:var(--gold);margin-bottom:6px;" id="sub-prompt-amount"></div>
+            <div style="font-size:0.82rem;color:var(--text-mid);margin-bottom:2px;" id="sub-prompt-cycle"></div>
+            <p style="font-size:0.88rem;color:var(--text-mid);margin-top:14px;">Has this subscription been paid today?</p>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-glass" style="flex:1;justify-content:center;" id="sub-prompt-no">Not Yet</button>
+            <button class="btn btn-gold" style="flex:1;justify-content:center;" id="sub-prompt-yes">Yes, Paid ✓</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) overlay.classList.remove('open');
+      });
+      document.getElementById('sub-prompt-close').addEventListener('click', function () {
+        overlay.classList.remove('open');
+      });
+    }
+
+    document.getElementById('sub-prompt-name').textContent = sub.name;
+    document.getElementById('sub-prompt-amount').textContent = cur.symbol + parseFloat(sub.amount).toFixed(2);
+    document.getElementById('sub-prompt-cycle').textContent = sub.cycle.charAt(0).toUpperCase() + sub.cycle.slice(1);
+
+    // Replace buttons with fresh clones to remove old listeners
+    const yesOld = document.getElementById('sub-prompt-yes');
+    const noOld  = document.getElementById('sub-prompt-no');
+    const yesNew = yesOld.cloneNode(true);
+    const noNew  = noOld.cloneNode(true);
+    yesOld.parentNode.replaceChild(yesNew, yesOld);
+    noOld.parentNode.replaceChild(noNew, noOld);
+
+    yesNew.addEventListener('click', function () {
+      _handlePayment(sub, true);
+      overlay.classList.remove('open');
+    });
+    noNew.addEventListener('click', function () {
+      _handlePayment(sub, false);
+      overlay.classList.remove('open');
+    });
+
+    overlay.classList.add('open');
+  }
+
+  /* ── Handle the user's payment response ── */
+  function _handlePayment(sub, paid) {
+    if (paid) {
+      const today = new Date().toISOString().split('T')[0];
+      if (typeof Store !== 'undefined' && Store.addTransaction) {
+        const result = Store.addTransaction({
+          type: 'expense',
+          amount: sub.amount,
+          description: sub.name + ' (subscription)',
+          category: 'subscriptions',
+          date: today
+        });
+        if (result && typeof showToast === 'function') {
+          showToast('✅ ' + sub.name + ' paid — added to expenses');
+        } else if (!result && typeof showToast === 'function') {
+          showToast('⚠️ Could not add expense — check your plan limit', 'error');
+        }
+      }
+    } else {
+      if (typeof showToast === 'function') {
+        showToast('⏭️ ' + sub.name + ' skipped — will remind next cycle');
+      }
+    }
+    _markSeen(sub.id, 'paid_' + (paid ? 'yes' : 'no'));
+  }
+
+  /* ── Main check — called on load, focus, visibility, and timer ── */
+  function check() {
+    if (typeof Store === 'undefined' || !Store.getTransactions) return;
+    const txns = Store.getTransactions();
+    const now = new Date();
+    const hour = now.getHours();
+
+    for (let i = 0; i < txns.length; i++) {
+      const sub = _parse(txns[i]);
+      if (!sub) continue;
+
+      const due = _nextDue(sub);
+      const daysTill = _daysUntil(due);
+
+      // 1) Two-day-before reminder
+      if (daysTill === 2 && !_wasSeenToday(sub.id, 'reminder_2d')) {
+        const cur = typeof getCurrency === 'function' ? getCurrency() : { symbol: '$' };
+        if (typeof showToast === 'function') {
+          showToast('🔔 ' + sub.name + ' due in 2 days — ' + cur.symbol + parseFloat(sub.amount).toFixed(2));
+        }
+        _markSeen(sub.id, 'reminder_2d');
+      }
+
+      // 2) Day-of reminder (before 10 AM)
+      if (daysTill === 0 && hour < 10 && !_wasSeenToday(sub.id, 'reminder_today')) {
+        const cur = typeof getCurrency === 'function' ? getCurrency() : { symbol: '$' };
+        if (typeof showToast === 'function') {
+          showToast('📌 ' + sub.name + ' is due today — ' + cur.symbol + parseFloat(sub.amount).toFixed(2));
+        }
+        _markSeen(sub.id, 'reminder_today');
+      }
+
+      // 3) Payment prompt (after 10 AM on due day, only if not already answered)
+      if (
+        daysTill === 0 &&
+        hour >= 10 &&
+        !_wasSeenToday(sub.id, 'paid_yes') &&
+        !_wasSeenToday(sub.id, 'paid_no') &&
+        !_wasSeenToday(sub.id, 'prompt_shown')
+      ) {
+        _showPrompt(sub);
+        _markSeen(sub.id, 'prompt_shown');
+      }
+    }
+  }
+
+  /* ── Start the reminder system ── */
+  function start() {
+    if (typeof document === 'undefined') return;
+
+    // Run once data is ready
+    if (_cache.ready) {
+      setTimeout(check, 500);
+    } else {
+      document.addEventListener('klyro:ready', function () { setTimeout(check, 500); }, { once: true });
+    }
+
+    // Periodic re-check
+    setInterval(check, CHECK_INTERVAL);
+
+    // Check when user returns to the tab
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) check();
+    });
+
+    // Check on window focus
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', check);
+    }
+  }
+
+  return { check: check, start: start, _parse: _parse, _nextDue: _nextDue };
+})();
 
 /* ══════════════════════════════════════
    MIGRATION HELPER

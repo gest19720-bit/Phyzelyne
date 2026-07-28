@@ -399,8 +399,38 @@
         </div>
         <button class="btn btn-gold" onclick="saveProfile()">
           <i class="fas fa-check"></i> Save Profile
-	        </button>
-	      </div>
+        </button>
+      </div>
+
+      <div class="glass-card" style="padding:28px;">
+        <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-building"></i> Business Profile</div>
+        <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:18px;">Automate your invoice <strong>"FROM (YOUR BUSINESS)"</strong> details.</p>
+        <div class="form-group">
+          <label class="form-label">Company Name</label>
+          <input type="text" class="form-input" id="biz-profile-name" placeholder="e.g. Acme Enterprise Ltd">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tagline or Reg No.</label>
+          <input type="text" class="form-input" id="biz-profile-tagline" placeholder="e.g. Reg: CS123456789">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="form-group">
+          <div>
+            <label class="form-label">Business Email</label>
+            <input type="email" class="form-input" id="biz-profile-email" placeholder="billing@acme.com">
+          </div>
+          <div>
+            <label class="form-label">Business Phone</label>
+            <input type="text" class="form-input" id="biz-profile-phone" placeholder="+233 55 000 0000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Street Address</label>
+          <input type="text" class="form-input" id="biz-profile-address" placeholder="123 Financial District, Accra">
+        </div>
+        <button class="btn btn-gold" onclick="saveBusinessProfileFromSettings()">
+          <i class="fas fa-check"></i> Save Business Profile
+        </button>
+      </div>
 
 	      <div class="glass-card" style="padding:28px;">
 	        <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-credit-card"></i> Current Plan</div>
@@ -823,10 +853,32 @@
 	    }
 	  }
 
-	  async function loadSettings() {
-	  if (!_cache.ready) {
-	    await new Promise(resolve => document.addEventListener('klyro:ready', resolve, { once: true }));
+  function renderBusinessProfileSettings() {
+    const prof = Store.getBusinessProfile() || {};
+    if (document.getElementById('biz-profile-name'))    document.getElementById('biz-profile-name').value    = prof.name || '';
+    if (document.getElementById('biz-profile-tagline')) document.getElementById('biz-profile-tagline').value = prof.tagline || '';
+    if (document.getElementById('biz-profile-email'))   document.getElementById('biz-profile-email').value   = prof.email || '';
+    if (document.getElementById('biz-profile-phone'))   document.getElementById('biz-profile-phone').value   = prof.phone || '';
+    if (document.getElementById('biz-profile-address')) document.getElementById('biz-profile-address').value = prof.address || '';
   }
+
+  function saveBusinessProfileFromSettings() {
+    const name = document.getElementById('biz-profile-name').value.trim();
+    if (!name) { showToast('Enter company name', 'error'); return; }
+    Store.saveBusinessProfile({
+      name,
+      tagline: document.getElementById('biz-profile-tagline').value.trim(),
+      email:   document.getElementById('biz-profile-email').value.trim(),
+      phone:   document.getElementById('biz-profile-phone').value.trim(),
+      address: document.getElementById('biz-profile-address').value.trim(),
+    });
+    showToast('Business profile updated! 🏢');
+  }
+
+  async function loadSettings() {
+    if (!_cache.ready) {
+      await new Promise(resolve => document.addEventListener('klyro:ready', resolve, { once: true }));
+    }
     const s = Store.getSettings();
     const u = Auth.getUser(); // safe here — we've already awaited the session/cache being ready
     if (s.darkMode) {
@@ -839,11 +891,12 @@
     if (s.incomeTarget) document.getElementById('income-target').value = s.incomeTarget;
     if (s.weeklySummary    !== undefined) document.getElementById('weekly-summary').checked    = s.weeklySummary;
     if (s.overspendAlerts  !== undefined) document.getElementById('overspend-alerts').checked  = s.overspendAlerts;
-	    if (s.goalAlerts       !== undefined) document.getElementById('goal-alerts').checked       = s.goalAlerts;
-	    renderThemeSwatches();
-	    renderAvatarView();
-	    renderCurrentPlan();
-	  }
+    if (s.goalAlerts       !== undefined) document.getElementById('goal-alerts').checked       = s.goalAlerts;
+    renderThemeSwatches();
+    renderAvatarView();
+    renderCurrentPlan();
+    renderBusinessProfileSettings();
+  }
 
   function renderDataStats() {
     const txns  = Store.getTransactions();

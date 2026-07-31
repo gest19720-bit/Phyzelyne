@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Klyro — Welcome</title>
-  <link rel="icon" type="image/png" href="exmo_logo.png">
+  <title>Phyzelyne — Welcome</title>
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="app.css">
@@ -471,8 +471,8 @@
     <div class="ob-step active" id="ob-step-1">
       <span class="ob-emoji" id="ob-wave">👋</span>
       <div class="ob-eyebrow">Let's get started</div>
-      <div class="ob-title" id="welcome-name">Welcome to Klyro!</div>
-      <div class="ob-sub">It'll take about 60 seconds to personalise your experience. Klyro AI uses these answers to give you advice that actually fits your life — not generic tips.</div>
+      <div class="ob-title" id="welcome-name">Welcome to Phyzelyne!</div>
+      <div class="ob-sub">It'll take about 60 seconds to personalise your experience. Phyzelyne AI uses these answers to give you advice that actually fits your life — not generic tips.</div>
       <div class="ob-nav">
         <span></span>
         <button class="btn btn-gold" onclick="goNext()">
@@ -486,7 +486,7 @@
       <span class="ob-emoji">🎯</span>
       <div class="ob-eyebrow">Step 1 of 4 — Your Goal</div>
       <div class="ob-title">What's your #1 financial goal?</div>
-      <div class="ob-sub">This shapes the daily tips Klyro AI sends your way.</div>
+      <div class="ob-sub">This shapes the daily tips Phyzelyne AI sends your way.</div>
       <div class="ob-options" id="goal-options">
         <button class="ob-opt" data-val="save_more" onclick="pickOption(this,'primaryGoal')">
           <div class="ob-opt-icon"><i class="fas fa-piggy-bank"></i></div>
@@ -551,7 +551,7 @@
       <span class="ob-emoji">🧠</span>
       <div class="ob-eyebrow">Step 3 of 4 — Spending Style</div>
       <div class="ob-title">How would you describe your spending?</div>
-      <div class="ob-sub">Be real with us — Klyro works better when it knows the honest picture. No judgment here.</div>
+      <div class="ob-sub">Be real with us — Phyzelyne works better when it knows the honest picture. No judgment here.</div>
       <div class="ob-options" id="habit-options">
         <button class="ob-opt" data-val="very_careful" onclick="pickOption(this,'spendingHabit')">
           <div class="ob-opt-icon"><i class="fas fa-lock"></i></div>
@@ -605,7 +605,7 @@
         <span class="ob-big-emoji" id="finish-emoji">🎉</span>
         <div class="ob-eyebrow" style="justify-content:center;display:flex;">You're all set!</div>
         <div class="ob-title" style="text-align:center;" id="finish-title">Let's build your future, together.</div>
-        <div class="ob-sub" style="text-align:center;">Here's a quick look at what you told us — Klyro will use this to power your dashboard.</div>
+        <div class="ob-sub" style="text-align:center;">Here's a quick look at what you told us — Phyzelyne will use this to power your dashboard.</div>
         <div class="ob-summary" id="ob-summary"></div>
         <button class="btn btn-gold" style="width:100%;justify-content:center;" onclick="finishOnboarding()" id="finish-btn">
           <i class="fas fa-rocket"></i> Take me to my dashboard
@@ -812,7 +812,7 @@ async function finishOnboarding() {
 
   // Wait for _initData to have run (session may have resolved by now)
   if (!_cache.ready) {
-    await new Promise(r => document.addEventListener('klyro:ready', r, { once: true }));
+    await new Promise(r => document.addEventListener('phyzelyne:ready', r, { once: true }));
   }
 
   const s = Store.getSettings();
@@ -829,7 +829,7 @@ async function finishOnboarding() {
     if (_sessionCache?.user_metadata) _sessionCache.user_metadata.onboarded = true;
   }
 
-  showToast('All set! Welcome to Klyro 🎉');
+  showToast('All set! Welcome to Phyzelyne 🎉');
   setTimeout(() => { window.location.href = 'pricing.html'; }, 900);
 }
 

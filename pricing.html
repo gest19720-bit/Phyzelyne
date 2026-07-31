@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Klyro — Choose Your Plan</title>
-  <link rel="icon" type="image/png" href="exmo_logo.png">
+  <title>Phyzelyne — Choose Your Plan</title>
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="app.css">
@@ -401,8 +401,8 @@
 <div class="pricing-root">
 
   <div class="pricing-logo">
-    <img src="exmo_logo.png" alt="Klyro" onerror="this.style.display='none'">
-    <span class="pricing-logo-text">Klyro</span>
+    <img src="Phyzelyne's Logo.png" alt="Phyzelyne" onerror="this.style.display='none'">
+    <span class="pricing-logo-text">Phyzelyne</span>
   </div>
 
   <div class="pricing-header">
@@ -533,7 +533,7 @@
 
     <div class="payment-modal-title">Complete your upgrade</div>
     <div class="payment-modal-sub" id="modal-sub">
-	      You're one step away from unlocking more Klyro features.
+	      You're one step away from unlocking more Phyzelyne features.
     </div>
 
     <div class="payment-amount-display">
@@ -629,7 +629,7 @@
       const s = Store.getSettings();
       s.plan = 'free'; s.billingCycle = currentBilling;
       Store.saveSettings(s);
-      showToast('Welcome to Klyro Free! Upgrade any time. 🎉');
+      showToast('Welcome to Phyzelyne Free! Upgrade any time. 🎉');
       setTimeout(() => window.location.href = 'dashboard.html', 900);
       return;
     }
@@ -691,7 +691,7 @@
       email:     user.email,
       amount:    amountKobo,
       currency:  'USD',
-      ref:       'klyro_' + pendingPlan + '_' + Date.now(),
+      ref:       'phyzelyne_' + pendingPlan + '_' + Date.now(),
       metadata: {
         custom_fields: [
           { display_name: 'Plan',         variable_name: 'plan',          value: pendingPlan },

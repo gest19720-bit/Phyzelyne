@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Klyro — AI Coach</title>
-  <link rel="icon" type="image/png" href="exmo_logo.png">
+  <title>Phyzelyne — AI Coach</title>
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="app.css">
@@ -135,9 +135,12 @@
 <div class="app-shell">
   <main class="main-content">
 
-    <div class="page-header">
-      <h1>Klyro AI</h1>
-      <p>Powered by Claude Sonnet 4.6 — your personal finance coach.</p>
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1>Phyzelyne AI</h1>
+        <p>Powered by Claude Sonnet 4.6 — your personal finance coach.</p>
+      </div>
+      <div id="ai-token-badge-container"></div>
     </div>
 
     <!-- Deficit banner (shown when user is overspending) -->
@@ -150,8 +153,8 @@
     <div class="ai-hero">
       <div class="ai-avatar">🧠</div>
       <div>
-        <h2>Hey, I'm Klyro AI</h2>
-        <p>I know your finances inside out. I can also search the web live for the latest rates, strategies and deals — so my information is always grounded in what's actually available to you right now.</p>
+        <h2>Hey, I'm Phyzelyne AI</h2>
+        <p>I know your finances inside out. Free Plan includes <strong>10 prompts per day</strong> (100 daily tokens)!</p>
       </div>
     </div>
 
@@ -163,7 +166,7 @@
 
     <!-- Chat -->
     <div class="glass-card" style="padding:28px;">
-      <div class="section-title" style="margin-bottom:14px;"><i class="fas fa-comments"></i> Ask Klyro AI</div>
+      <div class="section-title" style="margin-bottom:14px;"><i class="fas fa-comments"></i> Ask Phyzelyne AI</div>
       <div class="chips-wrap" id="chips"></div>
       <div class="ai-chat-window" id="chat-window"></div>
       <div class="ai-status-bar" id="status-bar">
@@ -173,7 +176,7 @@
       <div class="chat-input-row">
         <input type="text" class="form-input" id="chat-input"
           placeholder="Ask anything about your finances…" autocomplete="off">
-        <button class="btn btn-glass" id="voice-btn" onclick="toggleVoiceInput()" title="Speak to Klyro" style="padding-inline: 14px;">
+        <button class="btn btn-glass" id="voice-btn" onclick="toggleVoiceInput()" title="Speak to Phyzelyne" style="padding-inline: 14px;">
           <i class="fas fa-microphone"></i>
         </button>
         <button class="btn btn-gold" id="send-btn" onclick="sendMessage()">
@@ -199,8 +202,63 @@
 <script>
   Auth.require();
 
-  // Gate check deferred until klyro:ready so that paid users' plan is loaded
-  // from Supabase before we decide to lock/unlock the page.
+  function updateAITokenBadge() {
+    const container = document.getElementById('ai-token-badge-container');
+    if (!container) return;
+    const plan = PlanGate.currentPlan();
+    if (plan !== 'free') {
+      container.innerHTML = `<span class="ai-token-badge pro"><i class="fas fa-bolt"></i> Unlimited Pro Prompts</span>`;
+      return;
+    }
+    const tokenState = PlanGate.getAITokenState();
+    const promptsLeft = Math.max(0, Math.floor(tokenState.tokensRemaining / 10));
+    const isExhausted = promptsLeft === 0;
+    container.innerHTML = `
+      <span class="ai-token-badge ${isExhausted ? 'exhausted' : promptsLeft <= 3 ? 'low' : ''}">
+        <i class="fas fa-bolt"></i> ${promptsLeft} / 10 Free Prompts Left Today (${tokenState.tokensRemaining} Tokens)
+      </span>
+    `;
+
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    if (isExhausted) {
+      if (input) { input.disabled = true; input.placeholder = "Daily free limit reached (10/10 prompts used today). Upgrade to Pro to continue."; }
+      if (sendBtn) { sendBtn.disabled = true; }
+      showAIUpgradeBanner();
+    } else {
+      if (input) { input.disabled = false; input.placeholder = "Ask anything about your finances…"; }
+      if (sendBtn) { sendBtn.disabled = false; }
+      hideAIUpgradeBanner();
+    }
+  }
+
+  function showAIUpgradeBanner() {
+    let banner = document.getElementById('ai-upgrade-banner');
+    if (!banner) {
+      const hero = document.querySelector('.ai-hero');
+      if (!hero) return;
+      banner = document.createElement('div');
+      banner.id = 'ai-upgrade-banner';
+      banner.className = 'ai-upgrade-banner';
+      hero.after(banner);
+    }
+    banner.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;">
+        <div>
+          <strong>🔒 Daily 10-Prompt Free Limit Reached!</strong>
+          <p style="margin:4px 0 0;font-size:0.82rem;opacity:0.9;">You have used all 10 free prompts (100 tokens) for today. Upgrade to Personal or Cooperate for unlimited AI coaching.</p>
+        </div>
+        <a href="pricing.html" class="btn btn-gold" style="white-space:nowrap;padding:8px 18px;font-size:0.85rem;text-decoration:none;">Upgrade Now ✨</a>
+      </div>
+    `;
+    banner.style.display = 'flex';
+  }
+
+  function hideAIUpgradeBanner() {
+    const banner = document.getElementById('ai-upgrade-banner');
+    if (banner) banner.style.display = 'none';
+  }
+
   function _checkAIGate() {
     if (!PlanGate.can('ai_chat')) {
       window.__aiGated = true;
@@ -208,24 +266,25 @@
       if (mount) { mount.innerHTML = renderSidebar(); initSidebar(); }
       const shell = document.querySelector('.app-shell');
       if (shell) {
-        shell.innerHTML = '<main class="main-content"><div class="page-header"><h1>Klyro AI</h1><p>Your personal AI finance coach.</p></div><div class="glass-card" style="padding:28px;" id="ai-locked-banner"></div></main>';
+        shell.innerHTML = '<main class="main-content"><div class="page-header"><h1>Phyzelyne AI</h1><p>Your personal AI finance coach.</p></div><div class="glass-card" style="padding:28px;" id="ai-locked-banner"></div></main>';
         PlanGate.renderLockedBanner('ai_chat', 'ai-locked-banner');
       }
+    } else {
+      updateAITokenBadge();
     }
   }
-  // If cache is already ready (e.g. fast page load), check immediately.
-  // Otherwise wait for the data to arrive.
+
   if (_cache.ready) {
     _checkAIGate();
   } else {
-    document.addEventListener('klyro:ready', _checkAIGate, { once: true });
+    document.addEventListener('phyzelyne:ready', _checkAIGate, { once: true });
   }
 </script>
 <script>
 'use strict';
 
 /* ═══════════════════════════════════════════════════
-   KLYRO AI  —  Extended Thinking + Live Web Search
+   PHYZELYNE AI  —  Extended Thinking + Live Web Search
    Model  : claude-sonnet-4-6
    Thinking budget: 10,000 tokens  (~15-30 seconds)
    Min display    : 15 seconds enforced by JS clock
@@ -336,7 +395,7 @@ ${ctx.expenseChange ? `• Expense vs last month: ${ctx.expenseChange > 0 ? '+' 
 }
 
 function buildSystemPrompt() {
-  return `You are Klyro AI — a warm, sharp, deeply knowledgeable personal finance coach embedded in the Klyro app. You are powered by Claude Sonnet 4.6 with extended thinking enabled, which means you reason carefully before responding.
+  return `You are Phyzelyne AI — a warm, sharp, deeply knowledgeable personal finance coach embedded in the Phyzelyne app. You are powered by Claude Sonnet 4.6 with extended thinking enabled, which means you reason carefully before responding.
 
 PERSONALITY & STYLE:
 - Warm, encouraging, never judgmental — money is emotional, treat it that way
@@ -754,7 +813,7 @@ function initSpeechRecognition() {
   const resetSilenceTimer = () => {
     if (silenceTimer) clearTimeout(silenceTimer);
     silenceTimer = setTimeout(() => {
-      console.log('[Klyro Voice] Silence detected. Stopping and sending...');
+      console.log('[Phyzelyne Voice] Silence detected. Stopping and sending...');
       rec.stop();
     }, 2000);
   };
@@ -985,7 +1044,7 @@ function renderInitialGreeting() {
     : '';
 
   appendMessage('ai',
-    `Hello${name ? ', <strong>' + name + '</strong>' : ''}! I'm <strong>Klyro AI</strong>, powered by Claude Sonnet 4.6 with extended thinking. 🧠<br><br>
+    `Hello${name ? ', <strong>' + name + '</strong>' : ''}! I'm <strong>Phyzelyne AI</strong>, powered by Claude Sonnet 4.6 with extended thinking. 🧠<br><br>
      I take time to reason carefully before I respond — you'll see me thinking for at least 15 seconds to make sure my advice is accurate and personalised to <em>your</em> finances. I can also search the web live for current rates and strategies.${deficitNote}<br><br>
      What's on your mind? 💛`
   );
@@ -994,10 +1053,10 @@ function renderInitialGreeting() {
 if (_cache.ready) {
   setTimeout(renderInitialGreeting, 350);
 } else {
-  document.addEventListener('klyro:ready', () => setTimeout(renderInitialGreeting, 150), { once: true });
+  document.addEventListener('phyzelyne:ready', () => setTimeout(renderInitialGreeting, 150), { once: true });
 }
 
-document.addEventListener('klyro:data-changed', (evt) => {
+document.addEventListener('phyzelyne:data-changed', (evt) => {
   if (evt.detail?.type === 'transactions' || evt.detail?.type === 'all') {
     renderDeficitBanner();
     renderAutoInsights();

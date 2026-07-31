@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Klyro — Transactions</title>
-  <link rel="icon" type="image/png" href="exmo_logo.png">
+  <title>Phyzelyne — Transactions</title>
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="app.css">
@@ -705,11 +705,11 @@
 
   async function boot() {
     if (!_cache.ready) {
-      await new Promise(resolve => document.addEventListener('klyro:ready', resolve, { once: true }));
+      await new Promise(resolve => document.addEventListener('phyzelyne:ready', resolve, { once: true }));
     }
     renderPage();
 
-    document.addEventListener('klyro:data-changed', (evt) => {
+    document.addEventListener('phyzelyne:data-changed', (evt) => {
       if (evt.detail?.type === 'transactions' || evt.detail?.type === 'all') {
         renderPage();
       }
@@ -747,7 +747,7 @@
   if (typeof _cache !== 'undefined' && _cache.ready) {
     _setSmartTab();
   } else {
-    document.addEventListener('klyro:ready', _setSmartTab, { once: true });
+    document.addEventListener('phyzelyne:ready', _setSmartTab, { once: true });
     document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){
       var p = el.dataset.page;
     if(page.includes(p)||(p==='dashboard'&&['','dashboard.html'].includes(page)))

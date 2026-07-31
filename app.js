@@ -1,5 +1,5 @@
 /**
- * Klyro App — app.js
+ * Phyzelyne App — app.js
  * Auth · Store · Utilities · Sidebar · Currency · AI Analysis
  */
 
@@ -9,11 +9,11 @@
    SUPABASE CLIENT
    ⚠️  Paste your Project URL and anon key from
    Supabase Dashboard → Settings → API
-   Use window.__KLYRO_SUPABASE_URL__ / __KEY__
+   Use window.__PHYZELYNE_SUPABASE_URL__ / __KEY__
    for build-time injection (recommended).
 ══════════════════════════════════════ */
-const SUPABASE_URL = window.__KLYRO_SUPABASE_URL__ || 'https://ecxjttbbesbjpisealrp.supabase.co';
-const SUPABASE_KEY = window.__KLYRO_SUPABASE_KEY__ || 'sb_publishable__qiqb1L9zW6Q4guscaGvbA_4r0daTME';
+const SUPABASE_URL = window.__PHYZELYNE_SUPABASE_URL__ || 'https://ecxjttbbesbjpisealrp.supabase.co';
+const SUPABASE_KEY = window.__PHYZELYNE_SUPABASE_KEY__ || 'sb_publishable__qiqb1L9zW6Q4guscaGvbA_4r0daTME';
 
 const _sb = (typeof supabase !== 'undefined')
   ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -51,11 +51,11 @@ function _storageUserId() {
 }
 
 function _localKey(table) {
-  return `klyro_backup_${_storageUserId()}_${table}`;
+  return `phyzelyne_backup_${_storageUserId()}_${table}`;
 }
 
 function _pendingKey() {
-  return `klyro_pending_sync_${_storageUserId()}`;
+  return `phyzelyne_pending_sync_${_storageUserId()}`;
 }
 
 function _readLocal(table, fallback) {
@@ -71,7 +71,7 @@ function _writeLocal(table, value) {
   try {
     localStorage.setItem(_localKey(table), JSON.stringify(value));
   } catch (e) {
-    console.warn('[Klyro] local backup failed', table, e.message);
+    console.warn('[Phyzelyne] local backup failed', table, e.message);
   }
 }
 
@@ -87,7 +87,7 @@ function _writePendingSync(list) {
   try {
     localStorage.setItem(_pendingKey(), JSON.stringify(list));
   } catch (e) {
-    console.warn('[Klyro] pending sync backup failed', e.message);
+    console.warn('[Phyzelyne] pending sync backup failed', e.message);
   }
 }
 
@@ -174,26 +174,26 @@ function _adoptAnonymousLocalData() {
 
   _PERSISTED_TABLES.forEach(table => {
     try {
-      const oldRaw = localStorage.getItem(`klyro_backup_${oldUid}_${table}`);
+      const oldRaw = localStorage.getItem(`phyzelyne_backup_${oldUid}_${table}`);
       if (!oldRaw) return;
       const oldData = JSON.parse(oldRaw);
-      const newRaw = localStorage.getItem(`klyro_backup_${currentUid}_${table}`);
+      const newRaw = localStorage.getItem(`phyzelyne_backup_${currentUid}_${table}`);
       const newData = newRaw ? JSON.parse(newRaw) : (table === 'settings' ? {} : []);
       const merged = table === 'settings'
         ? _mergeSettings(newData, oldData)
         : _mergeRows(newData, oldData, table);
-      localStorage.setItem(`klyro_backup_${currentUid}_${table}`, JSON.stringify(merged));
-      localStorage.removeItem(`klyro_backup_${oldUid}_${table}`);
+      localStorage.setItem(`phyzelyne_backup_${currentUid}_${table}`, JSON.stringify(merged));
+      localStorage.removeItem(`phyzelyne_backup_${oldUid}_${table}`);
     } catch {}
   });
 
   try {
-    const oldRaw = localStorage.getItem(`klyro_pending_sync_${oldUid}`);
+    const oldRaw = localStorage.getItem(`phyzelyne_pending_sync_${oldUid}`);
     if (oldRaw) {
       const oldOps = JSON.parse(oldRaw);
       const newOps = _readPendingSync();
       _writePendingSync([...newOps, ...oldOps]);
-      localStorage.removeItem(`klyro_pending_sync_${oldUid}`);
+      localStorage.removeItem(`phyzelyne_pending_sync_${oldUid}`);
     }
   } catch {}
 }
@@ -265,11 +265,11 @@ async function _refreshCacheFromSupabase({ notify = true, preserveLocal = false 
 
     _persistAllCache();
     if (notify && changed) {
-      document.dispatchEvent(new CustomEvent('klyro:data-changed', { detail: { type: 'all', source: 'remote-sync' } }));
+      document.dispatchEvent(new CustomEvent('phyzelyne:data-changed', { detail: { type: 'all', source: 'remote-sync' } }));
     }
     return true;
   } catch (e) {
-    console.warn('[Klyro] remote sync failed', e.message);
+    console.warn('[Phyzelyne] remote sync failed', e.message);
     return false;
   } finally {
     _remoteSyncInFlight = false;
@@ -315,7 +315,7 @@ async function _flushWriteQueue() {
 	        if (error) throw error;
 	      }
     } catch (e) {
-      console.error('[Klyro] write-queue replay', op.table, e.message);
+      console.error('[Phyzelyne] write-queue replay', op.table, e.message);
       failed.push(op);
     }
   }
@@ -325,22 +325,22 @@ async function _flushWriteQueue() {
 
 /* ── Cross-tab data sync (BroadcastChannel) ─────────────────────────────────
    When any tab calls a Store mutation (addTransaction, deleteTransaction, etc.)
-   it broadcasts a lightweight message.  Every other open Klyro tab receives it,
-   re-fetches the affected table from Supabase, then fires 'klyro:data-changed'
+   it broadcasts a lightweight message.  Every other open Phyzelyne tab receives it,
+   re-fetches the affected table from Supabase, then fires 'phyzelyne:data-changed'
    on the DOM so the page can re-render — giving the dashboard instant updates
    whenever the user adds a transaction on the Transactions page (and vice-versa).
    Falls back silently where BroadcastChannel is unavailable (e.g. some iframes).
 ────────────────────────────────────────────────────────────────────────────── */
-const _klyroChannel = (typeof BroadcastChannel !== 'undefined')
-  ? new BroadcastChannel('klyro_data_sync')
+const _phyzelyneChannel = (typeof BroadcastChannel !== 'undefined')
+  ? new BroadcastChannel('phyzelyne_data_sync')
   : null;
 
 function _applySettingsSideEffects(raw) {
   try {
     const plan = raw.plan;
-    if (plan) localStorage.setItem('klyro_plan', plan);
+    if (plan) localStorage.setItem('phyzelyne_plan', plan);
     if (raw.darkMode !== undefined) {
-      localStorage.setItem('klyro_theme', raw.darkMode ? 'dark' : 'light');
+      localStorage.setItem('phyzelyne_theme', raw.darkMode ? 'dark' : 'light');
       if (raw.darkMode) {
         document.body.classList.add('dark');
         document.documentElement.classList.add('dark-pre');
@@ -350,7 +350,7 @@ function _applySettingsSideEffects(raw) {
       }
     }
     if (raw.accentTheme !== undefined) {
-      localStorage.setItem('klyro_accent', raw.accentTheme);
+      localStorage.setItem('phyzelyne_accent', raw.accentTheme);
       _applyAccentTheme(raw.accentTheme);
     }
   } catch {}
@@ -462,28 +462,28 @@ async function _syncTableFromRemote(table) {
     }
     _persistAllCache();
   } catch (e) {
-    console.warn('[Klyro Realtime] failed to sync table:', table, e.message);
+    console.warn('[Phyzelyne Realtime] failed to sync table:', table, e.message);
   }
 }
 
 function _broadcastChange(type, op) {
-  try { _klyroChannel?.postMessage({ type: type || 'transactions', op, ts: Date.now() }); } catch {}
+  try { _phyzelyneChannel?.postMessage({ type: type || 'transactions', op, ts: Date.now() }); } catch {}
 }
 
 function _initDataSync() {
-  if (!_klyroChannel) return;
-  _klyroChannel.onmessage = async (evt) => {
+  if (!_phyzelyneChannel) return;
+  _phyzelyneChannel.onmessage = async (evt) => {
     if (!_cache.ready || !_cache.userId || !_sb) return;
     const t = evt.data?.type || 'transactions';
     const op = evt.data?.op;
     if (op) {
       const updated = _handlePostgresChange(t, op);
       if (updated) {
-        document.dispatchEvent(new CustomEvent('klyro:data-changed', { detail: evt.data }));
+        document.dispatchEvent(new CustomEvent('phyzelyne:data-changed', { detail: evt.data }));
       }
     } else {
       await _syncTableFromRemote(t);
-      document.dispatchEvent(new CustomEvent('klyro:data-changed', { detail: evt.data }));
+      document.dispatchEvent(new CustomEvent('phyzelyne:data-changed', { detail: evt.data }));
     }
   };
 }
@@ -499,7 +499,7 @@ async function _initRealtimeSync() {
     _realtimeChannel = null;
   }
 
-  const channelName = `klyro_user_${uid}`;
+  const channelName = `phyzelyne_user_${uid}`;
   _realtimeChannel = _sb.channel(channelName);
 
   _PERSISTED_TABLES.forEach(table => {
@@ -507,10 +507,10 @@ async function _initRealtimeSync() {
       'postgres_changes',
       { event: '*', schema: 'public', table: table, filter: `user_id=eq.${uid}` },
       async (payload) => {
-        console.log('[Klyro Realtime] DB change event received for:', table, payload.eventType);
+        console.log('[Phyzelyne Realtime] DB change event received for:', table, payload.eventType);
         const updated = _handlePostgresChange(table, payload);
         if (updated) {
-          document.dispatchEvent(new CustomEvent('klyro:data-changed', { detail: { type: table, source: 'postgres-changes', payload } }));
+          document.dispatchEvent(new CustomEvent('phyzelyne:data-changed', { detail: { type: table, source: 'postgres-changes', payload } }));
         }
       }
     );
@@ -518,7 +518,7 @@ async function _initRealtimeSync() {
 
   _realtimeChannel.subscribe((status) => {
     if (status === 'SUBSCRIBED') {
-      console.log('[Klyro Realtime] Subscribed to realtime channel:', channelName);
+      console.log('[Phyzelyne Realtime] Subscribed to realtime channel:', channelName);
     }
   });
 }
@@ -615,7 +615,7 @@ async function _upsert(table, rowOrRows) {
   try {
     const { error } = await _sb.from(table).upsert(payload, _upsertOptions(table));
     if (error) {
-      console.error('[Klyro] upsert error:', table, error.message);
+      console.error('[Phyzelyne] upsert error:', table, error.message);
       if (Array.isArray(rowOrRows)) {
         rowOrRows.forEach(row => _queuePendingSync({ type: 'upsert', table, row: { ...row } }));
       } else {
@@ -623,7 +623,7 @@ async function _upsert(table, rowOrRows) {
       }
     }
   } catch (e) {
-    console.warn('[Klyro] upsert network failure:', table, e.message);
+    console.warn('[Phyzelyne] upsert network failure:', table, e.message);
     if (Array.isArray(rowOrRows)) {
       rowOrRows.forEach(row => _queuePendingSync({ type: 'upsert', table, row: { ...row } }));
     } else {
@@ -647,11 +647,11 @@ async function _sbDelete(table, id) {
   try {
     const { error } = await _sb.from(table).delete().eq('id', id).eq('user_id', _cache.userId);
     if (error) {
-      console.error('[Klyro] delete error:', table, error.message);
+      console.error('[Phyzelyne] delete error:', table, error.message);
       _queuePendingSync({ type: 'delete', table, id });
     }
   } catch (e) {
-    console.warn('[Klyro] delete network failure:', table, e.message);
+    console.warn('[Phyzelyne] delete network failure:', table, e.message);
     _queuePendingSync({ type: 'delete', table, id });
   }
 }
@@ -670,10 +670,10 @@ async function _initData() {
   }
   _persistAllCache();
   // Mirror plan to localStorage so PlanGate.currentPlan() works synchronously
-  // on the next page load (before klyro:ready fires).
+  // on the next page load (before phyzelyne:ready fires).
   try {
     const plan = (_cache.settings || {}).plan;
-    if (plan) localStorage.setItem('klyro_plan', plan);
+    if (plan) localStorage.setItem('phyzelyne_plan', plan);
   } catch {}
   _cache.ready = true;
   _initDataSync();   // start listening for cross-tab data changes
@@ -682,7 +682,7 @@ async function _initData() {
   await _flushWriteQueue();  // replay any writes that arrived before userId was set
   await _syncCacheToSupabase(); // upload device-only records for same-account sync
   migrateFromLocalStorage(); // one-shot: move any old localStorage data to Supabase
-  document.dispatchEvent(new Event('klyro:ready'));
+  document.dispatchEvent(new Event('phyzelyne:ready'));
 
   // Boot subscription reminders after data is loaded
   try { SubReminder.start(); } catch (e) { /* SubReminder not available */ }
@@ -736,7 +736,7 @@ const Theme = {
   list() { return THEMES; },
   current() {
     const s = (typeof Store !== 'undefined') ? Store.getSettings() : {};
-    return s.accentTheme || localStorage.getItem('klyro_accent') || 'gold';
+    return s.accentTheme || localStorage.getItem('phyzelyne_accent') || 'gold';
 	  },
 	  apply(id) {
 	    if (typeof PlanGate !== 'undefined' && !PlanGate.can('theme_customization')) {
@@ -744,7 +744,7 @@ const Theme = {
 	      return THEMES.find(x => x.id === Theme.current()) || THEMES[0];
 	    }
 	    const t = _applyAccentTheme(id);
-    try { localStorage.setItem('klyro_accent', t.id); } catch {}
+    try { localStorage.setItem('phyzelyne_accent', t.id); } catch {}
     if (typeof Store !== 'undefined') {
       const s = Store.getSettings();
       s.accentTheme = t.id;
@@ -763,12 +763,12 @@ const Theme = {
   try {
     // Try Supabase cache first (populated by _initData after login)
     // On first paint it won't be ready yet, so we also keep a localStorage mirror
-    const localTheme = localStorage.getItem('klyro_theme') || 'light';
+    const localTheme = localStorage.getItem('phyzelyne_theme') || 'light';
     if (localTheme === 'dark') document.documentElement.classList.add('dark-pre');
 
     // Accent colour theme — also mirrored to localStorage so it survives
     // before Supabase settings load, same pattern as dark mode above.
-    const localAccent = localStorage.getItem('klyro_accent');
+    const localAccent = localStorage.getItem('phyzelyne_accent');
     if (localAccent) _applyAccentTheme(localAccent);
   } catch {}
 })();
@@ -1158,15 +1158,15 @@ const ResendEmail = (() => {
         </head>
         <body>
           <div class="container">
-            <div class="logo">Klyro</div>
-            <h1>Welcome to Klyro, ${firstName}! 👋</h1>
-            <p>We're thrilled to have you join Klyro — your intelligent financial operating system.</p>
-            <p>With Klyro, you can track income &amp; expenses across 150+ currencies, draft professional invoices in seconds, hit your savings goals, and get 24/7 financial insights from your AI Coach.</p>
-            <p><a href="https://klyro.app" class="btn">Explore Klyro Dashboard</a></p>
+            <div class="logo">Phyzelyne</div>
+            <h1>Welcome to Phyzelyne, ${firstName}! 👋</h1>
+            <p>We're thrilled to have you join Phyzelyne — your intelligent financial operating system.</p>
+            <p>With Phyzelyne, you can track income &amp; expenses across 150+ currencies, draft professional invoices in seconds, hit your savings goals, and get 24/7 financial insights from your AI Coach.</p>
+            <p><a href="https://klyro.app" class="btn">Explore Phyzelyne Dashboard</a></p>
             <p>If you have any questions or feedback, simply reply to this email. We're here to help you build your financial future.</p>
             <div class="footer">
-              © 2026 Klyro. All rights reserved.<br>
-              You received this email because you signed up for a Klyro account.
+              © 2026 Phyzelyne. All rights reserved.<br>
+              You received this email because you signed up for a Phyzelyne account.
             </div>
           </div>
         </body>
@@ -1181,9 +1181,9 @@ const ResendEmail = (() => {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            from: 'Klyro <onboarding@resend.dev>',
+            from: 'Phyzelyne <onboarding@resend.dev>',
             to: [userEmail],
-            subject: `Welcome to Klyro, ${firstName}! 🎉`,
+            subject: `Welcome to Phyzelyne, ${firstName}! 🎉`,
             html: htmlContent
           })
         });
@@ -1274,7 +1274,7 @@ const Auth = {
 
   /* Called on every protected page */
   require() {
-    if (!_sb) { console.warn('[Klyro] Supabase not initialised'); return; }
+    if (!_sb) { console.warn('[Phyzelyne] Supabase not initialised'); return; }
     _sb.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         window.location.href = 'login.html';
@@ -1299,7 +1299,7 @@ const Auth = {
         // lookup resolved — at that point Auth.getUser() returned null,
         // so avatars showed "?" and email/name fields were blank.
         // Re-render the sidebar now that the real user is known, and let
-        // pages listen for 'klyro:auth-ready' to refresh anything else
+        // pages listen for 'phyzelyne:auth-ready' to refresh anything else
         // that depends on Auth.getUser().
         const sidebarMount = document.getElementById('sidebar-mount');
         if (sidebarMount && typeof renderSidebar === 'function') {
@@ -1307,7 +1307,7 @@ const Auth = {
           if (typeof initSidebar === 'function') initSidebar();
         }
 
-        document.dispatchEvent(new Event('klyro:auth-ready'));
+        document.dispatchEvent(new Event('phyzelyne:auth-ready'));
       }
     });
   },
@@ -1356,7 +1356,7 @@ const Auth = {
       };
     }
     Auth._clearRateData(email);
-    localStorage.removeItem('klyro_last_email');
+    localStorage.removeItem('phyzelyne_last_email');
     _sessionCache = data.user;
     _cache.userId = data.user.id;
     await _initData();
@@ -1370,7 +1370,7 @@ const Auth = {
   async syncProfileDetails(name, email) {
     if (!_sb) return false;
     const { error } = await _sb.auth.updateUser({ email, data: { name } });
-    if (error) { console.error('[Klyro] syncProfile:', error.message); return false; }
+    if (error) { console.error('[Phyzelyne] syncProfile:', error.message); return false; }
     if (_sessionCache) {
       _sessionCache.email = email;
       _sessionCache.user_metadata = { ..._sessionCache.user_metadata, name };
@@ -1382,7 +1382,7 @@ const Auth = {
   async updateUserAvatar(urlOrBase64) {
     if (!_sb) return false;
     const { error } = await _sb.auth.updateUser({ data: { avatar: urlOrBase64 } });
-    if (error) { console.error('[Klyro] avatar:', error.message); return false; }
+    if (error) { console.error('[Phyzelyne] avatar:', error.message); return false; }
     if (_sessionCache?.user_metadata) _sessionCache.user_metadata.avatar = urlOrBase64;
     return true;
   },
@@ -1416,11 +1416,11 @@ const Auth = {
   /* ── Rate limiting (localStorage — intentionally stays local) ────── */
   /* ── Rate Limiting has to be in the backend database or cache not localStorage ────── */
   _getRateData(email) {
-    try { return JSON.parse(localStorage.getItem('klyro_rl_' + email) || '{}'); }
+    try { return JSON.parse(localStorage.getItem('phyzelyne_rl_' + email) || '{}'); }
     catch { return {}; }
   },
   _saveRateData(email, d) {
-    localStorage.setItem('klyro_rl_' + email, JSON.stringify(d));
+    localStorage.setItem('phyzelyne_rl_' + email, JSON.stringify(d));
   },
   _recordFailure(email) {
     const d = this._getRateData(email);
@@ -1438,7 +1438,7 @@ const Auth = {
     return null;
   },
   _clearRateData(email) {
-    localStorage.removeItem('klyro_rl_' + email);
+    localStorage.removeItem('phyzelyne_rl_' + email);
   },
 
   /* ── Legacy shims so onboarding.html / signup.html don't crash ───── */
@@ -1465,8 +1465,8 @@ const PlanGate = {
 
   // ── Feature matrix ────────────────────────────────────────────────────────
   FEATURES: {
-	    ai_chat:              { minPlan: 'cooperate',    label: 'Klyro AI Coach' },
-	    ai_web_search:        { minPlan: 'cooperate',    label: 'Klyro AI Web Search' },
+	    ai_chat:              { minPlan: 'free',         label: 'Phyzelyne AI Coach' },
+	    ai_web_search:        { minPlan: 'free',         label: 'Phyzelyne AI Web Search' },
 	    analysis:             { minPlan: 'free',         label: 'Bar Chart Analysis' },
 	    savings_goals:        { minPlan: 'personal',     label: 'Savings Goals' },
 	    currency_conversion:  { minPlan: 'personal',     label: 'Currency Conversion' },
@@ -1483,6 +1483,68 @@ const PlanGate = {
     category_limit:       { free: 3 },   // category limit for free plan only
   },
 
+  // ── Daily Token Management for AI (Free Plan: 100 daily tokens, 10 tokens/prompt) ──
+  getAITokenState() {
+    const today = new Date().toISOString().split('T')[0];
+    const STORAGE_KEY = 'phyzelyne_ai_token_state_v4';
+    let data;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) data = JSON.parse(stored);
+    } catch (e) {}
+
+    if (
+      !data ||
+      data.lastResetDate !== today ||
+      typeof data.tokensRemaining !== 'number' ||
+      isNaN(data.tokensRemaining)
+    ) {
+      data = {
+        tokensRemaining: 100,
+        totalDailyTokens: 100,
+        costPerPrompt: 10,
+        lastResetDate: today,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+    return data;
+  },
+
+  canSendAIPrompt() {
+    if (this.currentPlan() !== 'free') return { allowed: true, promptsLeft: Infinity, remainingTokens: Infinity };
+    const state = this.getAITokenState();
+    const promptsLeft = Math.floor(state.tokensRemaining / state.costPerPrompt);
+    if (promptsLeft <= 0) {
+      return {
+        allowed: false,
+        remainingTokens: state.tokensRemaining,
+        promptsLeft: 0,
+        message: 'Daily free limit reached (10/10 prompts used today). Upgrade to Pro for unlimited prompts!',
+      };
+    }
+    return {
+      allowed: true,
+      remainingTokens: state.tokensRemaining,
+      promptsLeft: promptsLeft,
+    };
+  },
+
+  deductAITokens(amount = 10) {
+    if (this.currentPlan() !== 'free') return { success: true, remainingTokens: Infinity, promptsLeft: Infinity };
+    const check = this.canSendAIPrompt();
+    if (!check.allowed) return { success: false, ...check };
+
+    const state = this.getAITokenState();
+    state.tokensRemaining -= amount;
+    localStorage.setItem('phyzelyne_ai_token_state_v4', JSON.stringify(state));
+    const promptsLeft = Math.floor(state.tokensRemaining / state.costPerPrompt);
+    return {
+      success: true,
+      remainingTokens: state.tokensRemaining,
+      promptsLeft: promptsLeft,
+    };
+  },
+
   // ── Upgrade copy per plan ─────────────────────────────────────────────────
   UPGRADE_COPY: {
     personal:  { price: '$5.99/mo', cta: 'Upgrade to Personal' },
@@ -1494,7 +1556,7 @@ const PlanGate = {
     const s = Store ? Store.getSettings() : {};
     let raw = s.plan;
     if (!raw) {
-      try { raw = localStorage.getItem('klyro_plan'); } catch {}
+      try { raw = localStorage.getItem('phyzelyne_plan'); } catch {}
     }
     raw = (raw || 'free').toLowerCase();
     return this.PLAN_ALIASES[raw] || raw;
@@ -1755,8 +1817,8 @@ const Store = {
     _cache.settings = { ...s };
     _persistCache('settings');
     // Mirror theme to localStorage for the pre-render flash fix
-    if (s.darkMode !== undefined) localStorage.setItem('klyro_theme', s.darkMode ? 'dark' : 'light');
-    if (s.accentTheme !== undefined) localStorage.setItem('klyro_accent', s.accentTheme);
+    if (s.darkMode !== undefined) localStorage.setItem('phyzelyne_theme', s.darkMode ? 'dark' : 'light');
+    if (s.accentTheme !== undefined) localStorage.setItem('phyzelyne_accent', s.accentTheme);
     _afterRemoteWrite('settings', _upsert('settings', { ...s, user_id: _cache.userId }));
     if (s.onboarded !== undefined && _sb) {
       _sb.auth.updateUser({ data: { onboarded: s.onboarded } }).catch(() => {});
@@ -2133,8 +2195,8 @@ function renderSidebar() {
   </button>
   <nav class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <img src="exmo_logo.png" alt="Exmo" onerror="this.style.display='none'">
-      <span class="sidebar-logo-text">Klyro</span>
+      <img src="Phyzelyne's Logo.png" alt="Phyzelyne" onerror="this.style.display='none'">
+      <span class="sidebar-logo-text">Phyzelyne</span>
     </div>
     <div class="sidebar-user">
       <div class="sidebar-avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">${avatarMarkup}</div>
@@ -2147,7 +2209,7 @@ function renderSidebar() {
     <span class="nav-section-label">Intelligence</span>
     ${PlanGate.isBusiness()
       ? `<a href="business.html" class="nav-item" data-page="business"><i class="fas fa-briefcase"></i> Business</a>`
-      : `<a href="ai.html" class="nav-item" data-page="ai"><i class="fas fa-brain"></i> Klyro AI</a>`
+      : `<a href="ai.html" class="nav-item" data-page="ai"><i class="fas fa-brain"></i> Phyzelyne AI</a>`
     }
     <span class="nav-section-label">Account</span>
     <a href="settings.html" class="nav-item" data-page="settings"><i class="fas fa-gear"></i> Settings</a>
@@ -2181,7 +2243,7 @@ function initSidebar() {
 
   // Dark mode — read from cache (set by Store.saveSettings) or localStorage mirror
   const s = Store.getSettings();
-  const isDark = s.darkMode ?? (localStorage.getItem('klyro_theme') === 'dark');
+  const isDark = s.darkMode ?? (localStorage.getItem('phyzelyne_theme') === 'dark');
   if (isDark) {
     document.body.classList.add('dark');
     document.documentElement.classList.add('dark-pre');
@@ -2190,12 +2252,12 @@ function initSidebar() {
   }
 
   // Accent theme — read from cache or localStorage mirror, same pattern as dark mode
-  const accentId = s.accentTheme || localStorage.getItem('klyro_accent') || 'gold';
+  const accentId = s.accentTheme || localStorage.getItem('phyzelyne_accent') || 'gold';
   _applyAccentTheme(accentId);
 }
 
 function handleLogout() {
-  if (confirm('Log out of Klyro?')) {
+  if (confirm('Log out of Phyzelyne?')) {
     showToast('Logged out. See you soon!');
     setTimeout(() => Auth.logout(), 900);
   }
@@ -2221,7 +2283,7 @@ function handleLogout() {
      every 30 minutes while the app is open.
 ═══════════════════════════════════════════════════════════════════ */
 const SubReminder = (() => {
-  const SEEN_KEY = 'klyro_sub_reminders_seen';
+  const SEEN_KEY = 'phyzelyne_sub_reminders_seen';
   const CHECK_INTERVAL = 30 * 60 * 1000; // 30 min
 
   /* ── Read/write seen-reminders tracker ── */
@@ -2435,7 +2497,7 @@ const SubReminder = (() => {
     if (_cache.ready) {
       setTimeout(check, 500);
     } else {
-      document.addEventListener('klyro:ready', function () { setTimeout(check, 500); }, { once: true });
+      document.addEventListener('phyzelyne:ready', function () { setTimeout(check, 500); }, { once: true });
     }
 
     // Periodic re-check
@@ -2464,17 +2526,21 @@ const SubReminder = (() => {
 ══════════════════════════════════════ */
 async function migrateFromLocalStorage() {
   if (!_cache.userId || !_sb) return;
-  const MIGRATED_KEY = `klyro_migrated_v3_${_cache.userId}`;
-  if (localStorage.getItem(MIGRATED_KEY)) return;
+  // One-shot marker: honour both the new key and the pre-rename key so users
+  // who already migrated under the old brand don't re-run this.
+  const MIGRATED_KEY = `phyzelyne_migrated_v3_${_cache.userId}`;
+  const LEGACY_MIGRATED_KEY = `klyro_migrated_v3_${_cache.userId}`;
+  if (localStorage.getItem(MIGRATED_KEY) || localStorage.getItem(LEGACY_MIGRATED_KEY)) return;
 
-  // Read old namespaced keys (both 'exmo_' and 'klyro_' prefixes)
+  // Read namespaced keys from previous app versions ('exmo_' and 'klyro_' eras)
+  // plus the current 'phyzelyne_' prefix, and push any leftover data to Supabase.
   const uid = _cache.userId;
 	  const oldKeys = {
-	    transactions: ['exmo_transactions_' + uid, 'klyro_transactions_' + uid],
-	    goals:        ['exmo_goals_' + uid,        'klyro_goals_' + uid],
-	    settings:     ['exmo_settings_' + uid,     'klyro_settings_' + uid],
-	    invoices:     ['klyro_invoices_' + uid],
-	    receipts:     ['klyro_receipts_' + uid],
+	    transactions: ['exmo_transactions_' + uid, 'klyro_transactions_' + uid, 'phyzelyne_transactions_' + uid],
+	    goals:        ['exmo_goals_' + uid,        'klyro_goals_' + uid,        'phyzelyne_goals_' + uid],
+	    settings:     ['exmo_settings_' + uid,     'klyro_settings_' + uid,     'phyzelyne_settings_' + uid],
+	    invoices:     ['klyro_invoices_' + uid,    'phyzelyne_invoices_' + uid],
+	    receipts:     ['klyro_receipts_' + uid,    'phyzelyne_receipts_' + uid],
 	  };
   const read = (keys) => {
     for (const k of keys) {

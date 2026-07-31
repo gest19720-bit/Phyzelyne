@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Klyro — Sign In</title>
-  <link rel="icon" type="image/png" href="klyro_logo.png">
+  <title>Phyzelyne — Sign In</title>
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="app.css">
@@ -213,12 +213,12 @@
     <div class="auth-form-wrap">
 
       <div class="auth-logo">
-        <img src="klyro_logo.png" alt="Klyro" onerror="this.style.display='none'">
-        <span class="auth-logo-text">Klyro</span>
+        <img src="Phyzelyne's Logo.png" alt="Phyzelyne" onerror="this.style.display='none'">
+        <span class="auth-logo-text">Phyzelyne</span>
       </div>
 
       <div class="auth-heading">Welcome back</div>
-      <div class="auth-sub">Sign in to your Klyro account to continue</div>
+      <div class="auth-sub">Sign in to your Phyzelyne account to continue</div>
 
       <div class="auth-card">
 
@@ -287,7 +287,7 @@
   <div class="auth-hero">
     <div class="hero-content">
       <div class="hero-tagline">Your money,<br><em>finally</em> under control.</div>
-      <div class="hero-tagline-sub">Klyro tracks every penny, surfaces insights instantly, and coaches you towards real wealth — all in one beautiful app.</div>
+      <div class="hero-tagline-sub">Phyzelyne tracks every penny, surfaces insights instantly, and coaches you towards real wealth — all in one beautiful app.</div>
       <div class="hero-features">
         <div class="hero-feat">
           <div class="hero-feat-icon"><i class="fas fa-chart-pie"></i></div>
@@ -375,7 +375,7 @@
 
   // Check if already locked on page load
   (function() {
-    const email = localStorage.getItem('klyro_last_email') || '';
+    const email = localStorage.getItem('phyzelyne_last_email') || '';
     if (!email) return;
     const d = Auth._getRateData(email);
     if (d.lockedUntil && Date.now() < d.lockedUntil) {
@@ -397,7 +397,7 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Signing in…';
 
-    localStorage.setItem('klyro_last_email', email);
+    localStorage.setItem('phyzelyne_last_email', email);
 
     const result = await Auth.login(email, password, remember);
 
@@ -405,7 +405,7 @@
     btn.innerHTML = '<i class="fas fa-arrow-right-to-bracket"></i> Sign In';
 
     if (result.success) {
-      localStorage.removeItem('klyro_last_email');
+      localStorage.removeItem('phyzelyne_last_email');
       // New users who haven't completed onboarding go there first
       const user = Auth.getUser();
       const isOnboarded = user?.onboarded || result.user?.user_metadata?.onboarded || false;
@@ -461,7 +461,7 @@
       });
       if (error) throw error;
     } catch (err) {
-      console.error('[Klyro OAuth Error]', err);
+      console.error('[Phyzelyne OAuth Error]', err);
       closeOAuthModal();
       btn.disabled = false;
       btn.innerHTML = originalText;

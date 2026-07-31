@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────
-# Klyro — Nav patch: replaces AI tab with Business tab in all pages
+# Phyzelyne — Nav patch: replaces AI tab with Business tab in all pages
 # Run from your project root:  bash patch_nav.sh
 # ─────────────────────────────────────────────────────────────────────
 

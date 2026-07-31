@@ -1,11 +1,14 @@
-/* ═══════════════════════════════════════════════
-   EXMO APP — app.css
-   Liquid Glass · White/Gold · Glassmorphism
-═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   PHYZELYNE APP — app.css
+   Enhanced Liquid Glass · White/Gold · Glassmorphism
+   v2.0 — Animated orbs · Liquid shine · Rim lighting
+═══════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* ─── Tokens ─── */
+/* ══════════════════════════════════════════
+   TOKENS & LIQUID GLASS VARIABLES
+══════════════════════════════════════════ */
 :root {
   --gold:        #d4a017;
   --gold-light:  #f0c040;
@@ -22,10 +25,31 @@
   --text-mid:    #5a5040;
   --text-dim:    #9a8e78;
 
-  --glass:       rgba(255,255,255,0.55);
-  --glass-heavy: rgba(255,255,255,0.78);
-  --glass-dim:   rgba(255,255,255,0.28);
-  --glass-border:rgba(255,255,255,0.7);
+  /* ── Glass depth layers ── */
+  --glass:         rgba(255,255,255,0.55);
+  --glass-heavy:   rgba(255,255,255,0.78);
+  --glass-dim:     rgba(255,255,255,0.28);
+  --glass-border:  rgba(255,255,255,0.7);
+  --glass-edge:    rgba(255,255,255,0.55);
+  --glass-shine:   rgba(255,255,255,0.12);
+  --glass-liquid:  rgba(255,255,255,0.40);
+
+  /* ── Shimmer sweep for interactive glass ── */
+  --glass-shimmer: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255,255,255,0.08) 45%,
+    rgba(255,255,255,0.18) 50%,
+    rgba(255,255,255,0.08) 55%,
+    transparent 70%
+  );
+
+  /* ── Inner rim highlight (grazing light) ── */
+  --glass-rim: inset 0 0.5px 2px rgba(255,255,255,0.6);
+
+  /* ── Orbs (animated background) ── */
+  --orb-1: radial-gradient(ellipse 70% 55% at 15% 20%, rgba(var(--accent-rgb),0.14) 0%, transparent 60%);
+  --orb-2: radial-gradient(ellipse 55% 65% at 85% 80%, rgba(var(--accent-rgb),0.09) 0%, transparent 60%);
 
   --red:         #c0392b;
   --red-dim:     rgba(192,57,43,0.12);
@@ -44,18 +68,20 @@
   --font-body:    'Inter Display', 'Inter', -apple-system, sans-serif;
 
   /* Dark mode overrides */
-  --dm-bg:          #0d0d14;
-  --dm-bg2:         #13131f;
-  --dm-glass:       rgba(255,255,255,0.06);
-  --dm-glass-heavy: rgba(255,255,255,0.10);
-  --dm-glass-border:rgba(255,255,255,0.10);
-  --dm-text:        #f0ece3;
-  --dm-text-mid:    rgba(240,236,227,0.65);
-  --dm-text-dim:    rgba(240,236,227,0.38);
+  --dm-bg:           #0d0d14;
+  --dm-bg2:          #13131f;
+  --dm-glass:        rgba(255,255,255,0.06);
+  --dm-glass-heavy:  rgba(255,255,255,0.10);
+  --dm-glass-border: rgba(255,255,255,0.10);
+  --dm-glass-edge:   rgba(255,255,255,0.08);
+  --dm-glass-shine:  rgba(255,255,255,0.04);
+  --dm-glass-liquid: rgba(255,255,255,0.08);
+  --dm-text:         #f0ece3;
+  --dm-text-mid:     rgba(240,236,227,0.65);
+  --dm-text-dim:     rgba(240,236,227,0.38);
 }
 
 /* ─── Dark Mode ─── */
-/* html.dark-pre: set before JS loads to prevent white flash on page navigation */
 html.dark-pre,
 html.dark-pre body,
 body.dark {
@@ -65,15 +91,101 @@ body.dark {
   --glass:       var(--dm-glass);
   --glass-heavy: var(--dm-glass-heavy);
   --glass-dim:   rgba(255,255,255,0.04);
-  --glass-border:var(--dm-glass-border);
+  --glass-edge:  var(--dm-glass-edge);
+  --glass-shine: var(--dm-glass-shine);
+  --glass-liquid:var(--dm-glass-liquid);
+  --glass-shimmer: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255,255,255,0.03) 45%,
+    rgba(255,255,255,0.06) 50%,
+    rgba(255,255,255,0.03) 55%,
+    transparent 70%
+  );
+  --glass-rim: inset 0 0.5px 0.5px rgba(255,255,255,0.08);
+  --glass-border: var(--dm-glass-border);
   --text:        var(--dm-text);
   --text-mid:    var(--dm-text-mid);
   --text-dim:    var(--dm-text-dim);
   --shadow:      0 8px 32px rgba(0,0,0,0.4);
   --shadow-lg:   0 20px 48px rgba(0,0,0,0.55);
+  --orb-1: radial-gradient(ellipse 70% 55% at 15% 20%, rgba(var(--accent-rgb),0.07) 0%, transparent 60%);
+  --orb-2: radial-gradient(ellipse 55% 65% at 85% 80%, rgba(var(--accent-rgb),0.05) 0%, transparent 60%);
 }
 
-/* ─── Reset ─── */
+/* ══════════════════════════════════════════
+   LIQUID GLASS KEYFRAME ANIMATIONS
+══════════════════════════════════════════ */
+
+/* Orb drift: slow floating movement */
+@keyframes orb-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  25%  { transform: translate(1.5%, -1%) scale(1.02); }
+  50%  { transform: translate(-1%, 1.5%) scale(0.98); }
+  75%  { transform: translate(2%, -0.5%) scale(1.01); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Shimmer sweep across glass on hover */
+@keyframes shimmer-sweep {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+/* Pulse glow for active glass */
+@keyframes glass-pulse {
+  0%, 100% { box-shadow: var(--shadow-lg); }
+  50%      { box-shadow: 0 20px 48px rgba(0,0,0,0.14), 0 0 0 1px rgba(255,255,255,0.3); }
+}
+
+/* Liquid ripple for pressed states */
+@keyframes liquid-ripple {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.2); }
+  100% { box-shadow: 0 0 0 12px rgba(var(--accent-rgb), 0); }
+}
+
+/* Grainy noise overlay subtle texture */
+@keyframes grain-shift {
+  0%, 100% { transform: translate(0, 0); }
+  25%      { transform: translate(-5%, -3%); }
+  50%      { transform: translate(3%, 5%); }
+  75%      { transform: translate(-2%, 4%); }
+}
+
+/* ── Accessibility: disable animations for reduced motion users ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  body::before, body::after {
+    animation: none !important;
+    background-attachment: fixed;
+  }
+  .glass-card:hover::before,
+  .glass-card:hover::after,
+  .stat-card:hover::before,
+  .stat-card:hover::after {
+    opacity: 0 !important;
+  }
+  .stats-grid .stat-card:hover::before {
+    opacity: 1 !important;
+  }
+  .bottom-nav-item.active::after {
+    animation: none !important;
+  }
+  .btn-glass:active,
+  .bottom-nav-item:active::after,
+  .type-btn:active,
+  .period-tab:active {
+    animation: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════ */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior: smooth; }
 body {
@@ -86,26 +198,48 @@ body {
   transition: background 0.4s ease, color 0.4s ease;
 }
 
-/* ─── Background ─── */
+/* ══════════════════════════════════════════
+   ANIMATED LIQUID BACKGROUND ORBS
+   Two drifting radial gradients that create
+   a living, liquid-light atmosphere behind
+   the glass surfaces. Also a subtle grain
+   texture for tactile depth.
+══════════════════════════════════════════ */
+
+/* ── Static ambient gradient ── */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(var(--accent-rgb),0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 60% at 85% 80%, rgba(var(--accent-rgb),0.08) 0%, transparent 55%);
+  background: var(--orb-1), var(--orb-2);
   pointer-events: none;
   z-index: 0;
   transition: background 0.4s ease;
-}
-html.dark-pre body::before,
-body.dark::before {
-  background:
-    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(var(--accent-rgb),0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 60% at 85% 80%, rgba(var(--accent-rgb),0.05) 0%, transparent 55%);
+  animation: orb-drift 18s ease-in-out infinite;
 }
 
-/* ─── App Shell ─── */
+/* ── Second, slower-moving overlay orb for depth ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  background:
+    radial-gradient(ellipse 40% 35% at 30% 70%, rgba(var(--accent-rgb),0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 40% at 70% 30%, rgba(var(--accent-rgb),0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+  animation: orb-drift 25s ease-in-out infinite reverse;
+  transition: opacity 0.4s ease;
+}
+
+html.dark-pre body::before,
+body.dark::before {
+  background: var(--orb-1), var(--orb-2);
+}
+
+/* ══════════════════════════════════════════
+   APP SHELL & SIDEBAR
+══════════════════════════════════════════ */
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -129,6 +263,7 @@ body.dark::before {
   z-index: 100;
   transition: transform var(--transition), background 0.4s ease;
   box-shadow: 4px 0 24px rgba(0,0,0,0.06);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.06), var(--glass-rim);
 }
 
 .sidebar-logo {
@@ -176,6 +311,7 @@ body.dark::before {
   background: none;
   width: 100%;
   text-align: left;
+  overflow: hidden;
 }
 .nav-item i { width: 18px; text-align: center; font-size: 0.9rem; }
 .nav-item:hover {
@@ -187,6 +323,7 @@ body.dark::before {
   color: var(--gold);
   border: 1px solid var(--gold-border);
   font-weight: 600;
+  box-shadow: inset 0 0.5px 1px rgba(212,160,23,0.2);
 }
 .nav-item.active i { color: var(--gold); }
 
@@ -227,24 +364,86 @@ body.dark::before {
   margin-top: 4px;
 }
 
-/* ─── Glass Card ─── */
+/* ══════════════════════════════════════════
+   ENHANCED LIQUID GLASS CARD
+   Multi-layer depth: frosted backdrop,
+   inner rim highlight, subtle shine overlay,
+   and a hover shimmer sweep.
+══════════════════════════════════════════ */
 .glass-card {
+  position: relative;
   background: var(--glass);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  transition: box-shadow var(--transition), transform var(--transition), background 0.4s ease;
+  box-shadow: var(--shadow), var(--glass-rim);
+  transition:
+    box-shadow var(--transition),
+    transform var(--transition),
+    background 0.4s ease,
+    border-color var(--transition);
+  overflow: hidden;
+  z-index: 1;
 }
+
+/* Liquid shine reflection — top-left glossy highlight */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at 30% 20%,
+    rgba(255,255,255,0.15) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1);
+  mix-blend-mode: overlay;
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+/* Glass rim highlight on hover — uses inset box-shadow for cross-browser compat */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.15),
+    inset 0 0 20px rgba(255,255,255,0.03);
+}
+
+.glass-card:hover::after {
+  opacity: 1;
+}
+
 .glass-card:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), var(--glass-rim);
+  border-color: var(--glass-edge);
 }
+
 .glass-card.pressable:hover {
   transform: translateY(-3px);
 }
 
-/* ─── Stats Grid ─── */
+/* ══════════════════════════════════════════
+   STATS GRID & ENHANCED STAT CARDS
+   Animated gradient top-border on hover,
+   liquid glass background, subtle inner glow.
+══════════════════════════════════════════ */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -257,17 +456,43 @@ body.dark::before {
   position: relative;
   overflow: hidden;
 }
+
+/* Gradient top border — animates in on hover */
 .stat-card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 3px;
   border-radius: var(--radius) var(--radius) 0 0;
-  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  background-size: 200% 100%;
   opacity: 0;
   transition: opacity var(--transition);
+  z-index: 2;
 }
-.stat-card:hover::before { opacity: 1; }
+
+.stat-card:hover::before {
+  opacity: 1;
+  animation: shimmer-sweep 2s linear infinite;
+}
+
+/* Liquid shine sweep on hover */
+.stat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-shimmer);
+  background-size: 200% 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.stat-card:hover::after {
+  opacity: 1;
+  animation: shimmer-sweep 1.5s ease-in-out;
+}
 
 .stat-label {
   font-size: 0.75rem;
@@ -279,6 +504,8 @@ body.dark::before {
   display: flex;
   align-items: center;
   gap: 6px;
+  position: relative;
+  z-index: 3;
 }
 .stat-label i { font-size: 0.7rem; }
 
@@ -289,6 +516,8 @@ body.dark::before {
   line-height: 1;
   margin-bottom: 8px;
   color: var(--text);
+  position: relative;
+  z-index: 3;
 }
 .stat-value.income { color: var(--green); }
 .stat-value.expense { color: var(--red); }
@@ -297,6 +526,8 @@ body.dark::before {
 .stat-change {
   font-size: 0.78rem;
   color: var(--text-dim);
+  position: relative;
+  z-index: 3;
 }
 
 /* ─── Section Title ─── */
@@ -312,7 +543,9 @@ body.dark::before {
 }
 .section-title i { color: var(--gold); font-size: 1rem; }
 
-/* ─── Buttons ─── */
+/* ══════════════════════════════════════════
+   BUTTONS — Enhanced glass on .btn-glass
+══════════════════════════════════════════ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -327,6 +560,8 @@ body.dark::before {
   transition: all var(--transition);
   text-decoration: none;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
 }
 .btn-gold {
   background: linear-gradient(135deg, var(--gold), var(--gold-light));
@@ -337,16 +572,38 @@ body.dark::before {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(212,160,23,0.45);
 }
+.btn-gold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.btn-gold:hover::before {
+  opacity: 1;
+}
+
 .btn-glass {
   background: var(--glass);
   border: 1px solid var(--glass-border);
   color: var(--text);
   backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--glass-rim);
 }
 .btn-glass:hover {
   background: var(--glass-heavy);
   transform: translateY(-2px);
+  box-shadow: var(--shadow), var(--glass-rim);
+  border-color: var(--glass-edge);
 }
+.btn-glass:active {
+  animation: liquid-ripple 0.4s ease-out;
+}
+
 .btn-sm {
   padding: 8px 16px;
   font-size: 0.8rem;
@@ -358,7 +615,10 @@ body.dark::before {
 }
 .btn-danger:hover { background: rgba(192,57,43,0.2); }
 
-/* ─── Forms ─── */
+/* ══════════════════════════════════════════
+   ENHANCED FORM INPUTS — Deeper liquid glass
+   with animated focus glow, inner highlight.
+══════════════════════════════════════════ */
 .form-group { margin-bottom: 18px; }
 .form-label {
   display: block;
@@ -369,6 +629,7 @@ body.dark::before {
   color: var(--text-mid);
   margin-bottom: 8px;
 }
+
 .form-input {
   width: 100%;
   padding: 13px 16px;
@@ -379,13 +640,21 @@ body.dark::before {
   font-family: var(--font-body);
   font-size: 0.9rem;
   transition: all var(--transition);
-  backdrop-filter: var(--blur);
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
   outline: none;
+  position: relative;
+  box-shadow: inset 0 0.5px 1px rgba(255,255,255,0.3);
 }
 .form-input:focus {
   border-color: var(--gold-border);
   background: var(--glass);
-  box-shadow: 0 0 0 3px var(--gold-dim);
+  box-shadow:
+    0 0 0 3px var(--gold-dim),
+    inset 0 0.5px 1px rgba(255,255,255,0.4);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  transform: translateY(-1px);
 }
 .form-input::placeholder { color: var(--text-dim); }
 select.form-input { cursor: pointer; }
@@ -413,24 +682,36 @@ select.form-input { cursor: pointer; }
   align-items: center;
   justify-content: center;
   gap: 6px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+}
+.type-btn:active {
+  animation: liquid-ripple 0.3s ease-out;
 }
 .type-btn.income.active {
   background: var(--green-dim);
   border-color: rgba(39,174,96,0.4);
   color: var(--green);
+  box-shadow: inset 0 0.5px 1px rgba(39,174,96,0.2);
 }
 .type-btn.expense.active {
   background: var(--red-dim);
   border-color: rgba(192,57,43,0.35);
   color: var(--red);
+  box-shadow: inset 0 0.5px 1px rgba(192,57,43,0.2);
 }
 .type-btn.subscription.active {
   background: var(--gold-dim);
   border-color: rgba(212,160,23,0.35);
   color: var(--gold);
+  box-shadow: inset 0 0.5px 1px rgba(212,160,23,0.2);
 }
 
-/* ─── Transaction List ─── */
+/* ══════════════════════════════════════════
+   TRANSACTION LIST — Glass items
+══════════════════════════════════════════ */
 .txn-list { display: flex; flex-direction: column; gap: 1px; }
 
 .txn-item {
@@ -444,10 +725,14 @@ select.form-input { cursor: pointer; }
   border: 1px solid transparent;
   transition: all var(--transition);
   cursor: default;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 .txn-item:hover {
   background: var(--glass);
   border-color: var(--glass-border);
+  box-shadow: var(--glass-rim);
+  transform: translateX(3px);
 }
 
 .txn-icon {
@@ -456,6 +741,8 @@ select.form-input { cursor: pointer; }
   display: flex; align-items: center; justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .txn-icon.income { background: var(--green-dim); color: var(--green); }
 .txn-icon.expense { background: var(--red-dim); color: var(--red); }
@@ -532,6 +819,8 @@ select.form-input { cursor: pointer; }
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .period-tabs::-webkit-scrollbar { display: none; }
 .period-tab {
@@ -546,6 +835,10 @@ select.form-input { cursor: pointer; }
   cursor: pointer;
   transition: all var(--transition);
   flex-shrink: 0;
+  position: relative;
+}
+.period-tab:active {
+  animation: liquid-ripple 0.3s ease-out;
 }
 .period-tab.active {
   background: linear-gradient(135deg, var(--gold), var(--gold-light));
@@ -594,6 +887,8 @@ select.form-input { cursor: pointer; }
   margin-bottom: 14px;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .ai-bubble::before {
   content: '';
@@ -657,6 +952,8 @@ select.form-input { cursor: pointer; }
   border: 1px solid var(--glass-border);
   color: var(--text);
   border-bottom-left-radius: 4px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .chat-input-row {
   display: flex;
@@ -705,6 +1002,7 @@ select.form-input { cursor: pointer; }
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: inset 0 0.5px 1px rgba(255,255,255,0.2);
 }
 .toggle-slider::before {
   content: '';
@@ -715,42 +1013,73 @@ select.form-input { cursor: pointer; }
   background: var(--text-dim);
   border-radius: 50%;
   transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 .toggle-switch input:checked + .toggle-slider { background: var(--gold); border-color: var(--gold); }
 .toggle-switch input:checked + .toggle-slider::before { left: calc(100% - 21px); background: white; }
 
-/* ─── Modal ─── */
+/* ══════════════════════════════════════════
+   ENHANCED MODAL — Deeper liquid glass
+   with rim glow, shine overlay, stronger blur.
+══════════════════════════════════════════ */
 .modal-overlay {
   display: none;
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.3);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 500;
   align-items: center;
   justify-content: center;
 }
 .modal-overlay.open { display: flex; }
+
 .modal {
+  position: relative;
   background: var(--glass-heavy);
-  backdrop-filter: var(--blur);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   padding: 36px;
   width: 90%;
   max-width: 480px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), var(--glass-rim);
   animation: modal-in 0.3s cubic-bezier(0.16,1,0.3,1);
+  overflow: hidden;
 }
+
+/* Modal liquid shine */
+.modal::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at 25% 20%,
+    rgba(255,255,255,0.12) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: overlay;
+}
+
 @keyframes modal-in {
   from { opacity: 0; transform: scale(0.95) translateY(10px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
+
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
 }
 .modal-title {
   font-family: var(--font-display);
@@ -767,8 +1096,17 @@ select.form-input { cursor: pointer; }
   cursor: pointer;
   color: var(--text-dim);
   transition: all var(--transition);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
-.modal-close:hover { background: var(--red-dim); color: var(--red); }
+.modal-close:hover { background: var(--red-dim); color: var(--red); border-color: rgba(192,57,43,0.3); }
+
+/* Ensure modal content is above the shine */
+.glass-card > *,
+.modal > * {
+  position: relative;
+  z-index: 3;
+}
 
 /* ─── Empty State ─── */
 .empty-state {
@@ -779,20 +1117,23 @@ select.form-input { cursor: pointer; }
 .empty-state i { font-size: 2.5rem; margin-bottom: 14px; color: var(--gold); opacity: 0.4; }
 .empty-state p { font-size: 0.9rem; }
 
-/* ─── Notification Toast ─── */
+/* ══════════════════════════════════════════
+   ENHANCED TOAST — Liquid glass notification
+══════════════════════════════════════════ */
 .toast {
   position: fixed;
   bottom: 28px;
   right: 28px;
   background: var(--glass-heavy);
-  backdrop-filter: var(--blur);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   padding: 14px 20px;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--text);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), var(--glass-rim);
   z-index: 9999;
   transform: translateY(100px);
   opacity: 0;
@@ -801,8 +1142,14 @@ select.form-input { cursor: pointer; }
   align-items: center;
   gap: 10px;
   max-width: 320px;
+  min-width: 240px;
+  pointer-events: none;
 }
-.toast.show { transform: translateY(0); opacity: 1; }
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
 .toast.success { border-color: rgba(39,174,96,0.4); }
 .toast.success i { color: var(--green); }
 .toast.error { border-color: rgba(192,57,43,0.4); }
@@ -823,7 +1170,7 @@ select.form-input { cursor: pointer; }
   cursor: pointer;
   color: var(--text);
   font-size: 1rem;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), var(--glass-rim);
 }
 
 /* ─── Scrollbar ─── */
@@ -888,29 +1235,21 @@ select.form-input { cursor: pointer; }
   border-color: rgba(192,57,43,0.4) !important;
 }
 
-/* ─── Toast enhanced ─── */
-.toast {
-  min-width: 240px;
-  pointer-events: none;
-}
-.toast.show { pointer-events: auto; }
-
 /* ─── Currency select full width on mobile ─── */
 @media (max-width: 900px) {
   #currency-select { width: 100% !important; }
 }
 
 /* ════════════════════════════════════════════════════════════════
-   BOTTOM NAV — iOS 26/27 Liquid Glass (mobile only, ≤ 640px)
-   Floating pill-shaped nav bar with deep glassmorphism, active
-   indicator pill, and subtle micro-interactions.
+   BOTTOM NAV — Enhanced iOS Liquid Glass (mobile only, ≤ 640px)
+   Floating pill nav with deep glass, animated active pill,
+   liquid ripple feedback, and shimmer on active items.
 ════════════════════════════════════════════════════════════════ */
 .bottom-nav {
   display: none;
 }
 
 @media (max-width: 640px) {
-  /* Hide the side sidebar completely on phones */
   .sidebar { display: none !important; }
   .sidebar-toggle-btn { display: none !important; }
 
@@ -929,18 +1268,18 @@ select.form-input { cursor: pointer; }
     gap: 2px;
     border-radius: 34px;
     background: rgba(255,255,255,0.06);
-    backdrop-filter: blur(50px) saturate(200%);
-    -webkit-backdrop-filter: blur(50px) saturate(200%);
+    backdrop-filter: blur(60px) saturate(220%);
+    -webkit-backdrop-filter: blur(60px) saturate(220%);
     border: 1px solid rgba(255,255,255,0.20);
     box-shadow:
       0 8px 32px rgba(0,0,0,0.12),
       0 2px 8px rgba(0,0,0,0.06),
-      inset 0 0.5px 0.5px rgba(255,255,255,0.4);
+      inset 0 0.5px 1px rgba(255,255,255,0.5);
     transition: transform 0.3s cubic-bezier(0.16,1,0.3,1),
                 box-shadow 0.3s cubic-bezier(0.16,1,0.3,1);
   }
 
-  /* Dark mode: deeper glass with lighter border */
+  /* Dark mode: deeper glass with subtle rim */
   body.dark .bottom-nav,
   html.dark-pre .bottom-nav {
     background: rgba(22,22,35,0.40);
@@ -948,7 +1287,7 @@ select.form-input { cursor: pointer; }
     box-shadow:
       0 8px 32px rgba(0,0,0,0.3),
       0 2px 8px rgba(0,0,0,0.15),
-      inset 0 0.5px 0.5px rgba(255,255,255,0.05);
+      inset 0 0.5px 0.5px rgba(255,255,255,0.08);
   }
 
   .bottom-nav-item {
@@ -974,11 +1313,24 @@ select.form-input { cursor: pointer; }
     -webkit-tap-highlight-color: transparent;
     will-change: transform;
   }
+
+  /* Liquid ripple on press for all nav items */
+  .bottom-nav-item:active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    animation: liquid-ripple 0.35s ease-out;
+    pointer-events: none;
+  }
+
   .bottom-nav-item i {
     font-size: 1.2rem;
     transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),
                 color 0.35s cubic-bezier(0.16,1,0.3,1);
     margin-bottom: 1px;
+    position: relative;
+    z-index: 1;
   }
   .bottom-nav-item span:not(.bnav-badge) {
     font-size: 0.52rem;
@@ -988,6 +1340,8 @@ select.form-input { cursor: pointer; }
     transform: translateY(4px);
     transition: opacity 0.3s cubic-bezier(0.16,1,0.3,1),
                 transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    position: relative;
+    z-index: 1;
   }
   .bottom-nav-item.active {
     color: var(--gold);
@@ -1000,7 +1354,7 @@ select.form-input { cursor: pointer; }
     transform: translateY(-1px) scale(1.05);
   }
 
-  /* Active pill indicator — slides behind the active tab */
+  /* Active pill indicator with liquid glass shine */
   .bottom-nav .active-indicator {
     display: none;
   }
@@ -1009,10 +1363,32 @@ select.form-input { cursor: pointer; }
     position: absolute;
     inset: 4px 6px;
     border-radius: 16px;
-    background: rgba(var(--accent-rgb, 212,160,23), 0.12);
+    background: linear-gradient(
+      135deg,
+      rgba(var(--accent-rgb, 212,160,23), 0.14),
+      rgba(var(--accent-rgb, 212,160,23), 0.06)
+    );
     z-index: -1;
     animation: pill-in 0.35s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: inset 0 0.5px 1px rgba(212,160,23,0.15);
   }
+
+  /* Overlay shine on active pill */
+  .bottom-nav-item.active::after {
+    content: '';
+    position: absolute;
+    inset: 4px 6px;
+    border-radius: 16px;
+    background: radial-gradient(
+      ellipse at 30% 40%,
+      rgba(212,160,23,0.08) 0%,
+      transparent 70%
+    );
+    z-index: 0;
+    pointer-events: none;
+    animation: pill-shine 3s ease-in-out infinite;
+  }
+
   @keyframes pill-in {
     from {
       opacity: 0;
@@ -1024,7 +1400,10 @@ select.form-input { cursor: pointer; }
     }
   }
 
-
+  @keyframes pill-shine {
+    0%, 100% { opacity: 0.5; }
+    50%      { opacity: 1; }
+  }
 
   /* Badge dot for notifications */
   .bnav-badge {
@@ -1036,7 +1415,7 @@ select.form-input { cursor: pointer; }
     border-radius: 50%;
     background: var(--gold);
     border: 1.5px solid var(--bg);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2), 0 0 6px rgba(212,160,23,0.4);
     display: none;
   }
   .bnav-badge.show { display: block; }
@@ -1092,14 +1471,15 @@ select.form-input { cursor: pointer; }
     padding: 28px 24px calc(24px + env(safe-area-inset-bottom));
     animation: slide-up 0.4s cubic-bezier(0.16,1,0.3,1);
     background: rgba(255,255,255,0.65);
-    backdrop-filter: blur(32px) saturate(180%);
-    -webkit-backdrop-filter: blur(32px) saturate(180%);
-    box-shadow: 0 -8px 40px rgba(0,0,0,0.1);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.1), var(--glass-rim);
   }
   body.dark .modal,
   html.dark-pre .modal {
     background: rgba(20,20,32,0.82);
-    box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.4),
+                inset 0 0.5px 0.5px rgba(255,255,255,0.06);
   }
   .modal::before {
     content: '';
@@ -1136,13 +1516,13 @@ select.form-input { cursor: pointer; }
     opacity: 0.25;
   }
 
-  /* ── Liquid glass stat cards ── */
+  /* ── Liquid glass stat cards on mobile ── */
   .stat-card {
     background: rgba(255,255,255,0.35);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid rgba(255,255,255,0.5);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06), inset 0 0.5px 1px rgba(255,255,255,0.4);
   }
   body.dark .stat-card,
   html.dark-pre .stat-card {
@@ -1156,12 +1536,12 @@ select.form-input { cursor: pointer; }
     padding: 3px;
   }
 
-  /* ── Transaction items ── */
+  /* ── Transaction items with glass on mobile ── */
   .txn-item {
     border-radius: 16px;
     background: rgba(255,255,255,0.30);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
     border: 1px solid rgba(255,255,255,0.4);
     padding: 14px 16px;
   }
@@ -1240,13 +1620,11 @@ select.form-input { cursor: pointer; }
 
 /* ── Liquid Glass: extra polish for bottom sheets and nav ── */
 @media (max-width: 640px) {
-  /* Input fields get glassier on mobile */
   .form-input {
     border-radius: 14px;
     padding: 14px 16px;
   }
 
-  /* Type toggle gets pill treatment */
   .type-toggle {
     gap: 6px;
   }
@@ -1255,12 +1633,10 @@ select.form-input { cursor: pointer; }
     padding: 11px 8px;
   }
 
-  /* Section title refresh */
   .section-title {
     font-size: 1.2rem;
   }
 
-  /* Goal cards */
   .goal-progress-wrap {
     border-radius: 6px;
     height: 10px;
@@ -1269,7 +1645,6 @@ select.form-input { cursor: pointer; }
     border-radius: 6px;
   }
 
-  /* Category items */
   .cat-item {
     padding: 4px 0;
   }
@@ -1279,7 +1654,6 @@ select.form-input { cursor: pointer; }
     border-radius: 12px;
   }
 
-  /* AI bubbles */
   .ai-bubble {
     border-radius: 18px;
     padding: 18px;
@@ -1305,14 +1679,17 @@ select.form-input { cursor: pointer; }
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .theme-swatch:hover {
   background: var(--glass);
   transform: translateY(-2px);
+  box-shadow: var(--shadow), var(--glass-rim);
 }
 .theme-swatch.selected {
   border-color: var(--swatch-c1);
-  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.15);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.15), var(--glass-rim);
 }
 .theme-swatch-dot {
   width: 30px; height: 30px;

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Klyro — Dashboard</title>
-  <link rel="icon" type="image/png" href="exmo_logo.png">
+  <title>Phyzelyne — Dashboard</title>
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="app.css">
@@ -66,12 +66,12 @@
           </button>
         </div>
 
-        <!-- Klyro AI Tip -->
+        <!-- Phyzelyne AI Tip -->
         <div class="glass-card" style="padding:24px;">
-          <div class="section-title" style="margin-bottom:16px;"><i class="fas fa-brain"></i> Klyro AI</div>
+          <div class="section-title" style="margin-bottom:16px;"><i class="fas fa-brain"></i> Phyzelyne AI</div>
           <div id="dash-ai-tip"></div>
           <a href="ai.html" class="btn btn-glass btn-sm" style="width:100%;justify-content:center;margin-top:4px;">
-            Ask Klyro AI <i class="fas fa-arrow-right"></i>
+            Ask Phyzelyne AI <i class="fas fa-arrow-right"></i>
           </a>
         </div>
 
@@ -207,7 +207,7 @@
 
     let tip = '', type = '';
     if (!txns.length) {
-      tip = "Welcome to Klyro! Start by logging your first income or expense — I'll begin building personalised insights for you right away.";
+      tip = "Welcome to Phyzelyne! Start by logging your first income or expense — I'll begin building personalised insights for you right away.";
       type = '';
     } else if (totals.expense > totals.income) {
       tip = `⚠️ You're spending more than you earn this month (${Utils.formatCurrency(totals.expense - totals.income)} over). Let's review your budget — try cutting discretionary spending first.`;
@@ -225,7 +225,7 @@
 
     document.getElementById('dash-ai-tip').innerHTML = `
       <div class="ai-bubble ${type}">
-        <div class="ai-bubble-header"><i class="fas fa-brain"></i> Klyro AI</div>
+        <div class="ai-bubble-header"><i class="fas fa-brain"></i> Phyzelyne AI</div>
         <div class="ai-bubble-text">${tip}</div>
       </div>`;
   }
@@ -267,7 +267,7 @@
   // Wait for Supabase data before rendering
   async function boot() {
     if (!_cache.ready) {
-      await new Promise(resolve => document.addEventListener('klyro:ready', resolve, { once: true }));
+      await new Promise(resolve => document.addEventListener('phyzelyne:ready', resolve, { once: true }));
     }
     // Personalised greeting
     const user = Auth.getUser();
@@ -282,7 +282,7 @@
     // Re-render whenever another tab (e.g. Transactions page) mutates data.
     // _cache is already updated by app.js's _initDataSync listener before
     // this event fires, so renderPage() will always see the latest data.
-    document.addEventListener('klyro:data-changed', () => {
+    document.addEventListener('phyzelyne:data-changed', () => {
       renderPage();
     });
   }
@@ -319,7 +319,7 @@
   if (typeof _cache !== 'undefined' && _cache.ready) {
     _setSmartTab();
   } else {
-    document.addEventListener('klyro:ready', _setSmartTab, { once: true });
+    document.addEventListener('phyzelyne:ready', _setSmartTab, { once: true });
     // Apply active state immediately so the nav looks right while waiting
     document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){
       var p = el.dataset.page;

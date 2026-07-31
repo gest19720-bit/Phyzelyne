@@ -1,5 +1,5 @@
 -- ==========================================
--- Klyro Database Schema
+-- Phyzelyne Database Schema
 -- Run this in your Supabase SQL Editor
 -- ==========================================
 
@@ -191,7 +191,7 @@ GRANT EXECUTE ON FUNCTION public.get_waitlist_count() TO anon, authenticated;
 -- ------------------------------------------
 -- 7. ENABLE REALTIME REPLICATION
 -- ------------------------------------------
--- Add Klyro tables to the supabase_realtime publication to enable postgres_changes listeners
+-- Add Phyzelyne tables to the supabase_realtime publication to enable postgres_changes listeners
 alter publication supabase_realtime add table public.transactions;
 alter publication supabase_realtime add table public.settings;
 alter publication supabase_realtime add table public.goals;

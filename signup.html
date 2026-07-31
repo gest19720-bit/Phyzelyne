@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Klyro — Create Account</title>
-  <link rel="icon" type="image/png" href="klyro_logo.png">
+  <title>Phyzelyne — Create Account</title>
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="app.css">
@@ -82,8 +82,8 @@
   <div class="auth-panel">
     <div class="auth-form-wrap">
       <div class="auth-logo">
-        <img src="klyro_logo.png" alt="Klyro" onerror="this.style.display='none'">
-        <span class="auth-logo-text">Klyro</span>
+        <img src="Phyzelyne's Logo.png" alt="Phyzelyne" onerror="this.style.display='none'">
+        <span class="auth-logo-text">Phyzelyne</span>
       </div>
       <div class="auth-heading">Create your account</div>
       <div class="auth-sub">Free forever. No card required. Start in seconds.</div>
@@ -143,7 +143,7 @@
         </div>
         <div class="terms-check">
           <input type="checkbox" id="terms-check">
-          <label for="terms-check">I agree to Klyro's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. Your data stays on your device.</label>
+          <label for="terms-check">I agree to Phyzelyne's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. Your data stays on your device.</label>
         </div>
         <button class="btn btn-gold btn-full" id="signup-btn" onclick="handleSignup()">
           <i class="fas fa-user-plus"></i> Create Free Account
@@ -156,10 +156,10 @@
   <div class="auth-hero">
     <div class="hero-content">
       <div class="hero-tagline">Start your<br><em>wealth journey</em><br>today.</div>
-      <div class="hero-tagline-sub">Join thousands of people who trust Klyro to track spending, hit savings goals, and build lasting financial habits — for free.</div>
+      <div class="hero-tagline-sub">Join thousands of people who trust Phyzelyne to track spending, hit savings goals, and build lasting financial habits — for free.</div>
       <div class="testimonial">
         <div class="stars">★★★★★</div>
-        <div class="testimonial-quote">I saved £1,200 in my first three months with Klyro. The AI coach spotted I was hemorrhaging money on subscriptions — things I'd completely forgotten about.</div>
+        <div class="testimonial-quote">I saved £1,200 in my first three months with Phyzelyne. The AI coach spotted I was hemorrhaging money on subscriptions — things I'd completely forgotten about.</div>
         <div class="testimonial-author">
           <div class="testimonial-avatar">KA</div>
           <div><div class="testimonial-name">Kofi A.</div><div class="testimonial-role">Product Manager, London</div></div>
@@ -253,7 +253,7 @@
     btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Free Account';
 
     if (result.success) {
-      showToast('Account created! Welcome to Klyro 🎉');
+      showToast('Account created! Welcome to Phyzelyne 🎉');
       setTimeout(() => window.location.href = 'onboarding.html', 900);
     } else {
       // Surface a human-friendly version of Supabase error messages
@@ -294,7 +294,7 @@
       });
       if (error) throw error;
     } catch (err) {
-      console.error('[Klyro OAuth Error]', err);
+      console.error('[Phyzelyne OAuth Error]', err);
       closeOAuthModal();
       btn.disabled = false;
       btn.innerHTML = originalText;

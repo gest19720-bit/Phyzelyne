@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Klyro — Settings</title>
-  <link rel="icon" type="image/png" href="exmo_logo.png">
+  <title>Phyzelyne — Settings</title>
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="app.css">
@@ -298,7 +298,7 @@
   <main class="main-content">
     <div class="page-header">
       <h1>Settings</h1>
-      <p>Customise your Klyro experience.</p>
+      <p>Customise your Phyzelyne experience.</p>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" id="settings-grid">
@@ -338,7 +338,7 @@
         <div class="settings-row">
           <div>
             <div class="settings-label">AI Weekly Summary</div>
-            <div class="settings-desc">Get a weekly finance report from Klyro AI</div>
+            <div class="settings-desc">Get a weekly finance report from Phyzelyne AI</div>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="weekly-summary" checked>
@@ -469,7 +469,7 @@
         <div class="settings-row" style="margin-top:20px;">
           <div>
             <div class="settings-label">App Version</div>
-            <div class="settings-desc">Klyro v1.0 — Currency Conversion</div>
+            <div class="settings-desc">Phyzelyne v1.0 — Currency Conversion</div>
           </div>
           <span style="font-size:0.78rem;color:var(--gold);font-weight:600;">v2.1</span>
         </div>
@@ -877,7 +877,7 @@
 
   async function loadSettings() {
     if (!_cache.ready) {
-      await new Promise(resolve => document.addEventListener('klyro:ready', resolve, { once: true }));
+      await new Promise(resolve => document.addEventListener('phyzelyne:ready', resolve, { once: true }));
     }
     const s = Store.getSettings();
     const u = Auth.getUser(); // safe here — we've already awaited the session/cache being ready
@@ -1092,7 +1092,7 @@
     const blob = new Blob([csv], { type: 'text/csv' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href = url; a.download = 'klyro-transactions.csv'; a.click();
+    a.href = url; a.download = 'phyzelyne-transactions.csv'; a.click();
     URL.revokeObjectURL(url);
     showToast('Exported successfully!');
   }
@@ -1115,7 +1115,7 @@
   }
 
   function deleteAccountPermanent() {
-    const confirmation1 = confirm("WARNING: This will permanently delete your Klyro account along with all your transactions, custom parameters, images, and goals.\n\nThis process is immediate and completely irreversible. Do you want to proceed?");
+    const confirmation1 = confirm("WARNING: This will permanently delete your Phyzelyne account along with all your transactions, custom parameters, images, and goals.\n\nThis process is immediate and completely irreversible. Do you want to proceed?");
     if (!confirmation1) return;
     
     const confirmation2 = confirm("Are you absolutely sure? This is your last warning.");
@@ -1140,7 +1140,7 @@
 	  initSidebar();
 	  renderThemeSwatches();
 	  renderCurrentPlan();
-	  document.addEventListener('klyro:data-changed', (evt) => {
+	  document.addEventListener('phyzelyne:data-changed', (evt) => {
 	    const type = evt.detail?.type;
 	    if (!type || type === 'settings' || type === 'all') renderCurrentPlan();
 	  });
@@ -1182,7 +1182,7 @@
   renderGoalsList();
   renderDataStats();
 
-  document.addEventListener('klyro:data-changed', (evt) => {
+  document.addEventListener('phyzelyne:data-changed', (evt) => {
     const t = evt.detail?.type;
     if (t === 'settings' || t === 'all') {
       loadSettings();
@@ -1224,7 +1224,7 @@
   if (typeof _cache !== 'undefined' && _cache.ready) {
     _setSmartTab();
   } else {
-    document.addEventListener('klyro:ready', _setSmartTab, { once: true });
+    document.addEventListener('phyzelyne:ready', _setSmartTab, { once: true });
     document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){
       var p = el.dataset.page;
     if(page.includes(p)||(p==='dashboard'&&['','dashboard.html'].includes(page)))

@@ -824,13 +824,33 @@ async function finishOnboarding() {
   s.onboarded     = true;
   Store.saveSettings(s);
 
-  if (_sb) {
-    await _sb.auth.updateUser({ data: { onboarded: true } });
-    if (_sessionCache?.user_metadata) _sessionCache.user_metadata.onboarded = true;
-  }
+  try {
+    if (_sb) {
+      const userId = _cache.userId || _sessionCache?.id;
+      if (!userId) throw new Error('Your session expired. Please sign in again.');
 
-  showToast('All set! Welcome to Phyzelyne 🎉');
-  setTimeout(() => { window.location.href = 'pricing.html'; }, 900);
+      // Do not leave this page until both sources used by the app agree that
+      // onboarding is complete. Store.saveSettings() syncs in the background,
+      // so this awaited write makes the completion flow durable before redirect.
+      const [settingsResult, authResult] = await Promise.all([
+        _sb.from('settings').upsert({ ...s, user_id: userId }, { onConflict: 'user_id' }),
+        _sb.auth.updateUser({ data: { onboarded: true } })
+      ]);
+      if (settingsResult.error) throw settingsResult.error;
+      if (authResult.error) throw authResult.error;
+
+      if (authResult.data?.user) _sessionCache = authResult.data.user;
+      else if (_sessionCache?.user_metadata) _sessionCache.user_metadata.onboarded = true;
+    }
+
+    showToast('All set! Welcome to Phyzelyne 🎉');
+    setTimeout(() => { window.location.href = 'pricing.html'; }, 900);
+  } catch (error) {
+    console.error('[Phyzelyne] onboarding completion failed:', error);
+    btn.disabled = false;
+    btn.innerHTML = 'Finish Setup <i class="fas fa-arrow-right"></i>';
+    showToast(error.message || 'We could not save your setup. Please try again.', 'error');
+  }
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────

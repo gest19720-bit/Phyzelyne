@@ -557,10 +557,12 @@ if (_sb) {
     // the page loaded before the OAuth redirect completed.
     if (event === 'SIGNED_IN' && session?.user && !_cache.ready) {
       _initData().then(() => {
-        // Route new OAuth users (not yet onboarded) to onboarding.
+        // Route new OAuth users (not yet onboarded) to onboarding,
+        // except when they're already on onboarding or pricing pages —
+        // otherwise we'd self-redirect and cause an infinite reload loop.
         const page = window.location.pathname.split('/').pop() || '';
-        const onProtectedPage = !['login.html','signup.html','index.html',''].includes(page);
-        if (onProtectedPage && !session.user.user_metadata?.onboarded) {
+        const skipCheck = ['onboarding.html', 'pricing.html', 'login.html', 'signup.html', 'index.html', ''].includes(page);
+        if (!skipCheck && !session.user.user_metadata?.onboarded) {
           window.location.replace('onboarding.html');
         }
       });

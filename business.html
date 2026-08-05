@@ -763,29 +763,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
-  <script>
-    Auth.require();
-    function _checkBusinessGate() {
-	      if (!PlanGate.isBusiness()) {
-	        window.__businessGated = true;
-        const shell = document.querySelector('.app-shell');
-        if (shell) {
-          shell.innerHTML = '<main class="main-content"><div class="page-header"><h1>Business</h1><p>AI coaching, invoices, and receipts for Cooperate users.</p></div><div class="glass-card" style="padding:40px;" id="business-locked"></div></main>';
-          PlanGate.renderLockedBanner('invoices', 'business-locked');
-          document.getElementById('sidebar-mount').innerHTML = renderSidebar();
-          initSidebar();
-        }
-      }
-    }
-    if (_cache.ready) {
-      _checkBusinessGate();
-    } else {
-      document.addEventListener('phyzelyne:ready', _checkBusinessGate, { once: true });
-    }
-  </script>
 
-<script>
-if (window.__businessGated) throw new Error('Business gated');
 /* ══════════════════════════════════════════════════════════════
 	   TAB SWITCHING
 ══════════════════════════════════════════════════════════════ */

@@ -114,9 +114,6 @@
       </div>
     </div>
 
-    <!-- Plan limit warning -->
-    <div id="txn-limit-warning" style="display:none;"></div>
-
     <!-- Summary strip -->
     <div class="stats-grid" id="txn-stats" style="margin-bottom:24px;"></div>
 
@@ -471,15 +468,6 @@
   }
 
   function openModal(editId) {
-    // Only gate new additions, not edits
-    if (!editId) {
-      const check = PlanGate.canAddTransaction();
-      if (!check.allowed) {
-        showToast(check.message || 'Transaction limit reached.', 'error');
-        PlanGate.showUpgradeModal('ai_chat');
-        return;
-      }
-    }
     editingId = editId || null;
     if (editId) {
       // Edit mode — pre-fill
@@ -663,18 +651,6 @@
     populateFilterCats();
     renderStats();
     renderList();
-    // Show limit warning
-    const check = PlanGate.canAddTransaction();
-    const warnEl = document.getElementById('txn-limit-warning');
-    if (!check.allowed) {
-      warnEl.style.display = 'block';
-      PlanGate.renderLimitWarning(0, 'txn-limit-warning');
-    } else if (check.remaining !== undefined) {
-      warnEl.style.display = 'block';
-      PlanGate.renderLimitWarning(check.remaining, 'txn-limit-warning');
-    } else {
-      warnEl.style.display = 'none';
-    }
   }
 
   // Period tabs
@@ -731,12 +707,8 @@
   var page = location.pathname.split('/').pop() || 'dashboard.html';
   function _setSmartTab() {
     var smartEl = document.getElementById('bnav-smart-tab');
-    if (smartEl && typeof PlanGate !== 'undefined') {
-      if (PlanGate.isBusiness()) {
-        smartEl.outerHTML = '<a href="business.html" class="bottom-nav-item" data-page="business"><i class="fas fa-briefcase"></i><span>Business</span></a>';
-      } else {
-        smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i><span>AI</span></a>';
-      }
+    if (smartEl) {
+      smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i><span>AI</span></a>';
     }
     document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){
       var p = el.dataset.page;

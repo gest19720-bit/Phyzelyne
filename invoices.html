@@ -797,27 +797,10 @@
 <script src="app.js"></script>
 <script>
   Auth.require();
-
-  function _checkInvoicesGate() {
-    if (!PlanGate.can('invoices')) {
-      window.__invGated = true;
-      const shell = document.querySelector('.app-shell');
-      if (shell) {
-        shell.innerHTML = '<main class="main-content"><div class="page-header"><h1>Invoices &amp; Receipts</h1><p>Professional invoicing for your business.</p></div><div class="glass-card" style="padding:40px;" id="inv-locked"></div></main>';
-        PlanGate.renderLockedBanner('invoices', 'inv-locked');
-        const mount = document.getElementById('sidebar-mount');
-        if (mount) { mount.innerHTML = renderSidebar(); initSidebar(); }
-      }
-    }
-  }
-  if (_cache.ready) {
-    _checkInvoicesGate();
-  } else {
-    document.addEventListener('phyzelyne:ready', _checkInvoicesGate, { once: true });
-  }
+  // Free beta: invoicing is unlocked for everyone, no plan gate.
 </script>
 <script>
-if (!window.__invGated) {
+{
 
   // ── State ─────────────────────────────────────────────────────────────────
   let accentColor  = '#d4a017';
@@ -1524,7 +1507,7 @@ if (!window.__invGated) {
     }
   });
 
-} // end if !__invGated
+} // end invoices page scope
 </script>
 
 <!-- Bottom Nav (mobile only) -->
@@ -1540,12 +1523,9 @@ if (!window.__invGated) {
   var page = location.pathname.split('/').pop() || 'dashboard.html';
   function _setSmartTab() {
     var smartEl = document.getElementById('bnav-smart-tab');
-    if (smartEl && typeof PlanGate !== 'undefined') {
-      if (PlanGate.isBusiness()) {
-        smartEl.outerHTML = '<a href="business.html" class="bottom-nav-item" data-page="business"><i class="fas fa-briefcase"></i><span>Business</span></a>';
-      } else {
-        smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i><span>AI</span></a>';
-      }
+    if (smartEl) {
+      // Free beta: everyone gets both AI and Business, so default this tab to AI.
+      smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i><span>AI</span></a>';
     }
     document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){
       var p = el.dataset.page;

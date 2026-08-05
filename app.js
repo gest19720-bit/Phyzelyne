@@ -337,8 +337,6 @@ const _phyzelyneChannel = (typeof BroadcastChannel !== 'undefined')
 
 function _applySettingsSideEffects(raw) {
   try {
-    const plan = raw.plan;
-    if (plan) localStorage.setItem('phyzelyne_plan', plan);
     if (raw.darkMode !== undefined) {
       localStorage.setItem('phyzelyne_theme', raw.darkMode ? 'dark' : 'light');
       if (raw.darkMode) {
@@ -557,11 +555,9 @@ if (_sb) {
     // the page loaded before the OAuth redirect completed.
     if (event === 'SIGNED_IN' && session?.user && !_cache.ready) {
       _initData().then(() => {
-        // Route new OAuth users (not yet onboarded) to onboarding,
-        // except when they're already on onboarding or pricing pages —
-        // otherwise we'd self-redirect and cause an infinite reload loop.
+        // Route new OAuth users (not yet onboarded) to onboarding.
         const page = window.location.pathname.split('/').pop() || '';
-        const skipCheck = ['onboarding.html', 'pricing.html', 'login.html', 'signup.html', 'index.html', ''].includes(page);
+        const skipCheck = ['onboarding.html', 'login.html', 'signup.html', 'index.html', ''].includes(page);
         if (!skipCheck && !session.user.user_metadata?.onboarded) {
           window.location.replace('onboarding.html');
         }
@@ -671,19 +667,13 @@ async function _initData() {
     _cache.receipts     = _readLocal('receipts', []);
   }
   _persistAllCache();
-  // Mirror plan to localStorage so PlanGate.currentPlan() works synchronously
-  // on the next page load (before phyzelyne:ready fires).
-  try {
-    const plan = (_cache.settings || {}).plan;
-    if (plan) localStorage.setItem('phyzelyne_plan', plan);
-  } catch {}
   _cache.ready = true;
-  _initDataSync();   // start listening for cross-tab data changes
-  _initRealtimeSync(); // start listening for remote device data changes
-  _startRemoteSync(); // keep multiple logged-in devices converged
-  await _flushWriteQueue();  // replay any writes that arrived before userId was set
-  await _syncCacheToSupabase(); // upload device-only records for same-account sync
-  migrateFromLocalStorage(); // one-shot: move any old localStorage data to Supabase
+  _initDataSync();      // start listening for cross-tab data changes
+  _initRealtimeSync();  // start listening for remote device data changes
+  _startRemoteSync();   // keep multiple logged-in devices converged
+  await _flushWriteQueue();      // replay any writes that arrived before userId was set
+  await _syncCacheToSupabase();  // upload device-only records for same-account sync
+  migrateFromLocalStorage();     // one-shot: move any old localStorage data to Supabase
   document.dispatchEvent(new Event('phyzelyne:ready'));
 
   // Boot subscription reminders after data is loaded
@@ -741,10 +731,6 @@ const Theme = {
     return s.accentTheme || localStorage.getItem('phyzelyne_accent') || 'gold';
 	  },
 	  apply(id) {
-	    if (typeof PlanGate !== 'undefined' && !PlanGate.can('theme_customization')) {
-	      if (typeof showToast === 'function') showToast('Theme customization requires the Personal plan.', 'error');
-	      return THEMES.find(x => x.id === Theme.current()) || THEMES[0];
-	    }
 	    const t = _applyAccentTheme(id);
     try { localStorage.setItem('phyzelyne_accent', t.id); } catch {}
     if (typeof Store !== 'undefined') {
@@ -1284,11 +1270,10 @@ const Auth = {
         _sessionCache = session.user;
         _cache.userId = session.user.id;
 
-        // Route unboarded users (e.g. new OAuth signups) to onboarding,
-        // except when they're already on onboarding or pricing pages.
+        // Route unboarded users (e.g. new OAuth signups) to onboarding.
         const page = window.location.pathname.split('/').pop() || '';
         const isOnboarded = session.user.user_metadata?.onboarded;
-        const skipCheck   = ['onboarding.html', 'pricing.html'].includes(page);
+        const skipCheck   = ['onboarding.html'].includes(page);
         if (!isOnboarded && !skipCheck) {
           window.location.replace('onboarding.html');
           return;
@@ -1450,308 +1435,13 @@ const Auth = {
 
 
 /* ══════════════════════════════════════
-   PLAN GATE  (feature access control)
+   PHYZELYNE FREE & UNLIMITED MODEL
+   All features (AI Coach, multi-currency,
+   analytics, savings goals, invoices & receipts,
+   theme customization, business workspace) are
+   100% free and unlimited for all users.
 ══════════════════════════════════════ */
-const PlanGate = {
 
-  // ── Plan hierarchy ────────────────────────────────────────────────────────
-	  LEVELS: { free: 0, personal: 1, cooperate: 2 },
-
-	  PLAN_ALIASES: {
-	    students: 'personal',
-	    individuals: 'personal',
-	    businesses: 'cooperate',
-	    enterprise: 'cooperate',
-	    corporate: 'cooperate',
-	  },
-
-  // ── Feature matrix ────────────────────────────────────────────────────────
-  FEATURES: {
-	    ai_chat:              { minPlan: 'free',         label: 'Phyzelyne AI Coach' },
-	    ai_web_search:        { minPlan: 'free',         label: 'Phyzelyne AI Web Search' },
-	    analysis:             { minPlan: 'free',         label: 'Bar Chart Analysis' },
-	    savings_goals:        { minPlan: 'personal',     label: 'Savings Goals' },
-	    currency_conversion:  { minPlan: 'personal',     label: 'Currency Conversion' },
-	    pdf_export:           { minPlan: 'personal',     label: 'PDF Export' },
-	    csv_export:           { minPlan: 'free',         label: 'CSV Export' },
-	    advanced_analysis:    { minPlan: 'personal',     label: 'Advanced Analysis' },
-	    theme_customization:  { minPlan: 'personal',     label: 'Theme Customization' },
-	    team_features:        { minPlan: 'personal',     label: 'Team Features' },
-	    invoices:             { minPlan: 'cooperate',    label: 'Invoices & Receipts' },
-	    wealth_forecast:      { minPlan: 'personal',     label: 'Wealth Forecasting' },
-	    automated_invoicing:  { minPlan: 'cooperate',    label: 'Automated Invoicing' },
-	    api_access:           { minPlan: 'cooperate',    label: 'API Access' },
-	    transaction_limit:    { free: 30 },  // monthly limit for free plan only
-    category_limit:       { free: 3 },   // category limit for free plan only
-  },
-
-  // ── Daily Token Management for AI (Free Plan: 100 daily tokens, 10 tokens/prompt) ──
-  getAITokenState() {
-    const today = new Date().toISOString().split('T')[0];
-    const STORAGE_KEY = 'phyzelyne_ai_token_state_v4';
-    let data;
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) data = JSON.parse(stored);
-    } catch (e) {}
-
-    if (
-      !data ||
-      data.lastResetDate !== today ||
-      typeof data.tokensRemaining !== 'number' ||
-      isNaN(data.tokensRemaining)
-    ) {
-      data = {
-        tokensRemaining: 100,
-        totalDailyTokens: 100,
-        costPerPrompt: 10,
-        lastResetDate: today,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
-    return data;
-  },
-
-  canSendAIPrompt() {
-    if (this.currentPlan() !== 'free') return { allowed: true, promptsLeft: Infinity, remainingTokens: Infinity };
-    const state = this.getAITokenState();
-    const promptsLeft = Math.floor(state.tokensRemaining / state.costPerPrompt);
-    if (promptsLeft <= 0) {
-      return {
-        allowed: false,
-        remainingTokens: state.tokensRemaining,
-        promptsLeft: 0,
-        message: 'Daily free limit reached (10/10 prompts used today). Upgrade to Pro for unlimited prompts!',
-      };
-    }
-    return {
-      allowed: true,
-      remainingTokens: state.tokensRemaining,
-      promptsLeft: promptsLeft,
-    };
-  },
-
-  deductAITokens(amount = 10) {
-    if (this.currentPlan() !== 'free') return { success: true, remainingTokens: Infinity, promptsLeft: Infinity };
-    const check = this.canSendAIPrompt();
-    if (!check.allowed) return { success: false, ...check };
-
-    const state = this.getAITokenState();
-    state.tokensRemaining -= amount;
-    localStorage.setItem('phyzelyne_ai_token_state_v4', JSON.stringify(state));
-    const promptsLeft = Math.floor(state.tokensRemaining / state.costPerPrompt);
-    return {
-      success: true,
-      remainingTokens: state.tokensRemaining,
-      promptsLeft: promptsLeft,
-    };
-  },
-
-  // ── Upgrade copy per plan ─────────────────────────────────────────────────
-  UPGRADE_COPY: {
-    personal:  { price: '$5.99/mo', cta: 'Upgrade to Personal' },
-    cooperate: { price: '$15.99/mo', cta: 'Upgrade to Cooperate' },
-  },
-
-  // ── Get current plan ──────────────────────────────────────────────────────
-  currentPlan() {
-    const s = Store ? Store.getSettings() : {};
-    let raw = s.plan;
-    if (!raw) {
-      try { raw = localStorage.getItem('phyzelyne_plan'); } catch {}
-    }
-    raw = (raw || 'free').toLowerCase();
-    return this.PLAN_ALIASES[raw] || raw;
-  },
-
-  planLevel(plan) {
-    return this.LEVELS[plan] || 0;
-  },
-
-  // ── Check if a feature is accessible ─────────────────────────────────────
-  can(featureKey) {
-    const feature = this.FEATURES[featureKey];
-    if (!feature || !feature.minPlan) return true;
-    return this.planLevel(this.currentPlan()) >= this.planLevel(feature.minPlan);
-  },
-
-  // ── Is business plan or higher ────────────────────────────────────────────
-  isBusiness() {
-	    return this.planLevel(this.currentPlan()) >= this.planLevel('cooperate');
-  },
-
-  // ── Check free-tier numeric limits ───────────────────────────────────────
-  monthlyTransactionCount() {
-    if (!Store) return 0;
-    const txns  = Store.getTransactions();
-    const now   = new Date();
-    const month = now.getMonth();
-    const year  = now.getFullYear();
-    return txns.filter(t => {
-      const d = new Date(t.date);
-      return d.getMonth() === month && d.getFullYear() === year;
-    }).length;
-  },
-
-  canAddTransaction() {
-    if (this.currentPlan() !== 'free') return { allowed: true };
-    const count = this.monthlyTransactionCount();
-    const limit = this.FEATURES.transaction_limit.free;
-    if (count >= limit) {
-      return {
-        allowed: false,
-	        message: `Free plan limit reached (${limit} transactions/month). Upgrade to Personal for unlimited tracking.`,
-	        upgradeFeature: 'savings_goals',
-	        upgradePlan: 'personal'
-      };
-    }
-    return { allowed: true, remaining: limit - count };
-  },
-
-  // ── Show upgrade modal ────────────────────────────────────────────────────
-  showUpgradeModal(featureKey) {
-    const feature = this.FEATURES[featureKey];
-    if (!feature) return;
-    const plan     = feature.minPlan;
-    const copy     = this.UPGRADE_COPY[plan] || { price: '', cta: 'Upgrade' };
-    const current  = this.currentPlan();
-
-    // Build modal HTML and inject into body
-    const existingModal = document.getElementById('plangate-modal');
-    if (existingModal) existingModal.remove();
-
-    const modal = document.createElement('div');
-    modal.id = 'plangate-modal';
-    modal.innerHTML = `
-      <div id="plangate-overlay" style="
-        position:fixed;inset:0;background:rgba(0,0,0,0.6);
-        backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-        z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;
-        animation:pgFadeIn 0.2s ease;">
-        <div style="
-          background:var(--surface,#1a1612);
-          border:1px solid var(--glass-border);
-          border-radius:var(--radius);
-          box-shadow:0 32px 80px rgba(0,0,0,0.5);
-          padding:40px 36px;width:100%;max-width:420px;
-          text-align:center;position:relative;
-          animation:pgSlideIn 0.25s cubic-bezier(0.16,1,0.3,1);">
-          <button onclick="PlanGate.closeUpgradeModal()" style="
-            position:absolute;top:14px;right:14px;
-            background:var(--glass-dim);border:1px solid var(--glass-border);
-            border-radius:8px;width:30px;height:30px;
-            display:flex;align-items:center;justify-content:center;
-            cursor:pointer;color:var(--text-dim);font-size:0.8rem;
-            font-family:inherit;">✕</button>
-          <div style="
-            width:56px;height:56px;border-radius:16px;
-            background:var(--gold-dim);color:var(--gold);
-            display:flex;align-items:center;justify-content:center;
-            font-size:1.4rem;margin:0 auto 20px;">🔒</div>
-          <div style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--text);margin-bottom:8px;">
-            ${feature.label}
-          </div>
-          <div style="font-size:0.88rem;color:var(--text-dim);line-height:1.6;margin-bottom:24px;">
-            This feature requires the <strong style="color:var(--text);">${plan.charAt(0).toUpperCase()+plan.slice(1)}</strong> plan or higher.
-            You're currently on <strong style="color:var(--text);">${current.charAt(0).toUpperCase()+current.slice(1)}</strong>.
-          </div>
-          <div style="
-            background:var(--glass-dim);border:1px solid var(--glass-border);
-            border-radius:var(--radius-sm);padding:16px;margin-bottom:24px;">
-            <div style="font-size:1.8rem;font-weight:900;font-family:var(--font-display);color:var(--text);">${copy.price}</div>
-            <div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px;">per month · cancel any time</div>
-          </div>
-          <a href="pricing.html" style="
-            display:flex;align-items:center;justify-content:center;gap:8px;
-            width:100%;padding:14px;
-            background:linear-gradient(135deg,var(--gold),var(--gold-light));
-            color:#03071e;font-weight:700;font-size:0.9rem;
-            border:none;border-radius:var(--radius-sm);
-            text-decoration:none;cursor:pointer;
-            font-family:var(--font-body);
-            box-shadow:0 4px 16px rgba(212,160,23,0.35);">
-            🚀 ${copy.cta}
-          </a>
-          <button onclick="PlanGate.closeUpgradeModal()" style="
-            display:block;width:100%;margin-top:10px;padding:10px;
-            background:transparent;border:1px solid var(--glass-border);
-            border-radius:var(--radius-sm);color:var(--text-dim);
-            font-family:var(--font-body);font-size:0.85rem;cursor:pointer;">
-            Maybe later
-          </button>
-        </div>
-      </div>
-      <style>
-        @keyframes pgFadeIn  { from{opacity:0} to{opacity:1} }
-        @keyframes pgSlideIn { from{opacity:0;transform:translateY(20px) scale(0.96)} to{opacity:1;transform:translateY(0) scale(1)} }
-      </style>`;
-    document.body.appendChild(modal);
-
-    // Close on backdrop click
-    document.getElementById('plangate-overlay').addEventListener('click', function(e) {
-      if (e.target === this) PlanGate.closeUpgradeModal();
-    });
-  },
-
-  closeUpgradeModal() {
-    const m = document.getElementById('plangate-modal');
-    if (m) m.remove();
-  },
-
-  // ── Render an inline locked banner for full-page gates ───────────────────
-  renderLockedBanner(featureKey, containerId) {
-    const feature = this.FEATURES[featureKey];
-    if (!feature) return;
-    const plan = feature.minPlan;
-    const copy = this.UPGRADE_COPY[plan] || { price: '', cta: 'Upgrade' };
-    const el   = document.getElementById(containerId);
-    if (!el) return;
-    el.innerHTML = `
-      <div style="
-        display:flex;flex-direction:column;align-items:center;justify-content:center;
-        min-height:320px;text-align:center;padding:40px 24px;">
-        <div style="
-          width:64px;height:64px;border-radius:20px;
-          background:var(--gold-dim);color:var(--gold);
-          display:flex;align-items:center;justify-content:center;
-          font-size:1.6rem;margin-bottom:20px;">🔒</div>
-        <div style="font-family:var(--font-display);font-size:1.6rem;font-weight:700;color:var(--text);margin-bottom:10px;">
-          ${feature.label}
-        </div>
-        <div style="font-size:0.9rem;color:var(--text-dim);line-height:1.7;margin-bottom:28px;max-width:380px;">
-          Upgrade to the <strong style="color:var(--text);">${plan.charAt(0).toUpperCase()+plan.slice(1)}</strong> plan 
-          to unlock this feature — starting at <strong style="color:var(--gold);">${copy.price}</strong>.
-        </div>
-        <a href="pricing.html" style="
-          display:inline-flex;align-items:center;gap:8px;
-          padding:13px 28px;
-          background:linear-gradient(135deg,var(--gold),var(--gold-light));
-          color:#03071e;font-weight:700;font-size:0.9rem;
-          border-radius:var(--radius-pill);text-decoration:none;
-          box-shadow:0 4px 16px rgba(212,160,23,0.35);
-          font-family:var(--font-body);">
-          🚀 ${copy.cta}
-        </a>
-      </div>`;
-  },
-
-  // ── Soft warning banner (for approaching limits) ─────────────────────────
-  renderLimitWarning(remaining, containerId) {
-    const el = document.getElementById(containerId);
-    if (!el || remaining > 5) return;
-    el.innerHTML = `
-      <div style="
-        background:rgba(212,160,23,0.08);border:1px solid var(--gold-border);
-        border-radius:var(--radius-sm);padding:12px 16px;
-        display:flex;align-items:center;gap:10px;
-        font-size:0.83rem;color:var(--text-mid);margin-bottom:16px;">
-        <span style="font-size:1rem;">⚠️</span>
-        <span>You have <strong style="color:var(--gold);">${remaining} transaction${remaining !== 1 ? 's' : ''}</strong> left this month on the Free plan.
-        <a href="pricing.html" style="color:var(--gold);font-weight:600;text-decoration:none;margin-left:4px;">Upgrade →</a></span>
-      </div>`;
-    el.style.display = 'block';
-  }
-};
 
 /* ══════════════════════════════════════
    DATA STORE  (Supabase-backed)
@@ -1771,12 +1461,6 @@ const Store = {
 		  },
 
   addTransaction(txn) {
-    const limitCheck = PlanGate.canAddTransaction();
-    if (!limitCheck.allowed) {
-      if (typeof showToast === 'function') showToast(limitCheck.message, 'error');
-      PlanGate.showUpgradeModal('ai_chat');
-      return null;
-    }
     txn.id               = _genId();
     txn.date             = txn.date || new Date().toISOString().split('T')[0];
     txn.originalCurrency = txn.originalCurrency || getCurrency().code;
@@ -1900,22 +1584,13 @@ const Store = {
 	  getInvoices() { return _cache.invoices || []; },
 
 		  saveInvoices(list) {
-		    if (!PlanGate.can('invoices')) {
-		      if (typeof showToast === 'function') showToast('Invoices and receipts require the Cooperate plan.', 'error');
-		      return;
-			    }
-			    _cache.invoices = list;
+		    _cache.invoices = list;
 		    _persistCache('invoices');
 		    _afterRemoteWrite('invoices', _upsert('invoices', list));
 		    _broadcastChange('invoices');
 		  },
 
 	  addInvoice(inv) {
-	    if (!PlanGate.can('invoices')) {
-	      if (typeof showToast === 'function') showToast('Invoices and receipts require the Cooperate plan.', 'error');
-	      PlanGate.showUpgradeModal('invoices');
-	      return null;
-	    }
 	    inv.id        = 'INV-' + _genId();
     inv.createdAt = new Date().toISOString();
 	    inv.status    = inv.status || 'draft';
@@ -1952,22 +1627,13 @@ const Store = {
 	  getReceipts() { return _cache.receipts || []; },
 
 		  saveReceipts(list) {
-		    if (!PlanGate.can('invoices')) {
-		      if (typeof showToast === 'function') showToast('Invoices and receipts require the Cooperate plan.', 'error');
-		      return;
-			    }
-			    _cache.receipts = list;
+		    _cache.receipts = list;
 		    _persistCache('receipts');
 		    _afterRemoteWrite('receipts', _upsert('receipts', list));
 		    _broadcastChange('receipts');
 		  },
 
 	  addReceipt(receipt) {
-	    if (!PlanGate.can('invoices')) {
-	      if (typeof showToast === 'function') showToast('Invoices and receipts require the Cooperate plan.', 'error');
-	      PlanGate.showUpgradeModal('invoices');
-	      return null;
-	    }
 	    receipt.id        = 'REC-' + _genId();
 	    receipt.createdAt = new Date().toISOString();
 		    if (_cache.receipts === null) _cache.receipts = [];
@@ -2209,10 +1875,8 @@ function renderSidebar() {
     <a href="transactions.html" class="nav-item" data-page="transactions"><i class="fas fa-right-left"></i> Transactions</a>
     <a href="analysis.html" class="nav-item" data-page="analysis"><i class="fas fa-chart-pie"></i> Analysis</a>
     <span class="nav-section-label">Intelligence</span>
-    ${PlanGate.isBusiness()
-      ? `<a href="business.html" class="nav-item" data-page="business"><i class="fas fa-briefcase"></i> Business</a>`
-      : `<a href="ai.html" class="nav-item" data-page="ai"><i class="fas fa-brain"></i> Phyzelyne AI</a>`
-    }
+    <a href="ai.html" class="nav-item" data-page="ai"><i class="fas fa-brain"></i> Phyzelyne AI</a>
+    <a href="business.html" class="nav-item" data-page="business"><i class="fas fa-briefcase"></i> Business</a>
     <span class="nav-section-label">Account</span>
     <a href="settings.html" class="nav-item" data-page="settings"><i class="fas fa-gear"></i> Settings</a>
     <div class="sidebar-bottom">
@@ -2434,7 +2098,7 @@ const SubReminder = (() => {
         if (result && typeof showToast === 'function') {
           showToast('✅ ' + sub.name + ' paid — added to expenses');
         } else if (!result && typeof showToast === 'function') {
-          showToast('⚠️ Could not add expense — check your plan limit', 'error');
+          showToast('⚠️ Could not add expense', 'error');
         }
       }
     } else {

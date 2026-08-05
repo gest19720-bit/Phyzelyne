@@ -105,22 +105,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>Auth.require();</script>
-<script>
-  (function() {
-    if (!PlanGate.can('analysis')) {
-      document.addEventListener('DOMContentLoaded', function() {
-        const shell = document.querySelector('.app-shell');
-        if (shell) {
-          shell.innerHTML = '<main class="main-content"><div class="page-header"><h1>Analysis</h1><p>Understand your money. Spot the patterns.</p></div><div class="glass-card" style="padding:28px;" id="analysis-locked-banner"></div></main>';
-          PlanGate.renderLockedBanner('analysis', 'analysis-locked-banner');
-          document.getElementById('sidebar-mount').innerHTML = renderSidebar();
-          initSidebar();
-        }
-      });
-      window.__analysisGated = true;
-    }
-  })();
-</script>
+
 
 <script>
   let currentPeriod = 'week';
@@ -294,7 +279,6 @@
   let forecastChart;
 
   function renderWealthForecast() {
-    if (!PlanGate.can('wealth_forecast')) return;
     document.getElementById('wealth-forecast-section').style.display = 'block';
 
     const txns      = Store.getTransactions();
@@ -409,18 +393,16 @@
 
 	  function renderPage() {
 	    const txns = Utils.filterByPeriod(Store.getTransactions(), currentPeriod);
-	    const hasAdvancedAnalysis = PlanGate.can('advanced_analysis');
+	    const hasAdvancedAnalysis = true;
 	    renderStats(txns);
 	    renderBarChart(txns);
 	    const doughnutCard = document.getElementById('doughnut-card');
 	    const bottomRow = document.getElementById('bottom-row');
-	    if (doughnutCard) doughnutCard.style.display = hasAdvancedAnalysis ? 'block' : 'none';
-	    if (bottomRow) bottomRow.style.display = hasAdvancedAnalysis ? 'grid' : 'none';
-	    if (hasAdvancedAnalysis) {
-	      renderDoughnutChart(txns);
-	      renderCatBreakdown(txns);
-	      renderAITips(txns);
-	    }
+	    if (doughnutCard) doughnutCard.style.display = 'block';
+	    if (bottomRow) bottomRow.style.display = 'grid';
+	    renderDoughnutChart(txns);
+	    renderCatBreakdown(txns);
+	    renderAITips(txns);
 	    renderWealthForecast();
 	  }
 
@@ -436,14 +418,13 @@
   // Responsive grid
   function checkGrids() {
 	    const narrow = window.innerWidth < 900;
-	    const hasAdvancedAnalysis = typeof PlanGate !== 'undefined' && PlanGate.can('advanced_analysis');
-	    document.getElementById('charts-row').style.gridTemplateColumns = narrow || !hasAdvancedAnalysis ? '1fr' : '1fr 1fr';
+	    document.getElementById('charts-row').style.gridTemplateColumns = narrow ? '1fr' : '1fr 1fr';
     document.getElementById('bottom-row').style.gridTemplateColumns = narrow ? '1fr' : '1fr 1fr';
   }
   checkGrids();
   window.addEventListener('resize', checkGrids);
 
-  if (window.__analysisGated) throw new Error('Analysis gated');
+
   document.getElementById('sidebar-mount').innerHTML = renderSidebar();
   initSidebar();
 
@@ -475,12 +456,8 @@
   var page = location.pathname.split('/').pop() || 'dashboard.html';
   function _setSmartTab() {
     var smartEl = document.getElementById('bnav-smart-tab');
-    if (smartEl && typeof PlanGate !== 'undefined') {
-      if (PlanGate.isBusiness()) {
-        smartEl.outerHTML = '<a href="business.html" class="bottom-nav-item" data-page="business"><i class="fas fa-briefcase"></i><span>Business</span></a>';
-      } else {
-        smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i><span>AI</span></a>';
-      }
+    if (smartEl) {
+      smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i><span>AI</span></a>';
     }
     document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){
       var p = el.dataset.page;

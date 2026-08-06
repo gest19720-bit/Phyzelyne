@@ -205,79 +205,17 @@
   function updateAITokenBadge() {
     const container = document.getElementById('ai-token-badge-container');
     if (!container) return;
-    const plan = PlanGate.currentPlan();
-    if (plan !== 'free') {
-      container.innerHTML = `<span class="ai-token-badge pro"><i class="fas fa-bolt"></i> Unlimited Pro Prompts</span>`;
-      return;
-    }
-    const tokenState = PlanGate.getAITokenState();
-    const promptsLeft = Math.max(0, Math.floor(tokenState.tokensRemaining / 10));
-    const isExhausted = promptsLeft === 0;
-    container.innerHTML = `
-      <span class="ai-token-badge ${isExhausted ? 'exhausted' : promptsLeft <= 3 ? 'low' : ''}">
-        <i class="fas fa-bolt"></i> ${promptsLeft} / 10 Free Prompts Left Today (${tokenState.tokensRemaining} Tokens)
-      </span>
-    `;
-
+    container.innerHTML = `<span class="ai-token-badge pro"><i class="fas fa-bolt"></i> Phyzelyne AI Coach</span>`;
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('send-btn');
-    if (isExhausted) {
-      if (input) { input.disabled = true; input.placeholder = "Daily free limit reached (10/10 prompts used today). Upgrade to Pro to continue."; }
-      if (sendBtn) { sendBtn.disabled = true; }
-      showAIUpgradeBanner();
-    } else {
-      if (input) { input.disabled = false; input.placeholder = "Ask anything about your finances…"; }
-      if (sendBtn) { sendBtn.disabled = false; }
-      hideAIUpgradeBanner();
-    }
-  }
-
-  function showAIUpgradeBanner() {
-    let banner = document.getElementById('ai-upgrade-banner');
-    if (!banner) {
-      const hero = document.querySelector('.ai-hero');
-      if (!hero) return;
-      banner = document.createElement('div');
-      banner.id = 'ai-upgrade-banner';
-      banner.className = 'ai-upgrade-banner';
-      hero.after(banner);
-    }
-    banner.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;">
-        <div>
-          <strong>🔒 Daily 10-Prompt Free Limit Reached!</strong>
-          <p style="margin:4px 0 0;font-size:0.82rem;opacity:0.9;">You have used all 10 free prompts (100 tokens) for today. Upgrade to Personal or Cooperate for unlimited AI coaching.</p>
-        </div>
-        <a href="pricing.html" class="btn btn-gold" style="white-space:nowrap;padding:8px 18px;font-size:0.85rem;text-decoration:none;">Upgrade Now ✨</a>
-      </div>
-    `;
-    banner.style.display = 'flex';
-  }
-
-  function hideAIUpgradeBanner() {
-    const banner = document.getElementById('ai-upgrade-banner');
-    if (banner) banner.style.display = 'none';
-  }
-
-  function _checkAIGate() {
-    if (!PlanGate.can('ai_chat')) {
-      window.__aiGated = true;
-      const mount = document.getElementById('sidebar-mount');
-      if (mount) { mount.innerHTML = renderSidebar(); initSidebar(); }
-      const shell = document.querySelector('.app-shell');
-      if (shell) {
-        shell.innerHTML = '<main class="main-content"><div class="page-header"><h1>Phyzelyne AI</h1><p>Your personal AI finance coach.</p></div><div class="glass-card" style="padding:28px;" id="ai-locked-banner"></div></main>';
-        PlanGate.renderLockedBanner('ai_chat', 'ai-locked-banner');
-      }
-    } else {
-      updateAITokenBadge();
-    }
+    if (input) { input.disabled = false; input.placeholder = "Ask anything about your finances…"; }
+    if (sendBtn) { sendBtn.disabled = false; }
   }
 
   if (_cache.ready) {
-    _checkAIGate();
+    updateAITokenBadge();
   } else {
-    document.addEventListener('phyzelyne:ready', _checkAIGate, { once: true });
+    document.addEventListener('phyzelyne:ready', updateAITokenBadge, { once: true });
   }
 </script>
 <script>
@@ -809,6 +747,7 @@ function initSpeechRecognition() {
   rec.lang = 'en-US';
 
   let silenceTimer = null;
+  let finalTranscript = '';
 
   const resetSilenceTimer = () => {
     if (silenceTimer) clearTimeout(silenceTimer);
@@ -820,6 +759,7 @@ function initSpeechRecognition() {
 
   rec.onstart = () => {
     isVoiceActive = true;
+    finalTranscript = '';
     updateVoiceButtonState(true);
     const input = document.getElementById('chat-input');
     input.placeholder = "Listening...";
@@ -828,20 +768,15 @@ function initSpeechRecognition() {
 
   rec.onresult = (e) => {
     let interimTranscript = '';
-    let finalTranscript = '';
     for (let i = e.resultIndex; i < e.results.length; ++i) {
       if (e.results[i].isFinal) {
-        finalTranscript += e.results[i][0].transcript;
+        finalTranscript += e.results[i][0].transcript + ' ';
       } else {
         interimTranscript += e.results[i][0].transcript;
       }
     }
     const input = document.getElementById('chat-input');
-    if (finalTranscript) {
-      input.value = finalTranscript;
-    } else {
-      input.value = interimTranscript;
-    }
+    input.value = (finalTranscript + interimTranscript).trim();
     resetSilenceTimer();
   };
 
@@ -855,10 +790,11 @@ function initSpeechRecognition() {
     if (silenceTimer) clearTimeout(silenceTimer);
     const input = document.getElementById('chat-input');
     input.placeholder = "Ask anything about your finances...";
-    if (isVoiceActive && input.value.trim()) {
+    const shouldSend = isVoiceActive && input.value.trim();
+    stopVoiceRecognition();
+    if (shouldSend) {
       sendMessage(true);
     }
-    stopVoiceRecognition();
   };
 
   return rec;
@@ -1027,7 +963,6 @@ document.getElementById('chat-input').addEventListener('keydown', e => {
 });
 
 /* ─── Boot ─── */
-if (window.__aiGated) throw new Error('AI plan-gated');
 document.getElementById('sidebar-mount').innerHTML = renderSidebar();
 initSidebar();
 renderDeficitBanner();

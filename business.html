@@ -145,6 +145,17 @@
     }
     .chat-send:hover { transform: scale(1.08); background: var(--gold-light); }
     .chat-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .chat-voice {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--text);
+    }
+    .chat-voice:hover { background: var(--glass); transform: scale(1.08); }
+    .chat-voice.listening {
+      color: #ef4444;
+      border-color: #ef4444;
+      animation: pulseVoice 1.5s infinite;
+    }
 
     /* Coach sidebar */
     .coach-sidebar { display: flex; flex-direction: column; gap: 16px; }
@@ -509,6 +520,9 @@
           </div>
           <div class="chat-input-row">
             <input type="text" id="chat-input" placeholder="Ask anything about your finances…" autocomplete="off">
+            <button class="chat-send chat-voice" id="voice-btn" onclick="toggleVoiceInput()" title="Speak to your AI Finance Coach">
+              <i class="fas fa-microphone"></i>
+            </button>
             <button class="chat-send" id="chat-send-btn" onclick="sendMessage()">
               <i class="fas fa-paper-plane"></i>
             </button>
@@ -763,29 +777,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
-  <script>
-    Auth.require();
-    function _checkBusinessGate() {
-	      if (!PlanGate.isBusiness()) {
-	        window.__businessGated = true;
-        const shell = document.querySelector('.app-shell');
-        if (shell) {
-          shell.innerHTML = '<main class="main-content"><div class="page-header"><h1>Business</h1><p>AI coaching, invoices, and receipts for Cooperate users.</p></div><div class="glass-card" style="padding:40px;" id="business-locked"></div></main>';
-          PlanGate.renderLockedBanner('invoices', 'business-locked');
-          document.getElementById('sidebar-mount').innerHTML = renderSidebar();
-          initSidebar();
-        }
-      }
-    }
-    if (_cache.ready) {
-      _checkBusinessGate();
-    } else {
-      document.addEventListener('phyzelyne:ready', _checkBusinessGate, { once: true });
-    }
-  </script>
-
 <script>
-if (window.__businessGated) throw new Error('Business gated');
 /* ══════════════════════════════════════════════════════════════
 	   TAB SWITCHING
 ══════════════════════════════════════════════════════════════ */
@@ -906,10 +898,13 @@ function appendMsg(role, text, isTyping) {
 	  return true;
 	}
 	
-	async function sendMessage(overrideText) {
+	async function sendMessage(overrideText, fromVoice) {
   const input = document.getElementById('chat-input');
   const text  = overrideText || input.value.trim();
   if (!text) return;
+
+  if (isVoiceActive) stopVoiceRecognition();
+  if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
 
   input.value = '';
   document.getElementById('chat-send-btn').disabled = true;
@@ -941,8 +936,11 @@ ${buildFinancialContext()}`;
 	    saveBusinessChatHistory();
     typingEl.querySelector('.msg-bubble').innerHTML =
       reply.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    if (fromVoice) speakText(reply);
   } catch(err) {
-    typingEl.querySelector('.msg-bubble').textContent = 'Connection error — please check your internet and try again.';
+    const fallback = 'Connection error — please check your internet and try again.';
+    typingEl.querySelector('.msg-bubble').textContent = fallback;
+    if (fromVoice) speakText(fallback);
   }
 
   document.getElementById('chat-send-btn').disabled = false;
@@ -958,6 +956,134 @@ function usePrompt(el) {
 document.getElementById('chat-input').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
+
+/* ══════════════════════════════════════════════════════════════
+   VOICE MODE — speech input & spoken replies
+══════════════════════════════════════════════════════════════ */
+let recognition = null;
+let isVoiceActive = false;
+
+function speakText(text) {
+  window.speechSynthesis.cancel();
+  const cleanText = text
+    .replace(/<[^>]*>/g, '')
+    .replace(/[\*\_`#\-]/g, '')
+    .trim();
+  if (!cleanText) return;
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  const voices = window.speechSynthesis.getVoices();
+  const preferredVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
+                      || voices.find(v => v.lang.startsWith('en'))
+                      || voices[0];
+  if (preferredVoice) utterance.voice = preferredVoice;
+  window.speechSynthesis.speak(utterance);
+}
+
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    console.warn('Speech Recognition not supported in this browser.');
+    return null;
+  }
+
+  const rec = new SpeechRecognition();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = 'en-US';
+
+  let silenceTimer = null;
+  let finalTranscript = '';
+
+  const resetSilenceTimer = () => {
+    if (silenceTimer) clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(() => rec.stop(), 2000);
+  };
+
+  rec.onstart = () => {
+    isVoiceActive = true;
+    finalTranscript = '';
+    updateVoiceButtonState(true);
+    document.getElementById('chat-input').placeholder = 'Listening...';
+    resetSilenceTimer();
+  };
+
+  rec.onresult = (e) => {
+    let interimTranscript = '';
+    for (let i = e.resultIndex; i < e.results.length; ++i) {
+      if (e.results[i].isFinal) {
+        finalTranscript += e.results[i][0].transcript + ' ';
+      } else {
+        interimTranscript += e.results[i][0].transcript;
+      }
+    }
+    document.getElementById('chat-input').value = (finalTranscript + interimTranscript).trim();
+    resetSilenceTimer();
+  };
+
+  rec.onerror = (e) => {
+    console.error('Speech recognition error:', e.error);
+    if (silenceTimer) clearTimeout(silenceTimer);
+    stopVoiceRecognition();
+  };
+
+  rec.onend = () => {
+    if (silenceTimer) clearTimeout(silenceTimer);
+    const input = document.getElementById('chat-input');
+    input.placeholder = 'Ask anything about your finances…';
+    const shouldSend = isVoiceActive && input.value.trim();
+    stopVoiceRecognition();
+    if (shouldSend) sendMessage(null, true);
+  };
+
+  return rec;
+}
+
+function toggleVoiceInput() {
+  if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+  if (isVoiceActive) {
+    const input = document.getElementById('chat-input');
+    if (input.value.trim()) {
+      if (recognition) recognition.stop();
+    } else {
+      stopVoiceRecognition();
+    }
+  } else {
+    startVoiceRecognition();
+  }
+}
+
+function startVoiceRecognition() {
+  if (!recognition) recognition = initSpeechRecognition();
+  if (!recognition) {
+    showToast('Speech recognition not supported in this browser.', 'error');
+    return;
+  }
+  try {
+    recognition.start();
+  } catch (err) {
+    console.error('Failed to start recognition:', err);
+  }
+}
+
+function stopVoiceRecognition() {
+  isVoiceActive = false;
+  updateVoiceButtonState(false);
+  if (recognition) {
+    try { recognition.stop(); } catch (err) {}
+  }
+}
+
+function updateVoiceButtonState(listening) {
+  const btn = document.getElementById('voice-btn');
+  if (!btn) return;
+  if (listening) {
+    btn.classList.add('listening');
+    btn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+  } else {
+    btn.classList.remove('listening');
+    btn.innerHTML = '<i class="fas fa-microphone"></i>';
+  }
+}
 
 /* ══════════════════════════════════════════════════════════════
    INVOICES

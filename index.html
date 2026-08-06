@@ -443,50 +443,6 @@ h1,h2,h3,h4{ font-family:var(--font-display); font-weight:700; color:var(--ink);
 .metric-label{ font-size:0.85rem; color:var(--ink-dim); }
 
 /* ============================================================
-   PRICING
-   ============================================================ */
-.pricing-toggle{ display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:56px; }
-.toggle-lbl{ font-size:0.92rem; color:var(--ink-dim); font-weight:600; transition:color 0.3s; }
-.toggle-lbl.active{ color:var(--ink); }
-.toggle-switch{ position:relative; width:52px; height:28px; }
-.toggle-switch input{ opacity:0; width:0; height:0; }
-.toggle-slider{
-  position:absolute; inset:0; background:var(--surface-2); border:1px solid var(--border-2);
-  border-radius:var(--radius-pill); cursor:pointer; transition:0.3s;
-}
-.toggle-slider::before{
-  content:''; position:absolute; width:20px; height:20px; left:3px; top:3px;
-  background:var(--gold-2); border-radius:50%; transition:0.3s var(--ease);
-}
-input:checked + .toggle-slider::before{ transform:translateX(24px); }
-.save-tag{ font-family:var(--font-mono); font-size:0.7rem; color:var(--emerald-2); background:var(--emerald-dim); padding:4px 10px; border-radius:var(--radius-pill); }
-
-.pricing-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-.price-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
-  padding:36px 30px; display:flex; flex-direction:column; transition:all 0.4s var(--ease); position:relative;
-}
-.price-card:hover{ transform:translateY(-6px); border-color:var(--border-2); }
-.price-card.featured{ background:linear-gradient(180deg,rgba(var(--gold-rgb),0.09),var(--surface)); border-color:var(--gold); transform:scale(1.03); }
-.price-card.featured:hover{ transform:scale(1.03) translateY(-6px); }
-.featured-badge{
-  position:absolute; top:-13px; left:50%; transform:translateX(-50%);
-  background:linear-gradient(135deg,var(--gold),var(--gold-2)); color:#191204;
-  font-size:0.7rem; font-weight:700; padding:6px 16px; border-radius:var(--radius-pill);
-  text-transform:uppercase; letter-spacing:0.05em;
-}
-.plan-name{ font-size:1.05rem; font-weight:700; margin-bottom:16px; color:var(--ink); }
-.price-num{ font-family:var(--font-mono); font-size:2.6rem; font-weight:600; display:flex; align-items:baseline; gap:2px; }
-.price-num span{ font-size:1.3rem; color:var(--ink-dim); }
-.price-period{ font-size:0.82rem; color:var(--ink-dim); margin-bottom:8px; }
-.price-offer{ font-size:0.75rem; color:var(--gold-2); margin-bottom:22px; display:flex; align-items:center; gap:6px; }
-.price-feats{ list-style:none; display:flex; flex-direction:column; gap:13px; margin:8px 0 30px; flex:1; }
-.price-feats li{ display:flex; align-items:flex-start; gap:10px; font-size:0.86rem; color:var(--ink-mid); }
-.price-feats i{ margin-top:3px; font-size:0.75rem; }
-.price-feats .fa-check{ color:var(--emerald-2); }
-.price-feats .fa-xmark{ color:var(--ink-faint); }
-
-/* ============================================================
    TESTIMONIALS
    ============================================================ */
 .testi-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
@@ -567,8 +523,6 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
   .demo-tabs{ flex-direction:row; overflow-x:auto; }
   .demo-tab{ flex:1; min-width:180px; }
   .sim-grid, .inv-grid{ grid-template-columns:1fr; }
-  .pricing-grid{ grid-template-columns:1fr; max-width:440px; margin:0 auto; }
-  .price-card.featured{ transform:none; }
   .metrics{ grid-template-columns:repeat(2,1fr); }
   .testi-grid{ grid-template-columns:1fr; }
   .footer-top{ grid-template-columns:1fr; gap:36px; }
@@ -600,20 +554,18 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
     <div class="nav-menu">
       <a href="#features" class="nav-link">Features</a>
       <a href="#demo" class="nav-link">Live Demo</a>
-      <a href="#pricing" class="nav-link">Pricing</a>
       <a href="#faq" class="nav-link">FAQ</a>
     </div>
     <div class="nav-right">
-      <div class="nav-cta"><a href="waitlist.html" class="btn btn-gold btn-sm">Get Started</a></div>
+      <div class="nav-cta"><a href="signup.html" class="btn btn-gold btn-sm">Get Started</a></div>
       <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
     </div>
   </nav>
   <div class="mobile-sheet" id="mobileSheet">
     <a href="#features">Features</a>
     <a href="#demo">Live Demo</a>
-    <a href="#pricing">Pricing</a>
     <a href="#faq">FAQ</a>
-    <a href="waitlist.html" class="btn btn-gold">Get Started Free</a>
+    <a href="signup.html" class="btn btn-gold">Get Started Free</a>
   </div>
 
   <!-- HERO -->
@@ -625,12 +577,12 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
         Phyzelyne turns income, expenses, and invoices across 150+ currencies into one live picture — with an AI coach reading the tape for you, 24/7.
       </p>
       <div class="hero-btns">
-        <a href="waitlist.html" class="btn btn-gold">Get Started Free</a>
+        <a href="signup.html" class="btn btn-gold">Get Started Free</a>
         <a href="#demo" class="btn btn-glass">Try Live Demo</a>
       </div>
       <div class="hero-proof">
         <div class="proof-avatars"><span>AM</span><span>KO</span><span>EA</span></div>
-        <p><strong>2,400+</strong> on the waitlist across West Africa</p>
+        <p><strong>2,400+</strong> early users across West Africa</p>
       </div>
     </div>
 
@@ -841,81 +793,13 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
   <section class="section" style="padding-top:0;">
     <div class="metrics reveal-stagger">
       <div class="metric"><div class="metric-num" data-count="150">0</div><div class="metric-label">Currencies supported</div></div>
-      <div class="metric"><div class="metric-num" data-count="2400">0</div><div class="metric-label">Waitlist members</div></div>
+      <div class="metric"><div class="metric-num" data-count="2400">0</div><div class="metric-label">Early users</div></div>
       <div class="metric"><div class="metric-num" data-count="24">0</div><div class="metric-label">Hour AI coaching</div></div>
       <div class="metric"><div class="metric-num" data-count="99">0</div><div class="metric-label">% Uptime target</div></div>
     </div>
   </section>
 
-  <!-- PRICING -->
-  <section class="section" id="pricing">
-    <div class="section-head center reveal" style="margin-left:auto;margin-right:auto;">
-      <span class="eyebrow">Pricing</span>
-      <h2 class="section-title">Upgrade your capital.</h2>
-      <p class="section-sub">Start for free, then choose the tier that matches your personal or business needs. Rates locked in for life.</p>
-    </div>
 
-    <div class="pricing-toggle reveal">
-      <span class="toggle-lbl active" id="lblMonthly">Monthly</span>
-      <label class="toggle-switch"><input type="checkbox" id="billingToggle"><span class="toggle-slider"></span></label>
-      <span class="toggle-lbl" id="lblYearly">Yearly</span>
-      <span class="save-tag">Save 20%</span>
-    </div>
-
-    <div class="pricing-grid reveal-stagger">
-      <div class="price-card">
-        <div class="plan-name">Free Plan</div>
-        <div class="price-num">$0</div>
-        <div class="price-period">forever</div>
-        <ul class="price-feats">
-          <li><i class="fas fa-check"></i> Up to 30 transactions/mo</li>
-          <li><i class="fas fa-check"></i> Basic dashboard analytics</li>
-          <li><i class="fas fa-check"></i> 3 primary budget categories</li>
-          <li><i class="fas fa-check"></i> Manual CSV imports</li>
-          <li><i class="fas fa-xmark"></i> Custom theme aesthetics</li>
-          <li><i class="fas fa-xmark"></i> Smart AI financial coaching</li>
-          <li><i class="fas fa-xmark"></i> Client invoicing system</li>
-        </ul>
-        <a href="waitlist.html" class="btn btn-glass btn-block">Get Started Free</a>
-      </div>
-
-      <div class="price-card featured">
-        <div class="featured-badge">Launch Special</div>
-        <div class="plan-name">Personal</div>
-        <div class="price-num" id="personalPrice">$5.99</div>
-        <div class="price-period" id="personalPeriod">per month</div>
-        <div class="price-offer"><i class="fas fa-bolt"></i> Lock in your price today</div>
-        <ul class="price-feats">
-          <li><i class="fas fa-check"></i> Unlimited transactions</li>
-          <li><i class="fas fa-check"></i> Full dashboards & insights</li>
-          <li><i class="fas fa-check"></i> Multi-currency tracking (150+)</li>
-          <li><i class="fas fa-check"></i> Custom color palettes</li>
-          <li><i class="fas fa-check"></i> Financial goal structures</li>
-          <li><i class="fas fa-check"></i> PDF & Excel report exports</li>
-          <li><i class="fas fa-xmark"></i> Smart AI financial coaching</li>
-          <li><i class="fas fa-xmark"></i> Client invoicing system</li>
-        </ul>
-        <a href="waitlist.html" class="btn btn-gold btn-block">Get Personal Offer</a>
-      </div>
-
-      <div class="price-card">
-        <div class="plan-name">Corporate</div>
-        <div class="price-num" id="corpPrice">$15.99</div>
-        <div class="price-period" id="corpPeriod">per month</div>
-        <div class="price-offer"><i class="fas fa-bolt"></i> Lock in your price today</div>
-        <ul class="price-feats">
-          <li><i class="fas fa-check"></i> Everything in Personal</li>
-          <li><i class="fas fa-check"></i> Smart AI Finance Coach 24/7</li>
-          <li><i class="fas fa-check"></i> Complete invoice & billing engine</li>
-          <li><i class="fas fa-check"></i> AI-powered web search tool</li>
-          <li><i class="fas fa-check"></i> Business workspace separation</li>
-          <li><i class="fas fa-check"></i> Team API integration</li>
-          <li><i class="fas fa-check"></i> Priority VIP support</li>
-        </ul>
-        <a href="waitlist.html" class="btn btn-glass btn-block">Get Corporate Offer</a>
-      </div>
-    </div>
-  </section>
 
   <!-- TESTIMONIALS -->
   <section class="section">
@@ -932,7 +816,7 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
       </div>
       <div class="testi-card">
         <div class="testi-stars">★★★★★</div>
-        <p class="testi-text">"The AI Finance Coach found three redundant SaaS subscriptions within an hour. The Corporate tier paid for itself almost instantly."</p>
+        <p class="testi-text">"The AI Finance Coach found three redundant SaaS subscriptions within an hour and helped me optimize my monthly cashflow."</p>
         <div class="testi-profile"><div class="testi-avatar">KO</div><div class="testi-info"><h5>Kwame Osei</h5><p>Co-founder, Amply Tech</p></div></div>
       </div>
       <div class="testi-card">
@@ -965,7 +849,7 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
       </div>
       <div class="faq-item">
         <div class="faq-q"><span>Can I customize the visual interface?</span><i class="fas fa-plus"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">Yes — Phyzelyne's glass design is fully themeable. Personal and Corporate plan users can choose curated color palettes and light/dark adaptations.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Yes — Phyzelyne's glass design is fully themeable. You can choose curated color palettes and light/dark adaptations.</div></div>
       </div>
     </div>
   </section>
@@ -973,9 +857,9 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
   <!-- CTA -->
   <section class="section">
     <div class="cta-band reveal">
-      <h2 class="cta-title">Upgrade your cashflow today.</h2>
-      <p class="cta-desc">Join thousands of professionals already tracking their finances on Phyzelyne. Secure your lifetime launch discount now.</p>
-      <a href="waitlist.html" class="btn btn-gold" style="position:relative;">Unlock Phyzelyne Access</a>
+      <h2 class="cta-title">Transform your cashflow today.</h2>
+      <p class="cta-desc">Join thousands of professionals already tracking their finances on Phyzelyne. Completely free forever.</p>
+      <a href="signup.html" class="btn btn-gold" style="position:relative;">Create Your Free Account</a>
     </div>
   </section>
 
@@ -994,13 +878,12 @@ input:checked + .toggle-slider::before{ transform:translateX(24px); }
         <ul class="footer-links">
           <li><a href="#features">Features</a></li>
           <li><a href="#demo">Live Demo</a></li>
-          <li><a href="#pricing">Pricing</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h5>Company</h5>
         <ul class="footer-links">
-          <li><a href="waitlist.html">Get Started</a></li>
+          <li><a href="signup.html">Get Started</a></li>
           <li><a href="#faq">Support Center</a></li>
           <li><a href="privacy.html">Privacy Policy</a></li>
           <li><a href="terms.html">Terms of Service</a></li>
@@ -1251,27 +1134,7 @@ document.getElementById('sendInvoiceBtn').addEventListener('click', () => {
   setTimeout(() => toast.classList.remove('show'), 2800);
 });
 
-/* ---------- Pricing toggle ---------- */
-document.getElementById('billingToggle').addEventListener('change', (e) => {
-  const yearly = e.target.checked;
-  document.getElementById('lblMonthly').classList.toggle('active', !yearly);
-  document.getElementById('lblYearly').classList.toggle('active', yearly);
-  const personalPrice = document.getElementById('personalPrice');
-  const corpPrice = document.getElementById('corpPrice');
-  const personalPeriod = document.getElementById('personalPeriod');
-  const corpPeriod = document.getElementById('corpPeriod');
-  if (yearly){
-    personalPrice.innerHTML = '$4.79';
-    personalPeriod.textContent = 'per month, billed annually ($57.50)';
-    corpPrice.innerHTML = '$12.79';
-    corpPeriod.textContent = 'per month, billed annually ($153.50)';
-  } else {
-    personalPrice.innerHTML = '$5.99';
-    personalPeriod.textContent = 'per month';
-    corpPrice.innerHTML = '$15.99';
-    corpPeriod.textContent = 'per month';
-  }
-});
+
 
 /* ---------- FAQ accordion ---------- */
 document.querySelectorAll('.faq-item').forEach(item => {

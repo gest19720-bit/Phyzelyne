@@ -1,10 +1,9 @@
 /**
  * Phyzelyne Extras — phyzelyne-extras.js
- * 1. Tiny stick figure animations (SVG, CSS-driven)
- * 2. Plan-based feature gating UI (overlays, badges, hover effects)
+ * Tiny stick figure animations (SVG, CSS-driven)
  *
- * NOTE: Plan logic (PlanGate, Store, Auth) lives in app.js.
- * This file ONLY adds UI chrome on top — it never redefines PlanGate.
+ * NOTE: Store/Auth logic lives in app.js.
+ * This file ONLY adds UI chrome on top.
  */
 
 'use strict';
@@ -125,36 +124,6 @@ const StickFigures = {
       @keyframes sfLegRight { from{transform:rotate(-12deg)} to{transform:rotate(18deg)} }
       @keyframes sfLegLeft  { from{transform:rotate(12deg)}  to{transform:rotate(-15deg)} }
 
-      .plan-gate-overlay {
-        position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-        background:rgba(var(--accent-rgb,212,160,23),0.04);
-        backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-        z-index:10;border-radius:inherit;
-      }
-      .plan-gate-box {
-        text-align:center;padding:24px 20px;
-        background:var(--glass-heavy,rgba(255,255,255,0.78));
-        border:1px solid var(--glass-border,rgba(255,255,255,0.7));
-        border-radius:var(--radius-sm,12px);
-        box-shadow:var(--shadow-lg,0 20px 48px rgba(0,0,0,0.14));
-        max-width:260px;
-      }
-      .plan-gate-lock { font-size:1.6rem; color:var(--gold,#d4a017); margin-bottom:10px; }
-      .plan-gate-title { font-family:var(--font-display,'Cormorant Garamond',serif); font-size:1.2rem; font-weight:700; color:var(--text,#1a1610); margin-bottom:6px; }
-      .plan-gate-sub { font-size:0.8rem; color:var(--text-dim,#9a8e78); margin-bottom:16px; }
-      .plan-locked-btn { opacity:0.55; cursor:not-allowed !important; }
-      .plan-badge {
-        display:flex;align-items:center;gap:8px;
-        padding:10px 14px;
-        background:var(--gold-dim,rgba(212,160,23,0.18));
-        border:1px solid var(--gold-border,rgba(212,160,23,0.3));
-        border-radius:var(--radius-sm,12px);
-        font-size:0.8rem;font-weight:600;color:var(--text-mid,#5a5040);
-        margin-bottom:8px;
-      }
-      .plan-badge-dot { width:7px;height:7px;border-radius:50%;background:var(--gold,#d4a017);flex-shrink:0; }
-      .plan-badge-upgrade { margin-left:auto;color:var(--gold,#d4a017);font-weight:700;text-decoration:none;font-size:0.75rem; }
-      .plan-badge-upgrade:hover { text-decoration:underline; }
       .sf-empty-slot, .sf-card-react { display:inline-block; }
       .sf-card-react { position:absolute;top:8px;right:8px;opacity:0;transition:opacity 0.4s ease; pointer-events:none; }
     `;
@@ -206,102 +175,17 @@ const StickFigures = {
 };
 
 /* ═══════════════════════════════════════════════
-   PLAN GATE UI EXTENSIONS
-   Adds overlay/badge/lock chrome to app.js's PlanGate.
-   Never redefines PlanGate — only extends it after
-   app.js has already set it up.
-═══════════════════════════════════════════════ */
-function _initPlanGateExtras() {
-  if (typeof PlanGate === 'undefined') return; // app.js not loaded yet — shouldn't happen
-
-  /* Add overlay-lock UI to an element */
-  PlanGate.lock = function(el, featureKey, label) {
-    if (!el) return;
-    if (PlanGate.can(featureKey)) return; // already accessible
-
-    const feature = PlanGate.FEATURES[featureKey] || {};
-    const plan    = feature.minPlan || 'students';
-    const planName = plan.charAt(0).toUpperCase() + plan.slice(1);
-
-    el.style.position = 'relative';
-    el.style.overflow = 'hidden';
-
-    const inner = el.querySelector('.plan-gate-inner') || el.firstElementChild;
-    if (inner) { inner.style.filter = 'blur(4px) grayscale(0.5)'; inner.style.userSelect = 'none'; inner.style.pointerEvents = 'none'; }
-
-    const overlay = document.createElement('div');
-    overlay.className = 'plan-gate-overlay';
-    overlay.innerHTML = `
-      <div class="plan-gate-box">
-        <div class="plan-gate-stick" id="gate-stick-${featureKey}"></div>
-        <div class="plan-gate-lock"><i class="fas fa-lock"></i></div>
-        <div class="plan-gate-title">${label || feature.label || 'Locked'}</div>
-        <div class="plan-gate-sub">Available on <strong>${planName}</strong> plan</div>
-        <a href="pricing.html" class="btn btn-gold btn-sm plan-gate-btn" style="margin-top:4px;">
-          <i class="fas fa-rocket"></i> Upgrade
-        </a>
-      </div>`;
-    el.appendChild(overlay);
-    setTimeout(() => StickFigures.render(`#gate-stick-${featureKey}`, 'shrug', 44), 200);
-  };
-
-  /* Block a button action */
-  PlanGate.blockButton = function(btn, featureKey, label) {
-    if (!btn) return;
-    if (PlanGate.can(featureKey)) return;
-    const feature  = PlanGate.FEATURES[featureKey] || {};
-    const plan     = feature.minPlan || 'students';
-    const planName = plan.charAt(0).toUpperCase() + plan.slice(1);
-    btn.addEventListener('click', e => {
-      e.preventDefault(); e.stopPropagation();
-      if (typeof showToast === 'function')
-        showToast(`${label || 'This feature'} requires the ${planName} plan. <a href="pricing.html" style="color:var(--gold)">Upgrade →</a>`, 'error');
-    });
-    btn.classList.add('plan-locked-btn');
-    btn.title = `Requires ${planName} plan`;
-  };
-
-  /* Show plan badge in sidebar */
-  PlanGate.renderBadge = function() {
-    const plan     = PlanGate.currentPlan();
-    const existing = document.querySelector('.plan-badge');
-    if (existing) existing.remove();
-    const sidebar = document.querySelector('.sidebar-bottom');
-    if (!sidebar) return;
-
-    const labels = { free:'Free', students:'Students', individuals:'Individuals', businesses:'Businesses', enterprise:'Enterprise' };
-    const emojis = { free:'🆓', students:'🎓', individuals:'👤', businesses:'🏢', enterprise:'👑' };
-    const label  = labels[plan] || 'Free';
-    const emoji  = emojis[plan] || '🆓';
-    const showUpgrade = ['free','students','individuals'].includes(plan);
-
-    const badge = document.createElement('div');
-    badge.className = 'plan-badge';
-    badge.innerHTML = `
-      <span class="plan-badge-dot"></span>
-      ${emoji} ${label} Plan
-      ${showUpgrade ? `<a href="pricing.html" class="plan-badge-upgrade">Upgrade</a>` : ''}`;
-    sidebar.prepend(badge);
-  };
-}
-
-/* ═══════════════════════════════════════════════
    PHYZELYNE INTERACTIONS
    Wires stick figures to specific UI moments.
 ═══════════════════════════════════════════════ */
 const PhyzelyneInteractions = {
 
   init() {
-    _initPlanGateExtras();
     this._injectEmptyStates();
     this._wireNavItems();
     this._wireStatCards();
     this._wireTransactionItems();
     this._wireButtons();
-    if (typeof PlanGate !== 'undefined' && typeof PlanGate.renderBadge === 'function') {
-      PlanGate.renderBadge();
-    }
-    this._applyPlanGates();
   },
 
   _injectEmptyStates() {
@@ -353,39 +237,6 @@ const PhyzelyneInteractions = {
     document.querySelectorAll('.btn-gold').forEach(btn => {
       StickFigures.attachHover(btn, btn, 'jump', 30);
     });
-  },
-
-  _applyPlanGates() {
-    if (typeof PlanGate === 'undefined') return;
-    const page = window.location.pathname.split('/').pop() || 'dashboard.html';
-
-    if (page.includes('analysis')) {
-      if (!PlanGate.can('advanced_analysis')) {
-        const bottomRow = document.getElementById('bottom-row');
-        if (bottomRow) PlanGate.lock(bottomRow, 'advanced_analysis', 'AI Suggestions & Breakdown');
-      }
-    }
-
-    if (page.includes('dashboard') || page === '' || page.includes('index')) {
-      const goalsEl = document.getElementById('goals-section');
-      if (goalsEl && !PlanGate.can('savings_goals')) {
-        PlanGate.lock(goalsEl, 'savings_goals', 'Savings Goals');
-      }
-    }
-
-    if (page.includes('settings')) {
-      const convBtn = document.getElementById('open-conversion-modal');
-      if (convBtn && !PlanGate.can('currency_conversion')) {
-        PlanGate.blockButton(convBtn, 'currency_conversion', 'Currency Conversion');
-      }
-    }
-
-    if (page.includes('transactions')) {
-      const exportBtn = document.getElementById('export-btn');
-      if (exportBtn && !PlanGate.can('csv_export')) {
-        PlanGate.blockButton(exportBtn, 'csv_export', 'CSV Export');
-      }
-    }
   }
 };
 

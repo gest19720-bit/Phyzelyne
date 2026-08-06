@@ -432,25 +432,7 @@
         </button>
       </div>
 
-	      <div class="glass-card" style="padding:28px;">
-	        <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-credit-card"></i> Current Plan</div>
-	        <div style="background:var(--glass-dim);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:18px;margin-bottom:18px;">
-	          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-	            <div>
-	              <div class="settings-label" id="current-plan-name" style="font-size:1.15rem;color:var(--text);">Free</div>
-	              <div class="settings-desc" id="current-plan-status">You are currently on the Free plan.</div>
-	            </div>
-	            <div style="text-align:right;">
-	              <div class="stat-value" id="current-plan-price" style="font-size:1.75rem;line-height:1;color:var(--gold);">$0</div>
-	              <div class="settings-desc" id="current-plan-cycle" style="margin-top:4px;">Monthly</div>
-	            </div>
-	          </div>
-	          <div class="settings-desc" id="current-plan-activated" style="margin-top:14px;display:none;"></div>
-	        </div>
-	        <a href="pricing.html" class="btn btn-gold" style="width:100%;justify-content:center;text-decoration:none;">
-	          <i class="fas fa-arrow-up-right-from-square"></i> Choose Plan
-	        </a>
-	      </div>
+
 
 	      <div class="glass-card" style="padding:28px;">
 	        <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-database"></i> Your Data</div>
@@ -707,10 +689,6 @@
   }
 
   function addGoalFromSettings() {
-    if (!PlanGate.can('savings_goals')) {
-      PlanGate.showUpgradeModal('savings_goals');
-      return;
-    }
     const name   = document.getElementById('goal-name').value.trim();
     const emoji  = document.getElementById('goal-emoji').value.trim() || '🎯';
     const target = parseFloat(document.getElementById('goal-target').value);
@@ -815,43 +793,7 @@
 	    showToast(`Theme set to ${t.name}`);
 	  }
 
-	  function renderCurrentPlan() {
-	    const s = Store.getSettings();
-	    const plan = PlanGate.currentPlan();
-	    const plans = {
-	      free: { label: 'Free', monthly: 0 },
-	      personal: { label: 'Personal', monthly: 5.99 },
-	      cooperate: { label: 'Cooperate', monthly: 15.99 },
-	    };
-	    const meta = plans[plan] || plans.free;
-	    const billing = (s.billingCycle || 'monthly').toLowerCase();
-	    const isYearly = billing === 'yearly';
-	    const price = meta.monthly === 0 ? '$0' : `$${isYearly ? (meta.monthly * 12 * 0.8).toFixed(2) : meta.monthly}`;
-	    const cycle = meta.monthly === 0 ? 'Forever' : (isYearly ? 'Yearly' : 'Monthly');
-	    const status = plan === 'free'
-	      ? 'You are currently on the Free plan.'
-	      : `Your ${meta.label} plan is active.`;
 
-	    const nameEl = document.getElementById('current-plan-name');
-	    const priceEl = document.getElementById('current-plan-price');
-	    const cycleEl = document.getElementById('current-plan-cycle');
-	    const statusEl = document.getElementById('current-plan-status');
-	    const activatedEl = document.getElementById('current-plan-activated');
-
-	    if (nameEl) nameEl.textContent = meta.label;
-	    if (priceEl) priceEl.textContent = price;
-	    if (cycleEl) cycleEl.textContent = cycle;
-	    if (statusEl) statusEl.textContent = status;
-	    if (activatedEl) {
-	      if (s.planActivated) {
-	        activatedEl.style.display = 'block';
-	        activatedEl.innerHTML = `<i class="fas fa-calendar-check"></i> Activated ${Utils.formatDate(s.planActivated.split('T')[0])}`;
-	      } else {
-	        activatedEl.style.display = 'none';
-	        activatedEl.textContent = '';
-	      }
-	    }
-	  }
 
   function renderBusinessProfileSettings() {
     const prof = Store.getBusinessProfile() || {};
@@ -894,7 +836,6 @@
     if (s.goalAlerts       !== undefined) document.getElementById('goal-alerts').checked       = s.goalAlerts;
     renderThemeSwatches();
     renderAvatarView();
-    renderCurrentPlan();
     renderBusinessProfileSettings();
   }
 
@@ -938,11 +879,6 @@
   // CURRENCY CONVERSION HANDLER
   // ═══════════════════════════════════════════════════════════
   document.getElementById('currency-select').addEventListener('change', e => {
-    if (!PlanGate.can('currency_conversion')) {
-      e.target.value = Store.getSettings().currencyCode || 'USD';
-      PlanGate.showUpgradeModal('currency_conversion');
-      return;
-    }
     const newCurrency = e.target.value;
     const currentSettings = Store.getSettings();
     const oldCurrency = currentSettings.currencyCode || 'GHS';
@@ -1114,7 +1050,7 @@
     renderDataStats();
   }
 
-  function deleteAccountPermanent() {
+  async function deleteAccountPermanent() {
     const confirmation1 = confirm("WARNING: This will permanently delete your Phyzelyne account along with all your transactions, custom parameters, images, and goals.\n\nThis process is immediate and completely irreversible. Do you want to proceed?");
     if (!confirmation1) return;
     
@@ -1122,10 +1058,13 @@
     if (!confirmation2) return;
     
     showToast('Processing account deletion...', 'error');
-    
-    setTimeout(() => {
-      Auth.destroyCurrentAccount();
-    }, 1000);
+
+    const result = await Auth.destroyCurrentAccount();
+    // On success this line never runs — destroyCurrentAccount() already
+    // redirected to login.html. It only returns control here on failure.
+    if (result && !result.success) {
+      showToast(result.message || 'Something went wrong deleting your account.', 'error');
+    }
   }
 
   // Responsive grid
@@ -1139,45 +1078,6 @@
 	  document.getElementById('sidebar-mount').innerHTML = renderSidebar();
 	  initSidebar();
 	  renderThemeSwatches();
-	  renderCurrentPlan();
-	  document.addEventListener('phyzelyne:data-changed', (evt) => {
-	    const type = evt.detail?.type;
-	    if (!type || type === 'settings' || type === 'all') renderCurrentPlan();
-	  });
-
-	  // Show lock indicators based on plan
-  (function applyPlanLocks() {
-    // Currency conversion lock badge
-    if (!PlanGate.can('currency_conversion')) {
-      const badge = document.getElementById('currency-lock-badge');
-      if (badge) badge.style.display = 'inline-flex';
-      const sel = document.getElementById('currency-select');
-      if (sel) sel.style.opacity = '0.5';
-    }
-    // Savings goals lock banner
-	    if (!PlanGate.can('savings_goals')) {
-	      const banner = document.getElementById('goals-lock-banner');
-	      if (banner) {
-	        banner.style.display = 'block';
-	        PlanGate.renderLockedBanner('savings_goals', 'goals-lock-banner');
-        const addBtn = document.getElementById('goal-add-btn');
-        if (addBtn) addBtn.style.display = 'none';
-        const goalsList = document.getElementById('goals-list');
-	        if (goalsList) goalsList.style.display = 'none';
-	      }
-	    }
-	    if (!PlanGate.can('theme_customization')) {
-	      const row = document.getElementById('theme-section-row');
-	      const grid = document.getElementById('theme-swatch-grid');
-	      const banner = document.getElementById('theme-lock-banner');
-	      if (row) row.style.display = 'none';
-	      if (grid) grid.style.display = 'none';
-	      if (banner) {
-	        banner.style.display = 'block';
-	        PlanGate.renderLockedBanner('theme_customization', 'theme-lock-banner');
-	      }
-	    }
-	  })();
   loadSettings();
   renderGoalsList();
   renderDataStats();
@@ -1208,12 +1108,8 @@
   var page = location.pathname.split('/').pop() || 'dashboard.html';
   function _setSmartTab() {
     var smartEl = document.getElementById('bnav-smart-tab');
-    if (smartEl && typeof PlanGate !== 'undefined') {
-      if (PlanGate.isBusiness()) {
-        smartEl.outerHTML = '<a href="business.html" class="bottom-nav-item" data-page="business"><i class="fas fa-briefcase"></i>Business</a>';
-      } else {
-        smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i>AI</a>';
-      }
+    if (smartEl) {
+      smartEl.outerHTML = '<a href="ai.html" class="bottom-nav-item" data-page="ai"><i class="fas fa-brain"></i>AI</a>';
     }
     document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){
       var p = el.dataset.page;

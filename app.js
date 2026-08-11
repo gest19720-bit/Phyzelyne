@@ -1317,14 +1317,25 @@ const Auth = {
     if (!_sb) return { success: false, message: 'Service unavailable.' };
     const { data, error } = await _sb.auth.signUp({
       email, password,
-      options: { data: { name, onboarded: false } }
+      options: {
+        data: { name, onboarded: false },
+        // When email confirmation is enabled, send the verified user back to
+        // the protected onboarding route where the client can establish their
+        // newly confirmed session.
+        emailRedirectTo: _getOAuthRedirectUrl('onboarding.html')
+      }
     });
     if (error) return { success: false, message: error.message };
-    _sessionCache = data.user;
-    _cache.userId = data.user?.id || null;
+    const requiresEmailConfirmation = !data.session;
+
+    // A user object without a session is not signed in. Keeping it in the
+    // synchronous cache made the UI appear authenticated, then protected
+    // pages redirected the person straight back to login.
+    _sessionCache = data.session?.user || null;
+    _cache.userId = data.session?.user?.id || null;
     MakeWebhook.send('user.signup', { name, email, signupDate: new Date().toISOString() });
     ResendEmail.sendWelcomeEmail(email, name);
-    return { success: true, user: data.user };
+    return { success: true, user: data.user, requiresEmailConfirmation };
   },
 
   /* Sign in with email + password */

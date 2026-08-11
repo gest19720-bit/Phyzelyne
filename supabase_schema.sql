@@ -154,3 +154,53 @@ alter publication supabase_realtime add table public.goals;
 alter publication supabase_realtime add table public.invoices;
 alter publication supabase_realtime add table public.receipts;
 
+-- ------------------------------------------
+-- 7. DEMO REQUESTS (public form submissions)
+-- ------------------------------------------
+-- Run this section before deploying rdf.html. Only inserts are permitted from
+-- the public form; request records remain visible only to project operators.
+CREATE TABLE IF NOT EXISTS public.demo_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    first_name TEXT NOT NULL CHECK (char_length(btrim(first_name)) BETWEEN 1 AND 80),
+    last_name TEXT NOT NULL CHECK (char_length(btrim(last_name)) BETWEEN 1 AND 80),
+    email TEXT NOT NULL CHECK (char_length(btrim(email)) BETWEEN 3 AND 254 AND position('@' IN email) > 1),
+    email_normalized TEXT GENERATED ALWAYS AS (lower(btrim(email))) STORED UNIQUE,
+    company TEXT NOT NULL CHECK (char_length(btrim(company)) BETWEEN 1 AND 160),
+    job_title TEXT CHECK (job_title IS NULL OR char_length(job_title) <= 120),
+    company_size TEXT NOT NULL CHECK (company_size IN ('1', '2-10', '11-50', '51-200', '201-1000', '1001+')),
+    country TEXT NOT NULL CHECK (char_length(btrim(country)) BETWEEN 1 AND 100),
+    timeline TEXT CHECK (timeline IS NULL OR timeline IN ('Exploring', 'This month', '1-3 months', 'Later')),
+    interest TEXT NOT NULL CHECK (interest IN ('Financial visibility and cash flow', 'Expense tracking and controls', 'Goals and planning', 'Invoicing and operations', 'AI financial coaching', 'Something else')),
+    message TEXT CHECK (message IS NULL OR char_length(message) <= 2000),
+    privacy_consent BOOLEAN NOT NULL,
+    privacy_consented_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    source TEXT NOT NULL DEFAULT 'request_demo',
+    page_url TEXT,
+    referrer TEXT,
+    utm_source TEXT,
+    utm_medium TEXT,
+    utm_campaign TEXT,
+    utm_term TEXT,
+    utm_content TEXT,
+    status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'qualified', 'scheduled', 'closed')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.demo_requests ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.demo_requests FROM anon, authenticated;
+GRANT INSERT ON TABLE public.demo_requests TO anon, authenticated;
+
+DROP POLICY IF EXISTS "Public can submit a demo request" ON public.demo_requests;
+CREATE POLICY "Public can submit a demo request"
+    ON public.demo_requests
+    FOR INSERT
+    TO anon, authenticated
+    WITH CHECK (
+        source = 'request_demo'
+        AND status = 'new'
+        AND privacy_consent IS TRUE
+        AND char_length(btrim(first_name)) BETWEEN 1 AND 80
+        AND char_length(btrim(last_name)) BETWEEN 1 AND 80
+        AND char_length(btrim(company)) BETWEEN 1 AND 160
+        AND char_length(btrim(country)) BETWEEN 1 AND 100
+    );

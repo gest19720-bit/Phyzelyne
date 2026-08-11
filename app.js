@@ -1097,8 +1097,8 @@ const MakeWebhook = (() => {
   const _u = () => atob(_h);
 
   return {
-    async send(event, data) {
-      const user = Auth.getUser();
+    async send(event, data, identity = null) {
+      const user = identity || Auth.getUser();
       const cur  = getCurrency();
       const payload = {
         event,
@@ -1333,7 +1333,8 @@ const Auth = {
     // pages redirected the person straight back to login.
     _sessionCache = data.session?.user || null;
     _cache.userId = data.session?.user?.id || null;
-    MakeWebhook.send('user.signup', { name, email, signupDate: new Date().toISOString() });
+    const signupIdentity = { name, email };
+    MakeWebhook.send('user.signup', { ...signupIdentity, signupDate: new Date().toISOString() }, signupIdentity);
     ResendEmail.sendWelcomeEmail(email, name);
     return { success: true, user: data.user, requiresEmailConfirmation };
   },

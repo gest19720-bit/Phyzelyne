@@ -25,7 +25,7 @@
       display: flex;
     }
     @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
- 
+
     .conversion-modal {
       background: var(--glass-heavy);
       backdrop-filter: var(--blur);
@@ -42,7 +42,7 @@
       from { opacity: 0; transform: translateY(40px) scale(0.95); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
- 
+
     .conversion-modal-header {
       padding: 28px;
       border-bottom: 1px solid var(--glass-border);
@@ -76,11 +76,11 @@
       background: var(--gold-dim);
       color: var(--gold);
     }
- 
+
     .conversion-modal-body {
       padding: 28px;
     }
- 
+
     .conversion-info {
       background: var(--glass-dim);
       border-left: 3px solid var(--gold);
@@ -96,7 +96,7 @@
       margin-right: 8px;
       font-size: 1.1rem;
     }
- 
+
     .conversion-currencies {
       background: var(--glass);
       border: 1px solid var(--glass-border);
@@ -104,7 +104,7 @@
       padding: 20px;
       margin-bottom: 24px;
     }
- 
+
     .currency-box {
       display: flex;
       align-items: center;
@@ -146,7 +146,7 @@
       color: var(--gold);
       margin: 0 12px;
     }
- 
+
     .conversion-preview {
       background: var(--glass);
       border: 1px solid var(--glass-border);
@@ -186,7 +186,7 @@
     .preview-value.new {
       color: var(--gold);
     }
- 
+
     .exchange-rate-info {
       background: linear-gradient(135deg, rgba(212,160,23,0.1), rgba(212,160,23,0.05));
       border: 1px solid var(--gold-border);
@@ -204,7 +204,7 @@
       font-size: 1.1rem;
       margin: 8px 0;
     }
- 
+
     .conversion-modal-footer {
       padding: 20px 28px;
       border-top: 1px solid var(--glass-border);
@@ -215,7 +215,7 @@
     .conversion-modal-footer .btn {
       min-width: 140px;
     }
- 
+
     /* Loading state */
     .conversion-loading {
       display: flex;
@@ -232,7 +232,7 @@
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
- 
+
     /* Success state */
     .conversion-success {
       background: var(--green-dim);
@@ -249,7 +249,7 @@
       font-size: 1.3rem;
       flex-shrink: 0;
     }
- 
+
     /* Avatar Upload Custom Styles */
     .avatar-settings-container {
       display: flex;
@@ -291,18 +291,18 @@
   </style>
 </head>
 <body>
- 
+
 <div id="sidebar-mount"></div>
- 
+
 <div class="app-shell">
   <main class="main-content">
     <div class="page-header">
       <h1>Settings</h1>
       <p>Customise your Phyzelyne experience.</p>
     </div>
- 
+
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;" id="settings-grid">
- 
+
       <div class="glass-card" style="padding:28px;">
         <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-palette"></i> Appearance</div>
         <div class="settings-row">
@@ -332,7 +332,7 @@
 	        <div class="theme-swatch-grid" id="theme-swatch-grid"></div>
 	        <div id="theme-lock-banner" style="display:none;margin-top:16px;"></div>
       </div>
- 
+
       <div class="glass-card" style="padding:28px;">
         <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-bell"></i> Notifications</div>
         <div class="settings-row">
@@ -366,7 +366,7 @@
           </label>
         </div>
       </div>
- 
+
 	      <div class="glass-card" style="padding:28px;">
 	        <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-user-circle"></i> Profile</div>
         
@@ -384,7 +384,7 @@
             </button>
           </div>
         </div>
- 
+
         <div class="form-group">
           <label class="form-label">Display Name</label>
           <input type="text" class="form-input" id="display-name" placeholder="Your name">
@@ -401,7 +401,7 @@
           <i class="fas fa-check"></i> Save Profile
         </button>
       </div>
- 
+
       <div class="glass-card" style="padding:28px;">
         <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-building"></i> Business Profile</div>
         <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:18px;">Automate your invoice <strong>"FROM (YOUR BUSINESS)"</strong> details.</p>
@@ -431,14 +431,14 @@
           <i class="fas fa-check"></i> Save Business Profile
         </button>
       </div>
- 
- 
- 
+
+
+
 	      <div class="glass-card" style="padding:28px;">
 	        <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-database"></i> Your Data</div>
- 
+
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;" id="data-stats"></div>
- 
+
         <div style="display:flex;flex-direction:column;gap:10px;">
           <button class="btn btn-glass" onclick="exportData()">
             <i class="fas fa-download"></i> Export Data (CSV)
@@ -447,7 +447,7 @@
             <i class="fas fa-trash-can"></i> Clear All Data
           </button>
         </div>
- 
+
         <div class="settings-row" style="margin-top:20px;">
           <div>
             <div class="settings-label">App Version</div>
@@ -456,9 +456,9 @@
           <span style="font-size:0.78rem;color:var(--gold);font-weight:600;">v2.1</span>
         </div>
       </div>
- 
+
     </div>
- 
+
     <div class="glass-card" style="padding:28px;margin-top:24px;">
       <div class="section-title" style="margin-bottom:20px;"><i class="fas fa-bullseye"></i> Savings Goals</div>
       <div id="goals-list" style="margin-bottom:18px;"></div>
@@ -495,7 +495,7 @@
         </button>
       </div>
     </div>
- 
+
     <div class="glass-card" style="padding:28px;margin-top:24px;">
       <div class="section-title" style="margin-bottom:16px;"><i class="fas fa-circle-question"></i> Help & Feedback</div>
       <p style="font-size:0.88rem;color:var(--text-dim);margin-bottom:16px;">Need a hand, or have an idea for Phyzelyne? We'd love to hear from you.</p>
@@ -508,7 +508,7 @@
         </a>
       </div>
     </div>
- 
+
     <div class="glass-card" style="padding:28px;margin-top:24px;border-color:rgba(192,57,43,0.25);">
       <div class="section-title" style="margin-bottom:16px;color:var(--red);"><i class="fas fa-triangle-exclamation"></i> Danger Zone</div>
       <p style="font-size:0.88rem;color:var(--text-dim);margin-bottom:16px;">These actions are permanent and cannot be undone.</p>
@@ -526,7 +526,7 @@
     </div>
   </main>
 </div>
- 
+
 <div class="conversion-modal-overlay" id="conversion-modal">
   <div class="conversion-modal">
     <div class="conversion-modal-header">
@@ -537,13 +537,13 @@
         <i class="fas fa-times"></i>
       </button>
     </div>
- 
+
     <div class="conversion-modal-body">
       <div class="conversion-info">
         <i class="fas fa-info-circle"></i>
         All your transactions and goals will be converted to the new currency using current exchange rates.
       </div>
- 
+
       <div id="conversion-content">
         <div class="conversion-currencies">
           <div style="text-align:center;margin-bottom:16px;">
@@ -571,13 +571,13 @@
             </div>
           </div>
         </div>
- 
+
         <div class="exchange-rate-info">
           <div style="font-size:0.8rem;color:var(--text-mid);">Exchange Rate</div>
           <div class="exchange-rate-value" id="exchange-rate-display">1 GBP = 1.26 USD</div>
           <div style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">Last updated today</div>
         </div>
- 
+
         <div class="conversion-preview">
           <div class="preview-title">📊 Impact Preview</div>
           <div class="preview-row">
@@ -611,7 +611,7 @@
           </div>
         </div>
       </div>
- 
+
       <div id="conversion-success" style="display:none;">
         <div class="conversion-success">
           <i class="fas fa-check-circle"></i>
@@ -622,7 +622,7 @@
         </div>
       </div>
     </div>
- 
+
     <div class="conversion-modal-footer">
       <button class="btn btn-glass" onclick="closeConversionModal()">
         Cancel
@@ -633,14 +633,14 @@
     </div>
   </div>
 </div>
- 
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 <script>Auth.require();</script>
- 
+
 <script>
   let pendingCurrencyCode = null;
- 
+
   function renderGoalsList() {
     const goals = Store.getGoals();
     const cur = getCurrency();
@@ -672,10 +672,10 @@
         </div>
       </div>`).join('') : `<div class="empty-state" style="padding:20px 0;"><i class="fas fa-bullseye"></i><p>No goals yet. Add one below!</p></div>`;
   }
- 
+
   /* ─── Edit Goal ─── */
   let editingGoalId = null;
- 
+
   function openEditGoal(id) {
     const g = Store.getGoals().find(x => x.id === id);
     if (!g) return;
@@ -689,7 +689,7 @@
     document.getElementById('goal-cancel-edit').style.display = 'block';
     document.getElementById('goal-add-btn').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
- 
+
   function cancelEditGoal() {
     editingGoalId = null;
     document.getElementById('goal-name').value     = '';
@@ -700,7 +700,7 @@
     document.getElementById('goal-add-btn').innerHTML = '<i class="fas fa-plus"></i> Add Goal';
     document.getElementById('goal-cancel-edit').style.display = 'none';
   }
- 
+
   function addGoalFromSettings() {
     const name   = document.getElementById('goal-name').value.trim();
     const emoji  = document.getElementById('goal-emoji').value.trim() || '🎯';
@@ -709,7 +709,7 @@
     const dl     = document.getElementById('goal-deadline').value;
     if (!name)        { showToast('Enter a goal name', 'error'); return; }
     if (!target || target <= 0) { showToast('Enter a target amount', 'error'); return; }
- 
+
     if (editingGoalId) {
       Store.updateGoal(editingGoalId, { name, emoji, target, saved, deadline: dl || null });
       showToast('Goal updated! ✏️');
@@ -725,7 +725,7 @@
     renderGoalsList();
     renderDataStats();
   }
- 
+
   function deleteGoalSettings(id) {
     if (!confirm('Delete this goal?')) return;
     Store.deleteGoal(id);
@@ -733,7 +733,7 @@
     renderGoalsList();
     renderDataStats();
   }
- 
+
   function renderAvatarView() {
     const user = Auth.getUser();
     const container = document.getElementById('settings-avatar-container');
@@ -748,7 +748,7 @@
       removeBtn.style.display = 'none';
     }
   }
- 
+
   async function handleAvatarUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -774,7 +774,7 @@
     };
     reader.readAsDataURL(file);
   }
- 
+
   async function removeAvatar() {
     if (!confirm('Remove profile picture?')) return;
     await Auth.updateUserAvatar(null);
@@ -783,7 +783,7 @@
     document.getElementById('sidebar-mount').innerHTML = renderSidebar();
     initSidebar();
   }
- 
+
   function renderThemeSwatches() {
     const grid = document.getElementById('theme-swatch-grid');
     if (!grid) return;
@@ -796,7 +796,7 @@
         <div class="theme-swatch-name">${t.name}</div>
       </div>`).join('');
   }
- 
+
 	  function selectTheme(id) {
 	    Theme.apply(id);                 // updates CSS vars instantly, persists to Store/localStorage
 	    document.querySelectorAll('#theme-swatch-grid .theme-swatch').forEach(el => {
@@ -805,9 +805,9 @@
 	    const t = Theme.list().find(x => x.id === id);
 	    showToast(`Theme set to ${t.name}`);
 	  }
- 
- 
- 
+
+
+
   function renderBusinessProfileSettings() {
     const prof = Store.getBusinessProfile() || {};
     if (document.getElementById('biz-profile-name'))    document.getElementById('biz-profile-name').value    = prof.name || '';
@@ -816,7 +816,7 @@
     if (document.getElementById('biz-profile-phone'))   document.getElementById('biz-profile-phone').value   = prof.phone || '';
     if (document.getElementById('biz-profile-address')) document.getElementById('biz-profile-address').value = prof.address || '';
   }
- 
+
   function saveBusinessProfileFromSettings() {
     const name = document.getElementById('biz-profile-name').value.trim();
     if (!name) { showToast('Enter company name', 'error'); return; }
@@ -829,7 +829,7 @@
     });
     showToast('Business profile updated! 🏢');
   }
- 
+
   async function loadSettings() {
     if (!_cache.ready) {
       await new Promise(resolve => document.addEventListener('phyzelyne:ready', resolve, { once: true }));
@@ -851,7 +851,7 @@
     renderAvatarView();
     renderBusinessProfileSettings();
   }
- 
+
   function renderDataStats() {
     const txns  = Store.getTransactions();
     const goals = Store.getGoals();
@@ -866,7 +866,7 @@
         <div class="stat-value" style="font-size:1.8rem;">${goals.length}</div>
       </div>`;
   }
- 
+
   document.getElementById('dark-mode-toggle').addEventListener('change', e => {
     document.body.classList.toggle('dark', e.target.checked);
     const s = Store.getSettings();
@@ -874,7 +874,7 @@
     Store.saveSettings(s);
     showToast(e.target.checked ? 'Dark mode on' : 'Light mode on');
   });
- 
+
   // Populate currency select from master list
   (function() {
     const sel = document.getElementById('currency-select');
@@ -887,7 +887,7 @@
       sel.appendChild(opt);
     });
   })();
- 
+
   // ═══════════════════════════════════════════════════════════
   // CURRENCY CONVERSION HANDLER
   // ═══════════════════════════════════════════════════════════
@@ -895,14 +895,14 @@
     const newCurrency = e.target.value;
     const currentSettings = Store.getSettings();
     const oldCurrency = currentSettings.currencyCode || 'GHS';
- 
+
     // If same currency, ignore
     if (newCurrency === oldCurrency) return;
- 
+
     // If no transactions/goals, just change without modal
     const txns = Store.getTransactions();
     const goals = Store.getGoals();
- 
+
     if (!txns.length && !goals.length) {
       currentSettings.currencyCode = newCurrency;
       Store.saveSettings(currentSettings);
@@ -910,53 +910,53 @@
       showToast('Currency changed to ' + cur.symbol + ' ' + cur.code + ' 🎉');
       return;
     }
- 
+
     // Show conversion modal
     pendingCurrencyCode = newCurrency;
     showConversionModal(oldCurrency, newCurrency);
   });
- 
+
   function showConversionModal(oldCode, newCode) {
     const preview = CurrencyConverter.getConversionPreview(oldCode, newCode);
     const oldCur = preview.oldCurrency;
     const newCur = preview.newCurrency;
- 
+
     // Update modal content
     document.getElementById('old-currency-symbol').textContent = oldCur.symbol;
     document.getElementById('old-currency-code').textContent = oldCur.code;
     document.getElementById('old-currency-name').textContent = oldCur.name;
- 
+
     document.getElementById('new-currency-symbol').textContent = newCur.symbol;
     document.getElementById('new-currency-code').textContent = newCur.code;
     document.getElementById('new-currency-name').textContent = newCur.name;
- 
+
     const rate = preview.rate;
     document.getElementById('exchange-rate-display').textContent = 
       `1 ${oldCode} = ${rate} ${newCode}`;
- 
+
     // Preview
     document.getElementById('preview-txn-count').textContent = preview.txns.count;
     document.getElementById('preview-old-income').textContent = 
       `${oldCur.symbol}${parseFloat(preview.txns.income / (preview.rate || 1)).toLocaleString('en-GB', {minimumFractionDigits:2,maximumFractionDigits:2})}`;
     document.getElementById('preview-new-income').textContent = 
       `→ ${newCur.symbol}${parseFloat(preview.txns.income).toLocaleString('en-GB', {minimumFractionDigits:2,maximumFractionDigits:2})}`;
- 
+
     document.getElementById('preview-old-expense').textContent = 
       `${oldCur.symbol}${parseFloat(preview.txns.expense / (preview.rate || 1)).toLocaleString('en-GB', {minimumFractionDigits:2,maximumFractionDigits:2})}`;
     document.getElementById('preview-new-expense').textContent = 
       `→ ${newCur.symbol}${parseFloat(preview.txns.expense).toLocaleString('en-GB', {minimumFractionDigits:2,maximumFractionDigits:2})}`;
- 
+
     document.getElementById('preview-old-balance').textContent = 
       `${oldCur.symbol}${parseFloat(preview.txns.balance / (preview.rate || 1)).toLocaleString('en-GB', {minimumFractionDigits:2,maximumFractionDigits:2})}`;
     document.getElementById('preview-new-balance').textContent = 
       `→ ${newCur.symbol}${parseFloat(preview.txns.balance).toLocaleString('en-GB', {minimumFractionDigits:2,maximumFractionDigits:2})}`;
- 
+
     document.getElementById('preview-goals-count').textContent = preview.goals.count;
- 
+
     // Show modal
     document.getElementById('conversion-modal').classList.add('open');
   }
- 
+
   function closeConversionModal() {
     document.getElementById('conversion-modal').classList.remove('open');
     // Reset currency select
@@ -964,46 +964,46 @@
     document.getElementById('currency-select').value = currentSettings.currencyCode || 'GHS';
     pendingCurrencyCode = null;
   }
- 
+
   function confirmConversion() {
     if (!pendingCurrencyCode) return;
- 
+
     const currentSettings = Store.getSettings();
     const oldCurrency = currentSettings.currencyCode || 'GHS';
- 
+
     // Disable button and show loading
     const btn = document.getElementById('confirm-conversion-btn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Converting...';
- 
+
     // Simulate async operation
     setTimeout(() => {
       // Convert transactions
       CurrencyConverter.convertAllTransactions(oldCurrency, pendingCurrencyCode);
- 
+
       // Convert goals
       CurrencyConverter.convertAllGoals(oldCurrency, pendingCurrencyCode);
- 
+
       // Update settings
       currentSettings.currencyCode = pendingCurrencyCode;
       Store.saveSettings(currentSettings);
- 
+
       // Show success
       document.getElementById('conversion-content').style.display = 'none';
       document.getElementById('conversion-success').style.display = 'block';
       btn.innerHTML = '<i class="fas fa-check"></i> Done!';
       btn.disabled = false;
- 
+
       const newCur = CURRENCIES.find(c => c.code === pendingCurrencyCode);
       showToast(`Converted to ${newCur.symbol} ${newCur.code}! 💱`);
- 
+
       setTimeout(() => {
         closeConversionModal();
         location.reload();
       }, 1500);
     }, 600);
   }
- 
+
   ['weekly-summary','overspend-alerts','goal-alerts'].forEach(id => {
     document.getElementById(id).addEventListener('change', e => {
       const s = Store.getSettings();
@@ -1011,7 +1011,7 @@
       Store.saveSettings(s);
     });
   });
- 
+
   async function saveProfile() {
     const s = Store.getSettings();
     s.name           = document.getElementById('display-name').value.trim();
@@ -1031,7 +1031,7 @@
     document.getElementById('sidebar-mount').innerHTML = renderSidebar();
     initSidebar();
   }
- 
+
   function exportData() {
     const txns = Store.getTransactions();
     if (!txns.length) { showToast('No data to export', 'error'); return; }
@@ -1045,7 +1045,7 @@
     URL.revokeObjectURL(url);
     showToast('Exported successfully!');
   }
- 
+
   async function clearAllData() {
     if (!confirm('This will permanently delete all your transactions and goals. Are you sure?')) return;
     const uid = _cache.userId;
@@ -1062,7 +1062,7 @@
     renderGoalsList();
     renderDataStats();
   }
- 
+
   async function deleteAccountPermanent() {
     const confirmation1 = confirm("WARNING: This will permanently delete your Phyzelyne account along with all your transactions, custom parameters, images, and goals.\n\nThis process is immediate and completely irreversible. Do you want to proceed?");
     if (!confirmation1) return;
@@ -1071,7 +1071,7 @@
     if (!confirmation2) return;
     
     showToast('Processing account deletion...', 'error');
- 
+
     const result = await Auth.destroyCurrentAccount();
     // On success this line never runs — destroyCurrentAccount() already
     // redirected to login.html. It only returns control here on failure.
@@ -1079,7 +1079,7 @@
       showToast(result.message || 'Something went wrong deleting your account.', 'error');
     }
   }
- 
+
   // Responsive grid
   function checkGrid() {
     const g = document.getElementById('settings-grid');
@@ -1087,14 +1087,14 @@
   }
   checkGrid();
   window.addEventListener('resize', checkGrid);
- 
+
 	  document.getElementById('sidebar-mount').innerHTML = renderSidebar();
 	  initSidebar();
 	  renderThemeSwatches();
   loadSettings();
   renderGoalsList();
   renderDataStats();
- 
+
   document.addEventListener('phyzelyne:data-changed', (evt) => {
     const t = evt.detail?.type;
     if (t === 'settings' || t === 'all') {
@@ -1108,7 +1108,7 @@
     }
   });
 </script>
- 
+
 <nav class="bottom-nav">
   <a href="dashboard.html" class="bottom-nav-item" data-page="dashboard"><i class="fas fa-house"></i>Home</a>
   <a href="transactions.html" class="bottom-nav-item" data-page="transactions"><i class="fas fa-right-left"></i>Transactions</a>
@@ -1142,7 +1142,6 @@
   }
 })();
 </script>
- 
+
 </body>
 </html>
- 

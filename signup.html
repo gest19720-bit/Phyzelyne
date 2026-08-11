@@ -45,6 +45,9 @@
     .terms-check a:hover { text-decoration: underline; }
     .error-msg { display: none; background: var(--red-dim); border: 1px solid rgba(192,57,43,0.3); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 0.84rem; color: var(--red); margin-bottom: 16px; align-items: center; gap: 8px; }
     .error-msg.show { display: flex; }
+    .confirmation-msg { display: none; background: rgba(53, 158, 101, 0.12); border: 1px solid rgba(53, 158, 101, 0.35); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 0.84rem; color: var(--text); margin-bottom: 16px; line-height: 1.5; }
+    .confirmation-msg.show { display: block; }
+    .confirmation-msg strong { color: #75d69c; }
     .btn-full { width: 100%; justify-content: center; margin-top: 4px; }
     .auth-footer { text-align: center; margin-top: 24px; font-size: 0.85rem; color: var(--text-dim); }
     .auth-footer a { color: var(--gold); font-weight: 600; text-decoration: none; }
@@ -92,6 +95,7 @@
           <i class="fas fa-circle-exclamation"></i>
           <span id="error-text">Something went wrong.</span>
         </div>
+        <div class="confirmation-msg" id="confirmation-msg" role="status" aria-live="polite"></div>
         <button class="btn-social" id="btn-google" onclick="socialSignup('google')">
           <i class="fab fa-google"></i> Sign up with Google
         </button>
@@ -192,6 +196,17 @@
     document.getElementById('error-msg').classList.add('show');
   }
   function hideError() { document.getElementById('error-msg').classList.remove('show'); }
+  function showConfirmation(email) {
+    const message = document.getElementById('confirmation-msg');
+    message.innerHTML = '<strong>Confirm your email to finish creating your account.</strong><br>We sent a confirmation link to ' + escapeHtml(email) + '. Open it to continue to onboarding.';
+    message.classList.add('show');
+  }
+  function hideConfirmation() { document.getElementById('confirmation-msg').classList.remove('show'); }
+  function escapeHtml(value) {
+    const node = document.createElement('span');
+    node.textContent = value;
+    return node.innerHTML;
+  }
 
   function togglePwd(id, btn) {
     const input = document.getElementById(id);
@@ -228,6 +243,7 @@
 
   async function handleSignup() {
     hideError();
+    hideConfirmation();
     const first    = document.getElementById('su-first').value.trim();
     const last     = document.getElementById('su-last').value.trim();
     const email    = document.getElementById('su-email').value.trim();
@@ -253,8 +269,14 @@
     btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Free Account';
 
     if (result.success) {
-      showToast('Account created! Welcome to Phyzelyne 🎉');
-      setTimeout(() => window.location.href = 'onboarding.html', 900);
+      if (result.requiresEmailConfirmation) {
+        showConfirmation(email);
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-envelope"></i> Check your email to continue';
+      } else {
+        showToast('Account created! Welcome to Phyzelyne 🎉');
+        setTimeout(() => window.location.href = 'onboarding.html', 900);
+      }
     } else {
       // Surface a human-friendly version of Supabase error messages
       const msg = result.message || 'Could not create account.';

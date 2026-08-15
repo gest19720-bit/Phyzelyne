@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phyzelyne — Business</title>
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="app.css">
+  <style>
+    /* ── Business tab system ── */
+    .biz-tabs {
+      display: flex;
+      gap: 0;
+      background: var(--glass-dim);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 5px;
+      margin-bottom: 28px;
+      width: fit-content;
+    }
+    .biz-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: calc(var(--radius) - 4px);
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+    .biz-tab:hover { color: var(--text); background: var(--glass); }
+    .biz-tab.active {
+      background: var(--gold);
+      color: #1a1008;
+      box-shadow: 0 2px 12px rgba(212,160,23,0.35);
+    }
+    .biz-tab .tab-icon { font-size: 0.9rem; }
+
+    /* ── Section panels ── */
+    .biz-panel { display: none; }
+    .biz-panel.active { display: block; }
+
+    /* ── AI Coach ── */
+    .coach-shell {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+    .chat-card {
+      background: var(--glass-heavy);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      height: 560px;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+    .msg {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      animation: msgIn 0.25s ease;
+    }
+    @keyframes msgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .msg.user { flex-direction: row-reverse; }
+    .msg-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .msg.ai .msg-avatar { background: var(--gold); color: #1a1008; }
+    .msg.user .msg-avatar { background: var(--glass-dim); color: var(--text); border: 1px solid var(--glass-border); }
+    .msg-bubble {
+      max-width: 78%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+    .msg.ai .msg-bubble {
+      background: var(--glass-dim);
+      border: 1px solid var(--glass-border);
+      border-top-left-radius: 4px;
+    }
+    .msg.user .msg-bubble {
+      background: var(--gold-dim);
+      border: 1px solid var(--gold-border);
+      border-top-right-radius: 4px;
+      color: var(--text);
+    }
+    .chat-input-row {
+      display: flex;
+      gap: 10px;
+      padding: 16px;
+      border-top: 1px solid var(--glass-border);
+      background: var(--glass-dim);
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+    .chat-input-row input {
+      flex: 1;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 9999px;
+      padding: 10px 18px;
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .chat-input-row input:focus { border-color: var(--gold-border); }
+    .chat-input-row input::placeholder { color: var(--text-dim); }
+    .chat-send {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: none;
+      color: #1a1008;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+    .chat-send:hover { transform: scale(1.08); background: var(--gold-light); }
+    .chat-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .chat-voice {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--text);
+    }
+    .chat-voice:hover { background: var(--glass); transform: scale(1.08); }
+    .chat-voice.listening {
+      color: #ef4444;
+      border-color: #ef4444;
+      animation: pulseVoice 1.5s infinite;
+    }
+
+    /* Coach sidebar */
+    .coach-sidebar { display: flex; flex-direction: column; gap: 16px; }
+    .coach-prompt-card {
+      background: var(--glass-dim);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 18px 20px;
+    }
+    .prompt-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+    .prompt-chip {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 9px 12px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      color: var(--text-mid);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-bottom: 7px;
+    }
+    .prompt-chip:last-child { margin-bottom: 0; }
+    .prompt-chip:hover { background: var(--gold-dim); border-color: var(--gold-border); color: var(--text); }
+    .typing-dots span {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin: 0 2px;
+      animation: dot-bounce 1.2s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dot-bounce {
+      0%,80%,100% { transform:translateY(0); }
+      40%          { transform:translateY(-6px); }
+    }
+
+    /* ── Coach: streaming cursor ── */
+    .cursor {
+      display: inline-block;
+      width: 2px; height: 0.9em;
+      background: currentColor;
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── Coach: thinking/status bar ── */
+    .ai-status-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      margin: 0 16px 10px;
+      background: var(--gold-dim);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--gold);
+    }
+    .ai-status-bar.visible { display: flex; }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--gold); flex-shrink: 0;
+      animation: status-pulse 1s ease-in-out infinite;
+    }
+    @keyframes status-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+    /* ── Coach: response badges (web search / thinking time) ── */
+    .web-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.68rem;
+      color: var(--gold);
+      font-weight: 600;
+      background: var(--gold-dim);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-pill);
+      padding: 2px 9px;
+      margin-top: 6px;
+      margin-right: 4px;
+    }
+
+    /* ── Coach: deficit alert ── */
+    .deficit-banner {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, rgba(192,57,43,0.1), rgba(192,57,43,0.04));
+      border: 1px solid rgba(192,57,43,0.35);
+      border-left: 3px solid var(--red);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      font-size: 0.875rem;
+      color: var(--text);
+    }
+    .deficit-banner.show { display: flex; }
+    .deficit-banner i { color: var(--red); font-size: 1.1rem; flex-shrink: 0; }
+
+    /* ── Coach: speak-message button ── */
+    .msg-speak-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 4px 6px;
+      margin-top: 2px;
+      align-self: flex-start;
+      transition: color var(--transition);
+    }
+    .msg-speak-btn:hover { color: var(--gold); }
+    .msg-speak-btn.speaking { color: var(--gold); }
+    .msg.ai { flex-wrap: wrap; }
+
+    /* ── Invoice & Receipt shared styles ── */
+    .doc-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+    .doc-card {
+      background: var(--glass-heavy);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 22px;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .doc-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .doc-card.invoice::before { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+    .doc-card.receipt::before { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+    .doc-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--gold-border); }
+    .doc-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .doc-number {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .doc-client {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .doc-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .doc-status.paid    { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+    .doc-status.unpaid  { background: rgba(212,160,23,0.15); color: var(--gold); border: 1px solid var(--gold-border); }
+    .doc-status.overdue { background: rgba(192,57,43,0.15); color: var(--red); border: 1px solid rgba(192,57,43,0.3); }
+    .doc-status.draft   { background: var(--glass-dim); color: var(--text-dim); border: 1px solid var(--glass-border); }
+    .doc-amount {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin: 10px 0 6px;
+    }
+    .doc-meta {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .doc-meta i { color: var(--text-dim); margin-right: 4px; }
+    .doc-actions {
+      display: flex;
+      gap: 7px;
+      border-top: 1px solid var(--glass-border);
+      padding-top: 14px;
+      margin-top: 4px;
+    }
+    .doc-btn {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-dim);
+      color: var(--text-dim);
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .doc-btn:hover { background: var(--glass); color: var(--text); border-color: var(--gold-border); }
+    .doc-btn.primary {
+      background: var(--gold-dim);
+      border-color: var(--gold-border);
+      color: var(--gold);
+    }
+    .doc-btn.primary:hover { background: var(--gold); color: #1a1008; }
+    .doc-btn.danger:hover { background: var(--red-dim); border-color: rgba(192,57,43,0.3); color: var(--red); }
+
+    /* Stats strip for docs */
+    .doc-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 800px) { .doc-stats { grid-template-columns: repeat(2, 1fr); } }
+
+    /* ── Modal ── */
+    .biz-modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .biz-modal-overlay.open { opacity: 1; pointer-events: all; }
+    .biz-modal {
+      background: var(--bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(16px) scale(0.98);
+      transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+    .biz-modal-overlay.open .biz-modal { transform: translateY(0) scale(1); }
+    .biz-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .biz-modal-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .biz-modal-close {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--glass-dim);
+      border: 1px solid var(--glass-border);
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition);
+    }
+    .biz-modal-close:hover { background: var(--glass); color: var(--text); }
+    .line-items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      font-size: 0.82rem;
+    }
+    .line-items-table th {
+      text-align: left;
+      padding: 6px 8px;
+      color: var(--text-dim);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .line-items-table td {
+      padding: 8px 8px;
+      border-bottom: 1px solid var(--glass-border);
+      color: var(--text);
+    }
+    .line-items-table input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      padding: 2px 4px;
+      outline: none;
+      border-radius: 4px;
+    }
+    .line-items-table input:focus { background: var(--glass-dim); }
+    .add-line-btn {
+      background: none;
+      border: 1px dashed var(--glass-border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      color: var(--text-dim);
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .add-line-btn:hover { border-color: var(--gold-border); color: var(--gold); }
+
+    /* Receipt upload area */
+    .receipt-drop {
+      border: 2px dashed var(--glass-border);
+      border-radius: var(--radius);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+    }
+    .receipt-drop:hover, .receipt-drop.drag-over {
+      border-color: var(--gold-border);
+      background: var(--gold-dim);
+    }
+    .receipt-drop input[type=file] {
+      position: absolute; inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%; height: 100%;
+    }
+    .receipt-drop-icon { font-size: 2.5rem; color: var(--gold); margin-bottom: 12px; }
+    .receipt-preview {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--glass-border);
+      margin-top: 12px;
+    }
+
+    /* Empty state */
+    .biz-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+    }
+    .biz-empty i { font-size: 3rem; margin-bottom: 14px; opacity: 0.4; display: block; }
+    .biz-empty h3 { font-family: var(--font-display); font-size: 1.3rem; color: var(--text-mid); margin-bottom: 8px; }
+    .biz-empty p { font-size: 0.875rem; max-width: 300px; margin: 0 auto 20px; }
+
+    @media (max-width: 900px) {
+      .coach-shell { grid-template-columns: 1fr; }
+      .coach-sidebar { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 580px) {
+      .biz-tabs { width: 100%; }
+      .biz-tab { flex: 1; justify-content: center; padding: 10px 12px; font-size: 0.78rem; }
+      .coach-sidebar { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="phyzelyne-theme.css">
+</head>
+<body>
+
+<div id="sidebar-mount"></div>
+
+<div class="app-shell">
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Business</h1>
+      <p>AI finance coaching, invoices, and receipts — all in one place.</p>
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="biz-tabs" id="biz-tabs">
+      <button class="biz-tab active" data-panel="coach">
+        <i class="fas fa-brain tab-icon"></i> AI Finance Coach
+      </button>
+      <button class="biz-tab" data-panel="invoices">
+        <i class="fas fa-file-invoice-dollar tab-icon"></i> Invoices
+      </button>
+      <button class="biz-tab" data-panel="receipts">
+        <i class="fas fa-receipt tab-icon"></i> Receipts
+      </button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Panel 1: AI Finance Coach                  -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="biz-panel active" id="panel-coach">
+
+      <!-- Deficit banner (shown when user is overspending) -->
+      <div class="deficit-banner" id="deficit-banner">
+        <i class="fas fa-triangle-exclamation"></i>
+        <span id="deficit-text">You're currently spending more than you earn. Ask me how to fix this.</span>
+      </div>
+
+      <div class="coach-shell">
+        <!-- Chat -->
+        <div class="chat-card">
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg ai">
+              <div class="msg-avatar"><i class="fas fa-brain"></i></div>
+              <div class="msg-bubble">
+                👋 Hi! I'm your <strong>Phyzelyne AI Finance Coach</strong>. I can analyse your spending, help you plan budgets, review invoices, and give personalised financial advice.<br><br>
+                What would you like to work on today?
+              </div>
+            </div>
+          </div>
+          <div class="ai-status-bar" id="status-bar">
+            <div class="status-dot"></div>
+            <span id="status-text">Thinking…</span>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" placeholder="Ask anything about your finances…" autocomplete="off">
+            <button class="chat-send chat-voice" id="voice-btn" onclick="toggleVoiceInput()" title="Speak to your AI Finance Coach">
+              <i class="fas fa-microphone"></i>
+            </button>
+            <button class="chat-send" id="chat-send-btn" onclick="sendMessage()">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sidebar prompts + context -->
+        <div class="coach-sidebar">
+          <div class="coach-prompt-card">
+            <div class="prompt-label"><i class="fas fa-bolt"></i> Quick prompts</div>
+            <button class="prompt-chip" onclick="usePrompt(this)">Analyse my spending this month</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">Am I on track to hit my savings goal?</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">Where am I overspending?</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">Give me a 3-month budget plan</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">How can I reduce my top expenses?</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">What's my financial health score?</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">Best savings accounts right now?</button>
+          </div>
+          <div class="coach-prompt-card">
+            <div class="prompt-label"><i class="fas fa-chart-pie"></i> Business prompts</div>
+            <button class="prompt-chip" onclick="usePrompt(this)">Review my outstanding invoices</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">Which clients owe me the most?</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">Summarise my business expenses</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">Help me price a new service</button>
+          </div>
+          <div class="coach-prompt-card">
+            <div class="prompt-label"><i class="fas fa-circle-info"></i> Context in use</div>
+            <div style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;" id="coach-context-summary">
+              Loading your financial data…
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Panel 2: Invoices                          -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="biz-panel" id="panel-invoices">
+      <div class="doc-toolbar">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <select class="form-input" id="inv-filter-status" style="width:auto;border-radius:9999px;padding:8px 16px;font-size:0.8rem;">
+            <option value="all">All Statuses</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Overdue</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" onclick="openInvoiceModal()">
+          <i class="fas fa-plus"></i> New Invoice
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="doc-stats" id="invoice-stats"></div>
+
+      <!-- Cards -->
+      <div class="doc-grid" id="invoice-grid"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- Panel 3: Receipts                          -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="biz-panel" id="panel-receipts">
+      <div class="doc-toolbar">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <select class="form-input" id="rec-filter-cat" style="width:auto;border-radius:9999px;padding:8px 16px;font-size:0.8rem;">
+            <option value="all">All Categories</option>
+            <option value="office">Office</option>
+            <option value="travel">Travel</option>
+            <option value="meals">Meals & Entertainment</option>
+            <option value="utilities">Utilities</option>
+            <option value="equipment">Equipment</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" onclick="openReceiptModal()">
+          <i class="fas fa-plus"></i> Add Receipt
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="doc-stats" id="receipt-stats"></div>
+
+      <!-- Cards -->
+      <div class="doc-grid" id="receipt-grid"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- Invoice Modal                           -->
+<!-- ════════════════════════════════════════ -->
+<div class="biz-modal-overlay" id="invoice-modal">
+  <div class="biz-modal">
+    <div class="biz-modal-head">
+      <div class="biz-modal-title" id="inv-modal-title">New Invoice</div>
+      <button class="biz-modal-close" onclick="closeInvoiceModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Invoice #</label>
+        <input type="text" class="form-input" id="inv-number" placeholder="INV-001">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-input" id="inv-status">
+          <option value="draft">Draft</option>
+          <option value="unpaid">Unpaid</option>
+          <option value="paid">Paid</option>
+          <option value="overdue">Overdue</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Client Name</label>
+      <input type="text" class="form-input" id="inv-client" placeholder="e.g. Acme Corp">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Client Email</label>
+      <input type="email" class="form-input" id="inv-email" placeholder="client@example.com">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Issue Date</label>
+        <input type="date" class="form-input" id="inv-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Due Date</label>
+        <input type="date" class="form-input" id="inv-due">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" style="margin-bottom:10px;">Line Items</label>
+      <table class="line-items-table" id="line-items-table">
+        <thead>
+          <tr>
+            <th style="width:40%">Description</th>
+            <th style="width:15%">Qty</th>
+            <th style="width:20%">Unit Price</th>
+            <th style="width:18%">Total</th>
+            <th style="width:7%"></th>
+          </tr>
+        </thead>
+        <tbody id="line-items-body"></tbody>
+      </table>
+      <button class="add-line-btn" onclick="addLineItem()"><i class="fas fa-plus"></i> Add Line</button>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;padding:14px 0;border-top:1px solid var(--glass-border);margin-top:8px;">
+      <span style="font-size:0.82rem;color:var(--text-dim);">Total</span>
+      <span style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--gold);" id="inv-total">
+        ${Utils ? Utils.formatCurrency(0) : '0.00'}
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <textarea class="form-input" id="inv-notes" rows="2" placeholder="Payment terms, thank-you note, etc." style="resize:vertical;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-glass" style="flex:1;" onclick="closeInvoiceModal()">Cancel</button>
+      <button class="btn btn-gold" style="flex:1;" onclick="saveInvoice()">
+        <i class="fas fa-check"></i> <span id="inv-save-label">Save Invoice</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- Receipt Modal                           -->
+<!-- ════════════════════════════════════════ -->
+<div class="biz-modal-overlay" id="receipt-modal">
+  <div class="biz-modal">
+    <div class="biz-modal-head">
+      <div class="biz-modal-title" id="rec-modal-title">Add Receipt</div>
+      <button class="biz-modal-close" onclick="closeReceiptModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Merchant / Vendor</label>
+      <input type="text" class="form-input" id="rec-merchant" placeholder="e.g. Amazon, Staples">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Amount</label>
+        <input type="number" class="form-input" id="rec-amount" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-input" id="rec-date">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-input" id="rec-cat">
+          <option value="office">Office</option>
+          <option value="travel">Travel</option>
+          <option value="meals">Meals & Entertainment</option>
+          <option value="utilities">Utilities</option>
+          <option value="equipment">Equipment</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tax Deductible?</label>
+        <select class="form-input" id="rec-tax">
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+          <option value="partial">Partially</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description / Notes</label>
+      <input type="text" class="form-input" id="rec-notes" placeholder="What was this for?">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" style="margin-bottom:10px;">Receipt Image (optional)</label>
+      <div class="receipt-drop" id="receipt-drop"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="handleReceiptDrop(event)">
+        <input type="file" id="rec-file" accept="image/*,.pdf" onchange="handleReceiptFile(this)">
+        <div class="receipt-drop-icon"><i class="fas fa-cloud-arrow-up"></i></div>
+        <div style="font-size:0.875rem;font-weight:600;color:var(--text-mid);margin-bottom:4px;">Drop image or click to upload</div>
+        <div style="font-size:0.75rem;color:var(--text-dim);">PNG, JPG, PDF — max 5MB</div>
+        <img id="rec-preview" class="receipt-preview" style="display:none;">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-glass" style="flex:1;" onclick="closeReceiptModal()">Cancel</button>
+      <button class="btn btn-gold" style="flex:1;" onclick="saveReceipt()">
+        <i class="fas fa-check"></i> <span id="rec-save-label">Save Receipt</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+	   TAB SWITCHING
+══════════════════════════════════════════════════════════════ */
+document.getElementById('biz-tabs').addEventListener('click', function(e) {
+  const tab = e.target.closest('.biz-tab');
+  if (!tab) return;
+  if (tab.dataset.panel === 'invoices') {
+    window.location.href = 'invoices.html?tab=list';
+    return;
+  }
+  if (tab.dataset.panel === 'receipts') {
+    window.location.href = 'invoices.html?tab=receipts';
+    return;
+  }
+  document.querySelectorAll('.biz-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.biz-panel').forEach(p => p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+  if (tab.dataset.panel === 'invoices') renderInvoices();
+  if (tab.dataset.panel === 'receipts') renderReceipts();
+});
+
+// Close modals on overlay click
+document.getElementById('invoice-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeInvoiceModal();
+});
+document.getElementById('receipt-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeReceiptModal();
+});
+
+/* ══════════════════════════════════════════════════════════════
+   STORAGE HELPERS
+══════════════════════════════════════════════════════════════ */
+function getInvoices()  { return Store.getInvoices(); }
+function saveInvoices(d){ Store.saveInvoices(d); }
+function getReceipts()  { return Store.getReceipts(); }
+function saveReceipts(d){ Store.saveReceipts(d); }
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+/* ══════════════════════════════════════════════════════════════
+   AI FINANCE COACH
+   — Extended thinking + live web search, proxied through the
+     ai-coach Supabase Edge Function (API key never touches
+     the browser)
+══════════════════════════════════════════════════════════════ */
+const AI_COACH_ENDPOINT = `${SUPABASE_URL}/functions/v1/ai-coach`;
+const MIN_THINK_MS = 15000;   // enforce ≥ 15 s of "thinking" UI
+const WEB_TRIGGERS = [
+  'best','current','rate','today','latest','right now','2025','2026',
+  'interest','inflation','isa','savings account','bank','currency market','investment',
+  'stock','crypto','mortgage','tax','hmrc','pension','budget',
+  'government','news','compare','cheapest','deals','offer','product',
+  'price','cost','cheap','afford','economy','recession','fund','etf',
+  'index','dividend','gdp','inflation rate','central bank'
+];
+
+let chatHistory = [];
+let isStreaming = false;
+let _thinkStart = null;
+let _thinkInterval = null;
+
+function startThinkClock() {
+  _thinkStart = Date.now();
+  let secs = 0;
+  _setStatusText(`🧠 Thinking deeply… ${secs}s`);
+  _thinkInterval = setInterval(() => {
+    secs++;
+    _setStatusText(`🧠 Thinking deeply… ${secs}s`);
+  }, 1000);
+  document.getElementById('status-bar').classList.add('visible');
+}
+function stopThinkClock() {
+  if (_thinkInterval) { clearInterval(_thinkInterval); _thinkInterval = null; }
+}
+async function enforceMinThinkTime() {
+  if (!_thinkStart) return;
+  const elapsed = Date.now() - _thinkStart;
+  if (elapsed < MIN_THINK_MS) await new Promise(r => setTimeout(r, MIN_THINK_MS - elapsed));
+}
+function _setStatusText(txt) {
+  const el = document.getElementById('status-text');
+  if (el) el.textContent = txt;
+}
+function setStatus(key) {
+  const bar = document.getElementById('status-bar');
+  if (!key) { stopThinkClock(); bar.classList.remove('visible'); return; }
+  const labels = {
+    searching : '🔍  Searching the web for current data…',
+    reading   : '📖  Reading search results…',
+    writing   : '✍️   Writing your answer…',
+  };
+  if (labels[key]) { stopThinkClock(); _setStatusText(labels[key]); bar.classList.add('visible'); }
+}
+
+/* ─── Markdown → HTML (shared renderer, escapes first) ─── */
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function mdToHtml(text) {
+  return esc(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+    .replace(/`(.+?)`/g,       '<code>$1</code>')
+    .replace(/^[\-•] /gm,      '&bull; ')
+    .replace(/\n\n/g,          '<br><br>')
+    .replace(/\n/g,            '<br>');
+}
+
+/* ─── Deficit banner ─── */
+function renderDeficitBanner() {
+  if (typeof Utils.buildAIContext !== 'function') return;
+  const ctx = Utils.buildAIContext('month');
+  const banner = document.getElementById('deficit-banner');
+  if (ctx.isOverspending && ctx.totalTransactions > 0) {
+    document.getElementById('deficit-text').textContent =
+      `⚠️ You're ${ctx.symbol}${Math.abs(ctx.balance).toFixed(2)} over budget this month. Ask me how to fix this fast.`;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function buildFinancialContext() {
+  const txns    = Store.getTransactions();
+  const month   = Utils.filterByPeriod(txns, 'month');
+  const totals  = Utils.calcTotals(month);
+  const cats    = Utils.groupByCategory(month);
+  const settings = Store.getSettings();
+  const invoices = getInvoices();
+  const receipts = getReceipts();
+
+  const topCats = Object.entries(cats).sort((a,b) => b[1]-a[1]).slice(0,5)
+    .map(([k,v]) => `${k}: ${Utils.formatCurrency(v)}`).join(', ');
+  const sr = totals.income > 0 ? ((totals.income - totals.expense)/totals.income*100).toFixed(1) : 0;
+  const unpaidInvTotal = invoices.filter(i => i.status === 'unpaid' || i.status === 'overdue')
+    .reduce((s, i) => s + (i.total || 0), 0);
+
+  const ctx = `
+User financial context (${new Date().toLocaleDateString()}):
+- Currency: ${settings.currencyCode || 'USD'}
+- Monthly income: ${Utils.formatCurrency(totals.income)}
+- Monthly expenses: ${Utils.formatCurrency(totals.expense)}
+- Net balance: ${Utils.formatCurrency(totals.balance)}
+- Savings rate: ${sr}%
+- Top spending categories this month: ${topCats || 'none yet'}
+- Total transactions: ${txns.length}
+- Primary goal: ${settings.primaryGoal || 'not set'}
+- Unpaid/overdue invoices: ${Utils.formatCurrency(unpaidInvTotal)} (${invoices.filter(i=>i.status==='unpaid'||i.status==='overdue').length} invoices)
+- Receipts logged: ${receipts.length}
+`.trim();
+
+  // Update context summary card
+  document.getElementById('coach-context-summary').innerHTML =
+    `<strong>${Utils.formatCurrency(totals.income)}</strong> income · <strong>${Utils.formatCurrency(totals.expense)}</strong> expenses<br>
+     Savings rate: <strong style="color:var(--gold)">${sr}%</strong><br>
+     ${invoices.filter(i=>i.status==='unpaid'||i.status==='overdue').length} unpaid invoices (${Utils.formatCurrency(unpaidInvTotal)})<br>
+     ${txns.length} transactions tracked`;
+
+  return ctx;
+}
+
+function appendMsg(role, text, isTyping) {
+  const el = document.createElement('div');
+  el.className = `msg ${role === 'user' ? 'user' : 'ai'}`;
+  const icon = role === 'user'
+    ? `<i class="fas fa-user"></i>`
+    : `<i class="fas fa-brain"></i>`;
+  const bubbleHtml = isTyping
+    ? `<div class="typing-dots"><span></span><span></span><span></span></div>`
+    : (role === 'user' ? esc(text) : mdToHtml(text));
+  el.innerHTML = `
+    <div class="msg-avatar">${icon}</div>
+    <div class="msg-bubble">${bubbleHtml}</div>
+    ${role === 'ai' && !isTyping ? `<button class="msg-speak-btn" onclick="speakMessageBubble(this)" title="Read aloud"><i class="fas fa-volume-up"></i></button>` : ''}
+  `;
+  const container = document.getElementById('chat-messages');
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+  return el;
+}
+
+	function saveBusinessChatHistory() {
+	  const s = Store.getSettings();
+	  s.businessChatHistory = chatHistory.slice(-50);
+	  Store.saveSettings(s);
+	}
+
+	function restoreBusinessChatHistory() {
+	  const saved = Store.getSettings().businessChatHistory;
+	  if (!Array.isArray(saved) || !saved.length) return false;
+	  chatHistory = saved.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string').slice(-50);
+	  if (!chatHistory.length) return false;
+
+	  const container = document.getElementById('chat-messages');
+	  container.innerHTML = '';
+	  chatHistory.forEach(m => appendMsg(m.role === 'user' ? 'user' : 'ai', m.content));
+	  return true;
+	}
+	
+function buildSystemPrompt() {
+  return `You are Phyzelyne AI Finance Coach — a warm, sharp, deeply knowledgeable personal finance and business advisor embedded in the Phyzelyne app. You are powered by Claude Sonnet 4.6 with extended thinking enabled, which means you reason carefully before responding.
+
+PERSONALITY & STYLE:
+- Warm, encouraging, never judgmental — money is emotional, treat it that way
+- Jargon-free — define any financial term the first time you use it
+- Always end with ONE clear, specific next step the user can take TODAY
+- Honest — if finances look bad, say so kindly but clearly with a concrete fix
+- Use markdown bold (**text**) for key numbers and action steps
+- Aim for 150–220 words unless asked for a detailed plan
+- Reference the user's actual invoices and receipts when relevant — don't be vague
+- When you have live web data, weave it in naturally — don't announce "I searched the web"
+
+CRITICAL RULES:
+1. If the user's net balance is a deficit, lead with that — it's always the top priority
+2. Always give at least one data-backed, specific recommendation (not generic advice)
+3. If asked about current rates, accounts, or market data — use your web search results
+4. Think deeply before responding. Consider the user's full financial picture, invoices, receipts, and what would genuinely move the needle for them
+
+${buildFinancialContext()}`;
+}
+
+/* ─── Streaming agent loop, via the ai-coach Edge Function ─── */
+async function runAgent(messages) {
+  let usedWeb     = false;
+  let streamDiv   = null;
+  let fullText    = '';
+  let thinkSecs   = 0;
+
+  const userMsg     = messages[messages.length - 1]?.content || '';
+  const needsSearch = WEB_TRIGGERS.some(t => userMsg.toLowerCase().includes(t));
+
+  startThinkClock();
+
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) throw new Error('Not signed in');
+
+  const resp = await fetch(AI_COACH_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({
+      messages,
+      system: buildSystemPrompt(),
+      useTools: needsSearch,
+    }),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    stopThinkClock();
+    throw new Error(err.error || `HTTP ${resp.status}`);
+  }
+
+  const reader  = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  let currentBlock = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop();
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (raw === '[DONE]') continue;
+      let evt;
+      try { evt = JSON.parse(raw); } catch { continue; }
+
+      if (evt.type === 'content_block_start') {
+        currentBlock = evt.content_block.type;
+        if (currentBlock === 'text' && !streamDiv) {
+          await enforceMinThinkTime();
+          thinkSecs = Math.round((Date.now() - _thinkStart) / 1000);
+          stopThinkClock();
+          setStatus('writing');
+          streamDiv = appendMsg('ai', '', false);
+          streamDiv.querySelector('.msg-bubble').innerHTML = '<span class="cursor"></span>';
+        }
+        if (currentBlock === 'tool_use' && evt.content_block.name === 'web_search') {
+          usedWeb = true;
+          thinkSecs = Math.round((Date.now() - _thinkStart) / 1000);
+          stopThinkClock();
+          setStatus('searching');
+        }
+      }
+
+      if (evt.type === 'content_block_delta') {
+        if (evt.delta.type === 'text_delta') {
+          fullText += evt.delta.text;
+          if (streamDiv) {
+            streamDiv.querySelector('.msg-bubble').innerHTML = mdToHtml(fullText) + '<span class="cursor"></span>';
+            document.getElementById('chat-messages').scrollTop = 9999;
+          }
+        }
+      }
+
+      if (evt.type === 'content_block_stop') {
+        if (currentBlock === 'tool_use') setStatus('reading');
+        currentBlock = null;
+      }
+    }
+  }
+
+  await enforceMinThinkTime();
+  stopThinkClock();
+
+  if (streamDiv) {
+    let html = mdToHtml(fullText);
+    const badges = [];
+    if (usedWeb) badges.push(`<span class="web-badge"><i class="fas fa-globe"></i> Live web data</span>`);
+    if (thinkSecs) badges.push(`<span class="web-badge" style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.3);color:#8b5cf6;"><i class="fas fa-brain"></i> Thought for ${thinkSecs}s</span>`);
+    if (badges.length) html += '<br>' + badges.join(' ');
+    streamDiv.querySelector('.msg-bubble').innerHTML = html;
+    document.getElementById('chat-messages').scrollTop = 9999;
+  }
+
+  return { text: fullText, usedWeb, thinkSecs };
+}
+
+/* ─── Offline fallback (used only if the Edge Function/API call fails) ─── */
+function localReply(msg) {
+  if (typeof Utils.buildAIContext !== 'function') {
+    return "Sorry, I couldn't reach the AI service. Please check your connection and try again.";
+  }
+  const ctx = Utils.buildAIContext('month');
+  const sym = ctx.symbol;
+  const sr  = parseFloat(ctx.savingsRate);
+  const q   = msg.toLowerCase();
+  const neg = ctx.balance < 0;
+  const deficitNote = neg
+    ? `⚠️ First: you're in a **${sym}${Math.abs(ctx.balance).toFixed(2)} deficit** this month — let's fix that first.\n\n`
+    : '';
+
+  if (q.includes('save') || q.includes('saving'))
+    return `${deficitNote}Your savings rate is **${sr}%** — target is 20%.\n\n${ctx.topCat ? `Biggest expense: **${ctx.topCat[0]}** at ${sym}${ctx.topCat[1].toFixed(2)}. A 10% cut there moves the needle.` : 'Log more transactions for specific advice.'}\n\n**Next step:** Set up an auto-transfer to savings on payday. 💪`;
+
+  if (q.includes('invoice') || q.includes('client') || q.includes('owe'))
+    return `${deficitNote}Check the Invoices tab for a full breakdown of what's outstanding and from whom.\n\n**Next step:** Send a friendly reminder to anyone more than 7 days overdue.`;
+
+  if (q.includes('overspend') || q.includes('budget') || q.includes('deficit'))
+    return neg
+      ? `You're overspending by **${sym}${Math.abs(ctx.balance).toFixed(2)}** this month.\n\nFocus: cut **${ctx.topCat?.[0] || 'discretionary'}** spending first.\n\n**Next step:** Pause all non-essential spending for the rest of this month. 🚀`
+      : `You're within budget! Net: **${sym}${ctx.balance.toFixed(2)}** 🎉\n\n**Next step:** Move that surplus into a savings goal before it gets spent.`;
+
+  return `${deficitNote}This month:\n• **Income:** ${sym}${ctx.income.toFixed(2)}\n• **Expenses:** ${sym}${ctx.expense.toFixed(2)}\n• **Net:** ${ctx.balance < 0 ? '-' : '+'}${sym}${Math.abs(ctx.balance).toFixed(2)}\n• **Savings rate:** ${sr}%\n\n**Next step:** Head to the Analysis page for your full category breakdown. 📊`;
+}
+
+async function sendMessage(overrideText, fromVoice) {
+  if (isStreaming) return;
+  const input = document.getElementById('chat-input');
+  const text  = overrideText || input.value.trim();
+  if (!text) return;
+
+  if (isVoiceActive) stopVoiceRecognition();
+  if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+
+  input.value = '';
+  isStreaming = true;
+  document.getElementById('chat-send-btn').disabled = true;
+
+  appendMsg('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  saveBusinessChatHistory();
+
+  try {
+    const { text: reply, } = await runAgent(chatHistory);
+    chatHistory.push({ role: 'assistant', content: reply });
+    saveBusinessChatHistory();
+    if (fromVoice) speakText(reply);
+  } catch (err) {
+    console.error(err);
+    setStatus(null);
+    const fallback = localReply(text);
+    appendMsg('ai', fallback);
+    chatHistory.push({ role: 'assistant', content: fallback });
+    saveBusinessChatHistory();
+    if (fromVoice) speakText(fallback);
+  }
+
+  setStatus(null);
+  isStreaming = false;
+  document.getElementById('chat-send-btn').disabled = false;
+  document.getElementById('chat-messages').scrollTop = 9999;
+  input.focus();
+}
+
+function usePrompt(el) {
+  document.getElementById('chat-input').value = el.textContent.trim();
+  document.getElementById('chat-input').focus();
+  sendMessage(el.textContent.trim());
+}
+
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   VOICE MODE — speech input & spoken replies
+══════════════════════════════════════════════════════════════ */
+let recognition = null;
+let isVoiceActive = false;
+
+function speakText(text) {
+  window.speechSynthesis.cancel();
+  const cleanText = text
+    .replace(/<[^>]*>/g, '')
+    .replace(/[\*\_`#\-]/g, '')
+    .trim();
+  if (!cleanText) return;
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  const voices = window.speechSynthesis.getVoices();
+  const preferredVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
+                      || voices.find(v => v.lang.startsWith('en'))
+                      || voices[0];
+  if (preferredVoice) utterance.voice = preferredVoice;
+  window.speechSynthesis.speak(utterance);
+}
+
+function speakMessageBubble(btn) {
+  const msgContentEl = btn.parentElement.querySelector('.msg-bubble');
+  if (!msgContentEl) return;
+
+  if (btn.classList.contains('speaking')) {
+    window.speechSynthesis.cancel();
+    btn.classList.remove('speaking');
+    btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+  document.querySelectorAll('.msg-speak-btn.speaking').forEach(b => {
+    b.classList.remove('speaking');
+    b.innerHTML = '<i class="fas fa-volume-up"></i>';
+  });
+
+  const text = msgContentEl.innerText;
+  const cleanText = text
+    .replace(/Thought for \d+s/g, '')
+    .replace(/Live web data/g, '')
+    .trim();
+  if (!cleanText) return;
+
+  btn.classList.add('speaking');
+  btn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  const voices = window.speechSynthesis.getVoices();
+  const preferredVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
+                      || voices.find(v => v.lang.startsWith('en'))
+                      || voices[0];
+  if (preferredVoice) utterance.voice = preferredVoice;
+
+  utterance.onend = () => {
+    btn.classList.remove('speaking');
+    btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+  };
+  utterance.onerror = () => {
+    btn.classList.remove('speaking');
+    btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    console.warn('Speech Recognition not supported in this browser.');
+    return null;
+  }
+
+  const rec = new SpeechRecognition();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = 'en-US';
+
+  let silenceTimer = null;
+  let finalTranscript = '';
+
+  const resetSilenceTimer = () => {
+    if (silenceTimer) clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(() => rec.stop(), 2000);
+  };
+
+  rec.onstart = () => {
+    isVoiceActive = true;
+    finalTranscript = '';
+    updateVoiceButtonState(true);
+    document.getElementById('chat-input').placeholder = 'Listening...';
+    resetSilenceTimer();
+  };
+
+  rec.onresult = (e) => {
+    let interimTranscript = '';
+    for (let i = e.resultIndex; i < e.results.length; ++i) {
+      if (e.results[i].isFinal) {
+        finalTranscript += e.results[i][0].transcript + ' ';
+      } else {
+        interimTranscript += e.results[i][0].transcript;
+      }
+    }
+    document.getElementById('chat-input').value = (finalTranscript + interimTranscript).trim();
+    resetSilenceTimer();
+  };
+
+  rec.onerror = (e) => {
+    console.error('Speech recognition error:', e.error);
+    if (silenceTimer) clearTimeout(silenceTimer);
+    stopVoiceRecognition();
+  };
+
+  rec.onend = () => {
+    if (silenceTimer) clearTimeout(silenceTimer);
+    const input = document.getElementById('chat-input');
+    input.placeholder = 'Ask anything about your finances…';
+    const shouldSend = isVoiceActive && input.value.trim();
+    stopVoiceRecognition();
+    if (shouldSend) sendMessage(null, true);
+  };
+
+  return rec;
+}
+
+function toggleVoiceInput() {
+  if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+  if (isVoiceActive) {
+    const input = document.getElementById('chat-input');
+    if (input.value.trim()) {
+      if (recognition) recognition.stop();
+    } else {
+      stopVoiceRecognition();
+    }
+  } else {
+    startVoiceRecognition();
+  }
+}
+
+function startVoiceRecognition() {
+  if (!recognition) recognition = initSpeechRecognition();
+  if (!recognition) {
+    showToast('Speech recognition not supported in this browser.', 'error');
+    return;
+  }
+  try {
+    recognition.start();
+  } catch (err) {
+    console.error('Failed to start recognition:', err);
+  }
+}
+
+function stopVoiceRecognition() {
+  isVoiceActive = false;
+  updateVoiceButtonState(false);
+  if (recognition) {
+    try { recognition.stop(); } catch (err) {}
+  }
+}
+
+function updateVoiceButtonState(listening) {
+  const btn = document.getElementById('voice-btn');
+  if (!btn) return;
+  if (listening) {
+    btn.classList.add('listening');
+    btn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+  } else {
+    btn.classList.remove('listening');
+    btn.innerHTML = '<i class="fas fa-microphone"></i>';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INVOICES
+══════════════════════════════════════════════════════════════ */
+let lineItems = [];
+let editingInvoiceId = null;
+
+function openInvoiceModal(editId) {
+  editingInvoiceId = editId || null;
+  lineItems = editId
+    ? (getInvoices().find(i => i.id === editId)?.lineItems || [])
+    : [{ desc: '', qty: 1, price: 0 }];
+
+  if (editId) {
+    const inv = getInvoices().find(i => i.id === editId);
+    if (!inv) return;
+    document.getElementById('inv-modal-title').textContent = 'Edit Invoice';
+    document.getElementById('inv-save-label').textContent = 'Update Invoice';
+    document.getElementById('inv-number').value = inv.number || '';
+    document.getElementById('inv-status').value = inv.status || 'draft';
+    document.getElementById('inv-client').value = inv.client || '';
+    document.getElementById('inv-email').value  = inv.email  || '';
+    document.getElementById('inv-date').value   = inv.date   || '';
+    document.getElementById('inv-due').value    = inv.due    || '';
+    document.getElementById('inv-notes').value  = inv.notes  || '';
+  } else {
+    document.getElementById('inv-modal-title').textContent = 'New Invoice';
+    document.getElementById('inv-save-label').textContent = 'Save Invoice';
+    const all = getInvoices();
+    const nextNum = 'INV-' + String(all.length + 1).padStart(3, '0');
+    document.getElementById('inv-number').value = nextNum;
+    document.getElementById('inv-status').value = 'draft';
+    document.getElementById('inv-client').value = '';
+    document.getElementById('inv-email').value  = '';
+    document.getElementById('inv-date').value   = new Date().toISOString().split('T')[0];
+    const due = new Date(); due.setDate(due.getDate() + 30);
+    document.getElementById('inv-due').value    = due.toISOString().split('T')[0];
+    document.getElementById('inv-notes').value  = 'Thank you for your business!';
+  }
+
+  renderLineItems();
+  document.getElementById('invoice-modal').classList.add('open');
+}
+
+function closeInvoiceModal() {
+  document.getElementById('invoice-modal').classList.remove('open');
+  editingInvoiceId = null;
+  lineItems = [];
+}
+
+function renderLineItems() {
+  const body = document.getElementById('line-items-body');
+  body.innerHTML = lineItems.map((item, i) => `
+    <tr>
+      <td><input value="${item.desc}" oninput="lineItems[${i}].desc=this.value" placeholder="Item description"></td>
+      <td><input type="number" value="${item.qty}" min="1" oninput="lineItems[${i}].qty=parseFloat(this.value)||0;calcLineTotal()"></td>
+      <td><input type="number" value="${item.price}" min="0" step="0.01" oninput="lineItems[${i}].price=parseFloat(this.value)||0;calcLineTotal()"></td>
+      <td style="color:var(--gold);font-weight:600;">${Utils.formatCurrency((item.qty||0)*(item.price||0))}</td>
+      <td><button onclick="removeLineItem(${i})" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:0.8rem;"><i class="fas fa-times"></i></button></td>
+    </tr>`).join('');
+  calcLineTotal();
+}
+
+function addLineItem() {
+  lineItems.push({ desc: '', qty: 1, price: 0 });
+  renderLineItems();
+}
+
+function removeLineItem(i) {
+  lineItems.splice(i, 1);
+  renderLineItems();
+}
+
+function calcLineTotal() {
+  const total = lineItems.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
+  document.getElementById('inv-total').textContent = Utils.formatCurrency(total);
+}
+
+function saveInvoice() {
+  const client = document.getElementById('inv-client').value.trim();
+  if (!client) { showToast('Enter a client name', 'error'); return; }
+
+  const total = lineItems.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
+  const inv = {
+    id:        editingInvoiceId || genId(),
+    number:    document.getElementById('inv-number').value.trim() || 'INV',
+    status:    document.getElementById('inv-status').value,
+    client:    client,
+    email:     document.getElementById('inv-email').value.trim(),
+    date:      document.getElementById('inv-date').value,
+    due:       document.getElementById('inv-due').value,
+    notes:     document.getElementById('inv-notes').value.trim(),
+    lineItems: JSON.parse(JSON.stringify(lineItems)),
+    total,
+    createdAt: editingInvoiceId
+      ? getInvoices().find(i => i.id === editingInvoiceId)?.createdAt || Date.now()
+      : Date.now()
+  };
+
+  const all = getInvoices();
+  const isNew = !editingInvoiceId;
+  const wasPaid = !isNew && (all.find(i => i.id === editingInvoiceId)?.status === 'paid');
+  const nowPaid = inv.status === 'paid';
+
+  if (editingInvoiceId) {
+    const idx = all.findIndex(i => i.id === editingInvoiceId);
+    if (idx > -1) all[idx] = inv; else all.push(inv);
+  } else {
+    all.unshift(inv);
+  }
+  saveInvoices(all);
+
+  // If invoice is being marked paid for the first time, add income + receipt
+  if (nowPaid && (isNew || !wasPaid)) {
+    inv.paidAt = inv.paidAt || new Date().toISOString();
+    Store.addTransaction({
+      type:        'income',
+      amount:      parseFloat(inv.total || 0),
+      description: `Invoice ${inv.number} — ${inv.client}`,
+      category:    'freelance',
+      date:        new Date().toISOString().split('T')[0],
+      invoiceId:   inv.id,
+    });
+    Store.addReceipt({
+      invoiceId:   inv.id,
+      invoiceNum:  inv.number,
+      fromName:    Store.getSettings().companyName || 'Your Business',
+      toName:      inv.client,
+      toEmail:     inv.email || '',
+      total:       inv.total,
+      currency:    Store.getSettings().currencyCode || 'USD',
+      paidAt:      inv.paidAt,
+      accentColor: '#d4a017',
+      items:       inv.lineItems || [],
+      source:      'invoice',
+    });
+    showToast(editingInvoiceId ? 'Invoice updated — income + receipt recorded ✓' : 'Invoice saved — income + receipt recorded ✓');
+  } else {
+    showToast(editingInvoiceId ? 'Invoice updated!' : 'Invoice saved!');
+  }
+  closeInvoiceModal();
+  renderInvoices();
+}
+
+function deleteInvoice(id) {
+  if (!confirm('Delete this invoice?')) return;
+  saveInvoices(getInvoices().filter(i => i.id !== id));
+  showToast('Invoice deleted', 'error');
+  renderInvoices();
+}
+
+function markInvoicePaid(id) {
+  const all = getInvoices();
+  const idx = all.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  const inv = all[idx];
+  const wasAlreadyPaid = inv.status === 'paid';
+  inv.status = 'paid';
+  inv.paidAt = inv.paidAt || new Date().toISOString();
+  saveInvoices(all);
+
+  if (!wasAlreadyPaid) {
+    // Auto-add income transaction
+    Store.addTransaction({
+      type:        'income',
+      amount:      parseFloat(inv.total || 0),
+      description: `Invoice ${inv.number} — ${inv.client}`,
+      category:    'freelance',
+      date:        new Date().toISOString().split('T')[0],
+      invoiceId:   inv.id,
+    });
+
+    // Auto-generate a receipt stored via Store
+    Store.addReceipt({
+      invoiceId:   inv.id,
+      invoiceNum:  inv.number,
+      fromName:    (Store.getSettings().companyName) || 'Your Business',
+      toName:      inv.client,
+      toEmail:     inv.email  || '',
+      total:       inv.total,
+      currency:    Store.getSettings().currencyCode || 'USD',
+      paidAt:      inv.paidAt,
+      accentColor: '#d4a017',
+      items:       inv.lineItems || [],
+      source:      'invoice',
+    });
+
+    showToast('Marked as paid — income + receipt recorded ✓');
+  } else {
+    showToast('Invoice already paid ✓');
+  }
+  renderInvoices();
+}
+
+function printInvoiceReceipt(id) {
+  const inv = getInvoices().find(i => i.id === id);
+  if (!inv) return;
+  // Try to find matching stored receipt first
+  const stored = Store.getReceipts().find(r => r.invoiceId === id);
+  const accentColor = stored?.accentColor || '#d4a017';
+  const sym = (CURRENCIES.find(c => c.code === (inv.currency || Store.getSettings().currencyCode || 'USD')) || { symbol: '$' }).symbol;
+  const paidAt = inv.paidAt ? new Date(inv.paidAt) : new Date();
+  const dt = paidAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  const fromName = Store.getSettings().companyName || 'Your Business';
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Receipt ${inv.number}</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0;}
+      body{font-family:'Inter Display','Inter',sans-serif;color:#1a1a1a;background:#fff;padding:40px;}
+      .bar{height:5px;background:${accentColor};margin-bottom:32px;border-radius:2px;}
+      .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;}
+      h1{font-family:'Fraunces',Georgia,serif;font-size:2rem;font-weight:900;color:${accentColor};text-transform:uppercase;letter-spacing:0.06em;}
+      .meta{font-size:0.78rem;color:#888;margin-top:6px;line-height:1.8;}
+      .paid-stamp{display:inline-flex;align-items:center;gap:8px;border:3px solid #27ae60;color:#27ae60;
+        border-radius:6px;padding:6px 16px;font-size:1rem;font-weight:900;letter-spacing:0.1em;
+        transform:rotate(-8deg);margin-bottom:24px;}
+      .parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;background:#f9f9f7;
+        padding:22px;border-radius:10px;margin-bottom:28px;}
+      .party-label{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
+        color:${accentColor};margin-bottom:6px;}
+      .party-name{font-weight:700;font-size:0.95rem;color:#1a1a1a;}
+      .party-sub{font-size:0.75rem;color:#666;margin-top:3px;line-height:1.6;}
+      table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+      th{text-align:left;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;
+        border-bottom:2px solid ${accentColor};padding:8px 4px;color:${accentColor};}
+      td{padding:10px 4px;border-bottom:1px solid #eee;font-size:0.82rem;color:#333;}
+      td:not(:first-child){text-align:right;}
+      .totals-box{display:flex;justify-content:flex-end;margin-bottom:28px;}
+      .totals-inner{width:230px;}
+      .t-row{display:flex;justify-content:space-between;font-size:0.82rem;padding:4px 0;color:#555;}
+      .t-row.grand{border-top:2px solid ${accentColor};margin-top:8px;padding-top:10px;
+        font-weight:700;font-size:1.05rem;color:#1a1a1a;}
+      .footer{background:${accentColor};color:#fff;text-align:center;font-size:0.72rem;
+        padding:14px;border-radius:6px;margin-top:24px;}
+      @media print{body{padding:20px;}@page{margin:0;size:A4;}}
+    </style></head><body>
+    <div class="bar"></div>
+    <div class="header">
+      <div>
+        <h1>Receipt</h1>
+        <div class="meta">
+          Receipt for Invoice: <strong>${inv.number}</strong><br>
+          Paid: ${dt}<br>
+          ${inv.email ? 'Client: ' + inv.email : ''}
+        </div>
+      </div>
+      <div class="paid-stamp">✓ PAID</div>
+    </div>
+    <div class="parties">
+      <div>
+        <div class="party-label">From</div>
+        <div class="party-name">${fromName}</div>
+      </div>
+      <div>
+        <div class="party-label">Received From</div>
+        <div class="party-name">${inv.client || '—'}</div>
+        ${inv.email ? `<div class="party-sub">${inv.email}</div>` : ''}
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr></thead>
+      <tbody>
+        ${(inv.lineItems || []).map(item =>
+          `<tr>
+            <td>${item.desc || item.description || '—'}</td>
+            <td style="text-align:right;">${item.qty || 1}</td>
+            <td style="text-align:right;">${sym}${parseFloat(item.price || 0).toFixed(2)}</td>
+            <td style="text-align:right;">${sym}${((item.qty || 1) * (item.price || 0)).toFixed(2)}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="totals-box"><div class="totals-inner">
+      <div class="t-row grand"><span>Total Paid</span><span>${sym}${parseFloat(inv.total || 0).toFixed(2)}</span></div>
+    </div></div>
+    ${inv.notes ? `<div style="font-size:0.78rem;color:#888;margin-bottom:20px;padding:14px;background:#f9f9f7;border-radius:8px;">
+      <strong style="color:#444;">Notes:</strong> ${inv.notes}</div>` : ''}
+    <div class="footer">
+      Generated by Phyzelyne · ${fromName} · Payment confirmed ${dt}
+    </div>
+    <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+function renderInvoiceStats(invoices) {
+  const total     = invoices.reduce((s,i) => s + (i.total||0), 0);
+  const paid      = invoices.filter(i => i.status==='paid').reduce((s,i) => s + (i.total||0), 0);
+  const unpaid    = invoices.filter(i => i.status==='unpaid').reduce((s,i) => s + (i.total||0), 0);
+  const overdue   = invoices.filter(i => i.status==='overdue').reduce((s,i) => s + (i.total||0), 0);
+  document.getElementById('invoice-stats').innerHTML = `
+    <div class="glass-card stat-card"><div class="stat-label"><i class="fas fa-file-invoice-dollar"></i> Total Invoiced</div><div class="stat-value">${Utils.formatCurrency(total)}</div></div>
+    <div class="glass-card stat-card"><div class="stat-label"><i class="fas fa-check-circle"></i> Collected</div><div class="stat-value income">${Utils.formatCurrency(paid)}</div></div>
+    <div class="glass-card stat-card"><div class="stat-label"><i class="fas fa-clock"></i> Awaiting Payment</div><div class="stat-value balance">${Utils.formatCurrency(unpaid)}</div></div>
+    <div class="glass-card stat-card"><div class="stat-label"><i class="fas fa-triangle-exclamation"></i> Overdue</div><div class="stat-value expense">${Utils.formatCurrency(overdue)}</div></div>`;
+}
+
+function renderInvoices() {
+  const filterStatus = document.getElementById('inv-filter-status').value;
+  let invoices = getInvoices();
+  renderInvoiceStats(invoices);
+  if (filterStatus !== 'all') invoices = invoices.filter(i => i.status === filterStatus);
+
+  const grid = document.getElementById('invoice-grid');
+  if (!invoices.length) {
+    grid.innerHTML = `<div class="biz-empty" style="grid-column:1/-1;">
+      <i class="fas fa-file-invoice-dollar"></i>
+      <h3>No invoices yet</h3>
+      <p>Create your first invoice to start tracking payments from clients.</p>
+      <button class="btn btn-gold" onclick="openInvoiceModal()"><i class="fas fa-plus"></i> New Invoice</button>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = invoices.map(inv => {
+    const statusDot = { paid:'✓', unpaid:'●', overdue:'!', draft:'○' }[inv.status] || '●';
+    return `<div class="doc-card invoice">
+      <div class="doc-card-head">
+        <div>
+          <div class="doc-number">${inv.number}</div>
+          <div class="doc-client">${inv.client}${inv.email ? ` · ${inv.email}` : ''}</div>
+        </div>
+        <div class="doc-status ${inv.status}">${statusDot} ${inv.status.charAt(0).toUpperCase()+inv.status.slice(1)}</div>
+      </div>
+      <div class="doc-amount">${Utils.formatCurrency(inv.total || 0)}</div>
+      <div class="doc-meta">
+        <span><i class="fas fa-calendar"></i>${Utils.formatDate ? Utils.formatDate(inv.date) : inv.date}</span>
+        <span><i class="fas fa-clock"></i>Due ${Utils.formatDate ? Utils.formatDate(inv.due) : inv.due}</span>
+        <span><i class="fas fa-list"></i>${(inv.lineItems||[]).length} item${(inv.lineItems||[]).length !== 1 ? 's':''}</span>
+      </div>
+      ${inv.notes ? `<div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:12px;font-style:italic;">"${inv.notes}"</div>` : ''}
+      <div class="doc-actions">
+        <button class="doc-btn primary" onclick="openInvoiceModal('${inv.id}')"><i class="fas fa-pen"></i> Edit</button>
+        ${inv.status !== 'paid' ? `<button class="doc-btn" onclick="markInvoicePaid('${inv.id}')"><i class="fas fa-check"></i> Paid</button>` : `<button class="doc-btn" onclick="printInvoiceReceipt('${inv.id}')" title="Print receipt"><i class="fas fa-receipt"></i> Receipt</button>`}
+        <button class="doc-btn danger" onclick="deleteInvoice('${inv.id}')"><i class="fas fa-trash-can"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('inv-filter-status').addEventListener('change', renderInvoices);
+
+/* ══════════════════════════════════════════════════════════════
+   RECEIPTS
+══════════════════════════════════════════════════════════════ */
+let editingReceiptId = null;
+let currentReceiptImage = null;
+
+function openReceiptModal(editId) {
+  editingReceiptId = editId || null;
+  currentReceiptImage = null;
+
+  document.getElementById('rec-preview').style.display = 'none';
+  document.getElementById('rec-preview').src = '';
+  document.getElementById('rec-file').value = '';
+
+  if (editId) {
+    const rec = getReceipts().find(r => r.id === editId);
+    if (!rec) return;
+    document.getElementById('rec-modal-title').textContent = 'Edit Receipt';
+    document.getElementById('rec-save-label').textContent = 'Update Receipt';
+    document.getElementById('rec-merchant').value = rec.merchant || '';
+    document.getElementById('rec-amount').value   = rec.amount   || '';
+    document.getElementById('rec-date').value     = rec.date     || '';
+    document.getElementById('rec-cat').value      = rec.category || 'other';
+    document.getElementById('rec-tax').value      = rec.tax      || 'no';
+    document.getElementById('rec-notes').value    = rec.notes    || '';
+    if (rec.image) {
+      currentReceiptImage = rec.image;
+      document.getElementById('rec-preview').src = rec.image;
+      document.getElementById('rec-preview').style.display = 'block';
+    }
+  } else {
+    document.getElementById('rec-modal-title').textContent = 'Add Receipt';
+    document.getElementById('rec-save-label').textContent = 'Save Receipt';
+    document.getElementById('rec-merchant').value = '';
+    document.getElementById('rec-amount').value   = '';
+    document.getElementById('rec-date').value     = new Date().toISOString().split('T')[0];
+    document.getElementById('rec-cat').value      = 'other';
+    document.getElementById('rec-tax').value      = 'no';
+    document.getElementById('rec-notes').value    = '';
+  }
+
+  document.getElementById('receipt-modal').classList.add('open');
+}
+
+function closeReceiptModal() {
+  document.getElementById('receipt-modal').classList.remove('open');
+  editingReceiptId = null;
+  currentReceiptImage = null;
+}
+
+function handleReceiptFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('File too large (max 5MB)', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    currentReceiptImage = e.target.result;
+    const preview = document.getElementById('rec-preview');
+    preview.src = currentReceiptImage;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleReceiptDrop(e) {
+  e.preventDefault();
+  document.getElementById('receipt-drop').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('rec-file').files = dt.files;
+    handleReceiptFile(document.getElementById('rec-file'));
+  }
+}
+
+function saveReceipt() {
+  const merchant = document.getElementById('rec-merchant').value.trim();
+  const amount   = parseFloat(document.getElementById('rec-amount').value);
+  if (!merchant) { showToast('Enter a merchant name', 'error'); return; }
+  if (!amount || amount <= 0) { showToast('Enter a valid amount', 'error'); return; }
+
+  const rec = {
+    id:        editingReceiptId || genId(),
+    merchant,
+    amount,
+    date:      document.getElementById('rec-date').value,
+    category:  document.getElementById('rec-cat').value,
+    tax:       document.getElementById('rec-tax').value,
+    notes:     document.getElementById('rec-notes').value.trim(),
+    image:     currentReceiptImage || null,
+    createdAt: editingReceiptId
+      ? getReceipts().find(r => r.id === editingReceiptId)?.createdAt || Date.now()
+      : Date.now()
+  };
+
+  const all = getReceipts();
+  if (editingReceiptId) {
+    const idx = all.findIndex(r => r.id === editingReceiptId);
+    if (idx > -1) all[idx] = rec; else all.push(rec);
+  } else {
+    all.unshift(rec);
+  }
+  saveReceipts(all);
+  showToast(editingReceiptId ? 'Receipt updated!' : 'Receipt saved!');
+  closeReceiptModal();
+  renderReceipts();
+}
+
+function deleteReceipt(id) {
+  if (!confirm('Delete this receipt?')) return;
+  saveReceipts(getReceipts().filter(r => r.id !== id));
+  showToast('Receipt deleted', 'error');
+  renderReceipts();
+}
+
+const CAT_ICONS = { office:'briefcase', travel:'plane', meals:'utensils', utilities:'bolt', equipment:'computer', other:'tag' };
+
+function renderReceiptStats(receipts) {
+  const total   = receipts.reduce((s,r) => s + (r.amount||0), 0);
+  const taxDed  = receipts.filter(r => r.tax==='yes' || r.tax==='partial').reduce((s,r) => s + (r.amount||0), 0);
+  const thisMonth = Utils.filterByPeriod
+    ? receipts.filter(r => { const d=new Date(r.date); const n=new Date(); return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear(); })
+    : receipts;
+  const monthTotal = thisMonth.reduce((s,r) => s + (r.amount||0), 0);
+
+  document.getElementById('receipt-stats').innerHTML = `
+    <div class="glass-card stat-card"><div class="stat-label"><i class="fas fa-receipt"></i> Total Receipts</div><div class="stat-value" style="font-size:2rem;">${receipts.length}</div></div>
+    <div class="glass-card stat-card"><div class="stat-label"><i class="fas fa-coins"></i> Total Spent</div><div class="stat-value expense">${Utils.formatCurrency(total)}</div></div>
+    <div class="glass-card stat-card"><div class="stat-label"><i class="fas fa-calendar"></i> This Month</div><div class="stat-value">${Utils.formatCurrency(monthTotal)}</div></div>
+    <div class="glass-card stat-card"><div class="stat-label"><i class="fas fa-percent"></i> Tax Deductible</div><div class="stat-value income">${Utils.formatCurrency(taxDed)}</div></div>`;
+}
+
+function renderReceipts() {
+  const filterCat = document.getElementById('rec-filter-cat').value;
+  let receipts = getReceipts();
+  renderReceiptStats(receipts);
+  if (filterCat !== 'all') receipts = receipts.filter(r => r.category === filterCat);
+
+  const grid = document.getElementById('receipt-grid');
+  if (!receipts.length) {
+    grid.innerHTML = `<div class="biz-empty" style="grid-column:1/-1;">
+      <i class="fas fa-receipt"></i>
+      <h3>No receipts yet</h3>
+      <p>Log your business expenses and upload receipt images to keep perfect records.</p>
+      <button class="btn btn-gold" onclick="openReceiptModal()"><i class="fas fa-plus"></i> Add Receipt</button>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = receipts.map(rec => {
+    const taxBadge = {yes:'Tax Deductible', partial:'Partial Deduction', no:'Not Deductible'}[rec.tax] || '';
+    const taxColor = {yes:'income', partial:'balance', no:''}[rec.tax] || '';
+    return `<div class="doc-card receipt">
+      <div class="doc-card-head">
+        <div>
+          <div class="doc-number">${rec.merchant}</div>
+          <div class="doc-client"><i class="fas fa-${CAT_ICONS[rec.category]||'tag'}"></i> ${rec.category.charAt(0).toUpperCase()+rec.category.slice(1)}</div>
+        </div>
+        <div class="doc-status ${taxColor}" style="font-size:0.68rem;">${taxBadge}</div>
+      </div>
+      <div class="doc-amount">${Utils.formatCurrency(rec.amount)}</div>
+      <div class="doc-meta">
+        <span><i class="fas fa-calendar"></i>${Utils.formatDate ? Utils.formatDate(rec.date) : rec.date}</span>
+        ${rec.notes ? `<span><i class="fas fa-note-sticky"></i>${rec.notes}</span>` : ''}
+      </div>
+      ${rec.image ? `<img src="${rec.image}" style="width:100%;height:90px;object-fit:cover;border-radius:8px;margin-bottom:12px;border:1px solid var(--glass-border);">` : ''}
+      <div class="doc-actions">
+        <button class="doc-btn primary" onclick="openReceiptModal('${rec.id}')"><i class="fas fa-pen"></i> Edit</button>
+        <button class="doc-btn danger" onclick="deleteReceipt('${rec.id}')"><i class="fas fa-trash-can"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('rec-filter-cat').addEventListener('change', renderReceipts);
+
+/* ══════════════════════════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════════════════════════ */
+document.getElementById('sidebar-mount').innerHTML = renderSidebar();
+initSidebar();
+buildFinancialContext(); // populate context summary
+if (_cache.ready) {
+  restoreBusinessChatHistory();
+  renderDeficitBanner();
+} else {
+  document.addEventListener('phyzelyne:ready', () => {
+    restoreBusinessChatHistory();
+    renderDeficitBanner();
+  }, { once: true });
+}
+
+document.addEventListener('phyzelyne:data-changed', (evt) => {
+  buildFinancialContext(); // always update the context summary card
+  renderDeficitBanner();
+  
+  const t = evt.detail?.type;
+  if (t === 'invoices' || t === 'all') {
+    const panel = document.getElementById('panel-invoices');
+    if (panel && panel.classList.contains('active')) {
+      renderInvoices();
+    }
+  }
+  if (t === 'receipts' || t === 'all') {
+    const panel = document.getElementById('panel-receipts');
+    if (panel && panel.classList.contains('active')) {
+      renderReceipts();
+    }
+  }
+});
+</script>
+
+<!-- Bottom Nav (mobile only) -->
+<nav class="bottom-nav">
+  <a href="dashboard.html"    class="bottom-nav-item" data-page="dashboard"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="transactions.html" class="bottom-nav-item" data-page="transactions"><i class="fas fa-right-left"></i><span>Transactions</span></a>
+  <a href="analysis.html"     class="bottom-nav-item" data-page="analysis"><i class="fas fa-chart-pie"></i><span>Analysis</span></a>
+  <a href="cofe.html"         class="bottom-nav-item" data-page="cofe"><i class="fas fa-briefcase"></i><span>Business</span></a>
+  <a href="settings.html"     class="bottom-nav-item" data-page="settings"><i class="fas fa-gear"></i><span>Settings</span></a>
+</nav>
+<script>
+(function(){
+  var page = location.pathname.split('/').pop() || 'dashboard.html';
+  document.querySelectorAll('.bottom-nav-item[data-page]').forEach(function(el){
+    var p = el.dataset.page;
+    if(page.includes(p)||(p==='dashboard'&&['','dashboard.html'].includes(page)))
+      el.classList.add('active');
+  });
+})();
+</script>
+
+</body>
+</html>

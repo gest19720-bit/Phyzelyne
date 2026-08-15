@@ -124,20 +124,7 @@ function _mergeRows(remoteRows, localRows, table) {
 }
 
 function _mergeRemoteRows(remoteRows, localRows, table) {
-  const remote = Array.isArray(remoteRows) ? remoteRows : [];
-  const local = Array.isArray(localRows) ? localRows : [];
-  const pendingUpserts = _pendingIds(table, 'upsert');
-  const pendingDeletes = _pendingIds(table, 'delete');
-  const byId = new Map();
-
-  remote.forEach(row => {
-    if (row?.id && !pendingDeletes.has(row.id)) byId.set(row.id, row);
-  });
-  local.forEach(row => {
-    if (row?.id && (pendingUpserts.has(row.id) || _inFlightWrites.has(row.id)) && !pendingDeletes.has(row.id)) byId.set(row.id, row);
-  });
-
-  return Array.from(byId.values());
+  return _mergeRows(remoteRows, localRows, table);
 }
 
 function _mergeSettings(remoteSettings, localSettings) {
@@ -234,7 +221,7 @@ async function _loadRemoteData(uid) {
   };
 }
 
-async function _refreshCacheFromSupabase({ notify = true, preserveLocal = false } = {}) {
+async function _refreshCacheFromSupabase({ notify = true, preserveLocal = true } = {}) {
   if (!_cache.userId || !_sb) return false;
   if (_remoteSyncInFlight) return false;
   _remoteSyncInFlight = true;
@@ -279,7 +266,7 @@ async function _refreshCacheFromSupabase({ notify = true, preserveLocal = false 
 function _startRemoteSync() {
   if (_remoteSyncTimer || !_cache.userId || !_sb) return;
   _remoteSyncTimer = setInterval(() => {
-    if (!document.hidden) _refreshCacheFromSupabase().then(() => _flushWriteQueue()).catch(() => {});
+    if (!document.hidden) _refreshCacheFromSupabase({ preserveLocal: true }).then(() => _flushWriteQueue()).catch(() => {});
   }, 10000);
 }
 
@@ -291,7 +278,7 @@ function _afterRemoteWrite(table, promise) {
   Promise.resolve(promise)
     .then(() => {
       _broadcastChange(table);
-      return _refreshCacheFromSupabase({ notify: false });
+      return _refreshCacheFromSupabase({ notify: false, preserveLocal: true });
     })
     .catch(() => {});
 }
@@ -1919,8 +1906,7 @@ function renderSidebar() {
     <a href="transactions.html" class="nav-item" data-page="transactions"><i class="fas fa-right-left"></i> Transactions</a>
     <a href="analysis.html" class="nav-item" data-page="analysis"><i class="fas fa-chart-pie"></i> Analysis</a>
     <span class="nav-section-label">Intelligence</span>
-    <a href="ai.html" class="nav-item" data-page="ai"><i class="fas fa-brain"></i> Phyzelyne AI</a>
-    <a href="business.html" class="nav-item" data-page="business"><i class="fas fa-briefcase"></i> Business</a>
+    <a href="cofe.html" class="nav-item" data-page="cofe"><i class="fas fa-briefcase"></i> Business</a>
     <span class="nav-section-label">Account</span>
     <a href="settings.html" class="nav-item" data-page="settings"><i class="fas fa-gear"></i> Settings</a>
     <div class="sidebar-bottom">

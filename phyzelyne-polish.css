@@ -1,0 +1,174 @@
+/* ═══════════════════════════════════════════════════════════════
+   PHYZELYNE POLISH — shared motion & depth layer
+   Loads after phyzelyne-theme.css on every page. Additive only:
+   no existing selector is overridden in a way that changes layout,
+   only motion, depth, and interaction detail.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root{
+  --pz-ease: cubic-bezier(.19,1,.22,1);        /* signature "settle" ease */
+  --pz-ease-soft: cubic-bezier(.34,1.56,.64,1); /* gentle overshoot */
+  --pz-fast: .18s;
+  --pz-med: .45s;
+  --pz-slow: 1.1s;
+  --pz-gold: var(--gold, #d9a521);
+  --pz-gold-light: var(--gold-light, #f3ca5a);
+  --pz-green: var(--green, #6fe3a8);
+}
+
+@media (prefers-reduced-motion: no-preference){
+
+/* ── Ambient background drift ─────────────────────────────── */
+/* Base theme already animates body::before/::after as orb layers
+   (see app.css "ANIMATED LIQUID BACKGROUND ORBS"). We extend that
+   same animation rather than adding a competing pseudo-element. */
+body::before{ animation-duration: 22s; }
+body::after{ animation-duration: 30s; }
+
+/* ── Page-load settle ─────────────────────────────────────── */
+.app-shell, .auth-root, main, .shell, body > header, body > .nav, .nav{
+  animation: pz-rise .6s var(--pz-ease) both;
+}
+@keyframes pz-rise{
+  from{ opacity:0; transform: translateY(10px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+
+/* ── Scroll reveal (paired with phyzelyne-polish.js) ──────── */
+.pz-reveal{
+  opacity:0;
+  transform: translateY(22px);
+  transition: opacity .7s var(--pz-ease), transform .7s var(--pz-ease);
+}
+.pz-reveal.pz-in{
+  opacity:1;
+  transform: translateY(0);
+}
+.pz-reveal-stagger.pz-in > *{
+  animation: pz-rise .6s var(--pz-ease) both;
+}
+.pz-reveal-stagger.pz-in > *:nth-child(1){ animation-delay: .02s; }
+.pz-reveal-stagger.pz-in > *:nth-child(2){ animation-delay: .08s; }
+.pz-reveal-stagger.pz-in > *:nth-child(3){ animation-delay: .14s; }
+.pz-reveal-stagger.pz-in > *:nth-child(4){ animation-delay: .20s; }
+.pz-reveal-stagger.pz-in > *:nth-child(5){ animation-delay: .26s; }
+.pz-reveal-stagger.pz-in > *:nth-child(n+6){ animation-delay: .30s; }
+
+/* ── Card depth & lift ─────────────────────────────────────── */
+.glass-card, .stat-card, .card, .auth-card, .testimonial,
+.txn-item, .cat-item, .chart-container, .expectation, .faq-item,
+.legal-content, .pri-con-e, .pri-con-w{
+  transition: transform var(--pz-med) var(--pz-ease),
+              box-shadow var(--pz-med) var(--pz-ease),
+              border-color var(--pz-med) var(--pz-ease);
+}
+.glass-card:hover, .stat-card:hover, .card:hover, .auth-card:hover,
+.testimonial:hover, .txn-item:hover, .cat-item:hover, .faq-item:hover{
+  transform: translateY(-3px);
+}
+
+/* Cursor-follow spotlight (position set by JS via --mx/--my).
+   Uses ::after (not ::before) so it layers above the base theme's
+   own ::before shine/border effects instead of replacing them. */
+.glass-card, .stat-card, .card, .auth-card{
+  position: relative;
+}
+.glass-card::after, .stat-card::after, .card::after, .auth-card::after{
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(220px circle at var(--mx,50%) var(--my,50%),
+              rgba(var(--accent-rgb,217,165,33),.10), transparent 70%);
+  opacity:0;
+  transition: opacity var(--pz-med) ease;
+  pointer-events:none;
+  z-index: 3;
+  border-radius: inherit;
+}
+.glass-card:hover::after, .stat-card:hover::after,
+.card:hover::after, .auth-card:hover::after{ opacity:1; }
+
+/* ── Buttons: shine sweep + press feedback ────────────────── */
+.btn, .button, button:not(.icon-btn):not(.modal-close), .btn-gold{
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--pz-fast) var(--pz-ease-soft),
+              box-shadow var(--pz-med) var(--pz-ease),
+              filter var(--pz-fast) ease;
+}
+.btn::after, .button::after, .btn-gold::after{
+  content:'';
+  position:absolute; top:0; left:-60%;
+  width:40%; height:100%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,.30), transparent);
+  transform: skewX(-20deg);
+  transition: left .65s var(--pz-ease);
+  pointer-events:none;
+}
+.btn:hover::after, .button:hover::after, .btn-gold:hover::after{ left:130%; }
+.btn:hover, .button:hover, .btn-gold:hover{ transform: translateY(-1px); filter: brightness(1.04); }
+.btn:active, .button:active, .btn-gold:active{ transform: translateY(0) scale(.97); }
+
+/* ── Nav items: sliding underline / gold pulse ────────────── */
+.nav-item{ position:relative; transition: background var(--pz-fast) ease, color var(--pz-fast) ease; }
+.nav-item.active::before{ transition: transform var(--pz-med) var(--pz-ease-soft); }
+
+/* ── Sidebar avatar / brand mark: idle glow pulse ─────────── */
+.sidebar-avatar, .brand img, .auth-logo img{
+  animation: pz-glow 5s ease-in-out infinite;
+}
+@keyframes pz-glow{
+  0%,100%{ filter: drop-shadow(0 0 0 rgba(var(--accent-rgb,217,165,33),0)); }
+  50%{ filter: drop-shadow(0 0 10px rgba(var(--accent-rgb,217,165,33),.35)); }
+}
+
+/* ── Inputs: focus grow ───────────────────────────────────── */
+.form-input, input:not([type=checkbox]):not([type=radio]), select, textarea{
+  transition: border-color var(--pz-fast) ease, box-shadow var(--pz-fast) ease, transform var(--pz-fast) ease;
+}
+.form-input:focus, input:focus, select:focus, textarea:focus{ transform: translateY(-1px); }
+
+/* ── Progress / bars: animated fill ───────────────────────── */
+.cat-bar, .goal-progress-bar{
+  transition: width 1s var(--pz-ease);
+  background-size: 200% 100%;
+  animation: pz-shimmer-bar 3.5s linear infinite;
+}
+@keyframes pz-shimmer-bar{
+  0%{ background-position: 0% 0; }
+  100%{ background-position: 200% 0; }
+}
+
+/* ── Toasts: only smooth the transition, don't fight the JS-driven
+   .show toggle (app.js sets/removes .show to slide it in/out) ── */
+.toast{ transition: transform var(--pz-med) var(--pz-ease-soft), opacity var(--pz-med) ease; }
+
+/* ── Modals: base theme already animates via "modal-in"; we only
+   add the overlay fade, which has no existing equivalent ─────── */
+.modal-overlay{ animation: pz-fade .25s ease both; }
+@keyframes pz-fade{ from{ opacity:0; } to{ opacity:1; } }
+
+/* ── AI chat bubbles ───────────────────────────────────────── */
+.chat-msg{ animation: pz-rise .4s var(--pz-ease) both; }
+.ai-bubble{ animation: pz-glow 4s ease-in-out infinite; }
+
+/* ── Stat values: tabular nums for smooth count-up ────────── */
+.stat-value, [data-countup]{ font-variant-numeric: tabular-nums; }
+
+/* ── Links / footer ────────────────────────────────────────── */
+a{ transition: color var(--pz-fast) ease, opacity var(--pz-fast) ease; }
+
+} /* end prefers-reduced-motion guard */
+
+/* ── Always-on: crisp focus ring (kept outside the motion guard) ── */
+.btn:focus-visible, .button:focus-visible, a:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible,
+.nav-item:focus-visible, button:focus-visible{
+  outline: 2px solid var(--pz-gold-light);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ── Reduced motion: keep it calm, no animation at all ────── */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}

@@ -20,6 +20,7 @@
     .faq{margin:74px 0 0;border-top:1px solid var(--line);padding-top:42px}.faq h2{font:600 2rem var(--display);margin:0 0 20px}.faq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.faq-item{border:1px solid var(--line);border-radius:14px;padding:19px}.faq-item h3{font-size:.93rem;margin:0 0 7px}.faq-item p{color:var(--mid);font-size:.84rem;margin:0}.footer{padding:26px 0 45px;border-top:1px solid var(--line);color:var(--dim);font-size:.78rem;display:flex;justify-content:space-between;gap:18px}.footer nav{display:flex;gap:17px}.footer a{text-decoration:none}.footer a:hover{text-decoration:underline}
     @media(max-width:900px){.grid{grid-template-columns:1fr;gap:42px}.hero h1{max-width:680px}.expectation{max-width:none}.faq-grid{grid-template-columns:1fr}.footer{flex-direction:column}.nav{height:70px}}@media(max-width:520px){.shell{width:min(100% - 28px,1180px)}main{padding:44px 0 64px}.nav-actions .text-link{display:none}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.card{padding:24px 18px}.hero h1{font-size:2.75rem}}
   </style>
+  <link rel="stylesheet" href="phyzelyne-polish.css">
 </head>
 <body>
   <header class="shell nav">
@@ -120,5 +121,6 @@
       try { const draft = JSON.parse(sessionStorage.getItem('phyzelyne_demo_draft') || 'null'); if (draft) Object.entries(draft).forEach(([key, val]) => { const field = form.elements.namedItem(key); if (field && typeof val === 'string') field.value = val; }); } catch (_) {}
     })();
   </script>
+  <script src="phyzelyne-polish.js"></script>
 </body>
 </html>

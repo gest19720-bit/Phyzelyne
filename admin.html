@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phyzelyne — Executive Admin & Telemetry Suite</title>
+  <meta name="description" content="Phyzelyne Executive CTO & Founder Admin Dashboard. Real-time telemetry, user cohorts, feedback intelligence, Gmail communications, and demo pipeline.">
+  <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Charts & Core Styling -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="phyzelyne-theme.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- Global Broadcast In-App Banner -->
+<div id="admin-global-broadcast-banner"></div>
+
+<!-- Executive Security Gate / Access Guard Overlay -->
+<div id="admin-security-gate" class="admin-modal-overlay" style="display:flex; z-index:999999; background:rgba(7,11,9,0.96); backdrop-filter:blur(24px);">
+  <div class="admin-modal" style="max-width:440px; text-align:center; border:1px solid rgba(217,165,33,0.35); box-shadow:0 30px 80px rgba(0,0,0,0.7);">
+    <div style="padding:36px 28px 24px 28px;">
+      <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, rgba(217,165,33,0.2), rgba(217,165,33,0.05)); border:1px solid var(--gold-border); display:flex; align-items:center; justify-content:center; margin:0 auto 20px auto; color:var(--gold-light); font-size:1.8rem;">
+        <i class="fas fa-shield-halved"></i>
+      </div>
+      <h2 style="font-family:var(--font-display); font-size:1.45rem; color:var(--text); margin-bottom:8px;">Executive Clearance Required</h2>
+      <p style="font-size:0.82rem; color:var(--text-mid); line-height:1.5; margin-bottom:24px;">
+        This telemetry console contains confidential metrics, Gmail threads, and user rosters restricted to Phyzelyne Founders & CTO.
+      </p>
+
+      <form onsubmit="event.preventDefault(); AdminStore.authenticateAdminPasscode();">
+        <div class="admin-input-group" style="text-align:left; margin-bottom:16px;">
+          <label class="admin-label" style="font-size:0.72rem;"><i class="fas fa-key"></i> Master CTO Key / Passcode</label>
+          <input type="password" id="admin-gate-passcode" class="admin-input" placeholder="Enter executive master key..." autocomplete="current-password" autofocus style="text-align:center; letter-spacing:0.1em; font-family:var(--admin-font-mono);">
+          <div id="gate-error-msg" style="color:var(--admin-rose); font-size:0.75rem; margin-top:6px; display:none;">
+            <i class="fas fa-circle-exclamation"></i> Invalid key. Clearance rejected.
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold btn-sm" style="width:100%; padding:12px; justify-content:center; font-size:0.88rem; margin-bottom:10px;">
+          <i class="fas fa-unlock"></i> Authenticate & Unlock
+        </button>
+
+        <a href="dashboard.html" class="btn btn-glass btn-sm" style="width:100%; padding:10px; justify-content:center; font-size:0.82rem;">
+          <i class="fas fa-arrow-left"></i> Return to Main App
+        </a>
+      </form>
+    </div>
+    <div style="padding:12px 24px; border-top:1px solid var(--border); font-size:0.7rem; color:var(--text-dim); background:rgba(0,0,0,0.2);">
+      Phyzelyne Enterprise Security Layer • Encrypted Session
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar Mount -->
+<div id="sidebar-mount"></div>
+
+<div class="app-shell" id="admin-app-shell" style="filter: blur(12px); pointer-events: none; transition: filter 0.4s ease;">
+  <main class="main-content" style="padding: 0; max-width: 100%;">
+    
+    <!-- Top Executive Header -->
+    <header class="admin-header">
+      <div class="admin-title-area">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+            <span class="admin-badge-cto"><i class="fas fa-shield-halved"></i> CTO & Founder Suite</span>
+            <div style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:var(--admin-emerald); font-weight:600;">
+              <span class="admin-pulse-dot"></span> REALTIME TELEMETRY ACTIVE
+            </div>
+          </div>
+          <h1 style="font-family:var(--font-display); font-size:1.6rem; font-weight:700; color:var(--text); letter-spacing:-0.02em;">
+            Executive Control & Telemetry Suite
+          </h1>
+        </div>
+      </div>
+
+      <div class="admin-header-actions">
+        <!-- Live Online Pulse -->
+        <div style="background:rgba(255,255,255,0.04); border:1px solid var(--border); padding:8px 14px; border-radius:12px; display:flex; align-items:center; gap:10px;">
+          <div style="display:flex; flex-direction:column;">
+            <span style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase; font-weight:700;">Live Sessions</span>
+            <span style="font-family:var(--admin-font-mono); font-size:1.05rem; font-weight:800; color:var(--gold-light);" id="live-online-count">1,428</span>
+          </div>
+          <i class="fas fa-users" style="color:var(--gold); font-size:1.1rem;"></i>
+        </div>
+
+        <!-- Quick Actions -->
+        <button class="btn btn-glass btn-sm" onclick="AdminStore.exportAnalyticsReport('csv')" title="Export CSV Report">
+          <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+        <button class="btn btn-gold btn-sm" onclick="AdminStore.openNewDemoModal()">
+          <i class="fas fa-plus"></i> Book Demo
+        </button>
+        <button class="btn btn-glass btn-sm" onclick="AdminStore.lockAdminSession()" title="Lock Executive Console" style="color:var(--admin-rose);">
+          <i class="fas fa-lock"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Realtime Ticker Strip -->
+    <div class="telemetry-ticker">
+      <div class="ticker-item"><i class="fas fa-bolt" style="color:var(--gold);"></i> <strong>BETA STAGE:</strong> Public Free Launch v1.0</div>
+      <div class="ticker-item"><i class="fas fa-signal" style="color:var(--admin-emerald);"></i> <strong>CONCURRENT USERS:</strong> <span id="ticker-online-val">1,428 active</span></div>
+      <div class="ticker-item"><i class="fas fa-gauge-high" style="color:var(--admin-cyan);"></i> <strong>EDGE LATENCY:</strong> <span id="ticker-latency-val">32ms</span></div>
+      <div class="ticker-item"><i class="fas fa-server" style="color:var(--admin-emerald);"></i> <strong>SUPABASE HEALTH:</strong> <span class="ticker-up">99.99% Uptime</span></div>
+      <div class="ticker-item"><i class="fas fa-arrows-spin" style="color:var(--gold);"></i> <strong>API THROUGHPUT:</strong> <span id="ticker-tps-val">84.2 req/s</span></div>
+      <div class="ticker-item"><i class="fab fa-google" style="color:#ea4335;"></i> <strong>GMAIL SYNC:</strong> founders@phyzelyne.com (Live)</div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="admin-nav-tabs">
+      <button class="admin-tab-btn active" data-tab="overview">
+        <i class="fas fa-chart-line"></i> Overview & KPIs
+      </button>
+      <button class="admin-tab-btn" data-tab="users">
+        <i class="fas fa-users"></i> Users & Cohorts <span class="admin-tab-count" id="badge-count-users">8</span>
+      </button>
+      <button class="admin-tab-btn" data-tab="feedback">
+        <i class="fas fa-comment-dots"></i> Feedback & NPS <span class="admin-tab-count" id="badge-count-feedback">5</span>
+      </button>
+      <button class="admin-tab-btn" data-tab="gmail">
+        <i class="fab fa-google"></i> Gmail Inbound <span class="admin-tab-count" id="badge-count-gmail">2</span>
+      </button>
+      <button class="admin-tab-btn" data-tab="features">
+        <i class="fas fa-microchip"></i> Feature Telemetry
+      </button>
+      <button class="admin-tab-btn" data-tab="demos">
+        <i class="fas fa-video"></i> Booked Demos <span class="admin-tab-count" id="badge-count-demos">3</span>
+      </button>
+      <button class="admin-tab-btn" data-tab="system">
+        <i class="fas fa-server"></i> System & Broadcast
+      </button>
+    </nav>
+
+    <!-- ══════════════════════════════════════════════════
+         VIEW 1: OVERVIEW & EXECUTIVE KPIS
+         ══════════════════════════════════════════════════ -->
+    <section class="admin-view active" id="view-overview">
+      <!-- 6 Executive KPI Metric Cards -->
+      <div class="admin-metrics-grid">
+        <div class="admin-metric-card gold">
+          <div class="metric-top">
+            <span class="metric-label">Total Registered Users</span>
+            <div class="metric-icon-wrap gold"><i class="fas fa-user-plus"></i></div>
+          </div>
+          <div class="metric-val" id="metric-total-users">4,828</div>
+          <div class="metric-sub">
+            <span class="ticker-up"><i class="fas fa-arrow-trend-up"></i> +28.4%</span> vs last week
+          </div>
+        </div>
+
+        <div class="admin-metric-card emerald">
+          <div class="metric-top">
+            <span class="metric-label">Daily Active Users (DAU)</span>
+            <div class="metric-icon-wrap emerald"><i class="fas fa-fire"></i></div>
+          </div>
+          <div class="metric-val" id="metric-dau">1,940</div>
+          <div class="metric-sub">
+            <span class="ticker-up"><i class="fas fa-arrow-trend-up"></i> 40.2%</span> DAU/MAU Stickiness
+          </div>
+        </div>
+
+        <div class="admin-metric-card cyan">
+          <div class="metric-top">
+            <span class="metric-label">Product NPS / CSAT</span>
+            <div class="metric-icon-wrap cyan"><i class="fas fa-star"></i></div>
+          </div>
+          <div class="metric-val" id="metric-nps">4.9 / 5.0</div>
+          <div class="metric-sub">
+            <span class="ticker-up"><i class="fas fa-heart"></i> +74 Net Promoter</span>
+          </div>
+        </div>
+
+        <div class="admin-metric-card rose">
+          <div class="metric-top">
+            <span class="metric-label">Inbound Gmail Messages</span>
+            <div class="metric-icon-wrap rose"><i class="fas fa-envelope"></i></div>
+          </div>
+          <div class="metric-val" id="metric-unread-emails">2</div>
+          <div class="metric-sub">
+            <span>founders@phyzelyne.com</span>
+          </div>
+        </div>
+
+        <div class="admin-metric-card purple">
+          <div class="metric-top">
+            <span class="metric-label">Enterprise Demo Pipeline</span>
+            <div class="metric-icon-wrap purple"><i class="fas fa-handshake"></i></div>
+          </div>
+          <div class="metric-val" id="metric-demos-pipeline">3 Booked</div>
+          <div class="metric-sub">
+            <span class="ticker-up">$563,000 ARR Pipeline</span>
+          </div>
+        </div>
+
+        <div class="admin-metric-card gold">
+          <div class="metric-top">
+            <span class="metric-label">Target Beta Run-Rate</span>
+            <div class="metric-icon-wrap gold"><i class="fas fa-gem"></i></div>
+          </div>
+          <div class="metric-val" id="metric-arr">$563,000 ARR</div>
+          <div class="metric-sub">
+            <span>Pre-monetization scaling</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Split Chart & Telemetry Row -->
+      <div class="admin-split-grid">
+        <!-- Growth Chart -->
+        <div class="glass-card" style="padding:24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <div>
+              <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--text);">User Growth & Active Engagement</h3>
+              <p style="font-size:0.75rem; color:var(--text-dim);">Live ingestion from Supabase Auth & telemetry sessions</p>
+            </div>
+            <span class="tier-badge pro"><i class="fas fa-chart-line"></i> +28.4% WoW</span>
+          </div>
+          <div style="height: 280px; position: relative;">
+            <canvas id="userGrowthChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Feature Adoption Doughnut -->
+        <div class="glass-card" style="padding:24px;">
+          <div style="margin-bottom:18px;">
+            <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--text);">Feature Adoption Breakdown</h3>
+            <p style="font-size:0.75rem; color:var(--text-dim);">Most leveraged core modules by frequency</p>
+          </div>
+          <div style="height: 220px; position: relative;">
+            <canvas id="featurePieChart"></canvas>
+          </div>
+          <div style="display:flex; justify-content:center; gap:16px; margin-top:14px; font-size:0.75rem; color:var(--text-mid);">
+            <span><i class="fas fa-circle" style="color:#d9a521;"></i> FX (38%)</span>
+            <span><i class="fas fa-circle" style="color:#2fae72;"></i> AI (24%)</span>
+            <span><i class="fas fa-circle" style="color:#38bdf8;"></i> OCR (18%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Executive Controls Row -->
+      <div class="glass-card" style="padding:24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div>
+            <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--text);">CTO Rapid Operations</h3>
+            <p style="font-size:0.75rem; color:var(--text-dim);">Execute instant infrastructure actions and data routines</p>
+          </div>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:12px;">
+          <button class="btn btn-glass btn-sm" onclick="AdminStore.flushCache()"><i class="fas fa-broom"></i> Purge Edge Cache</button>
+          <button class="btn btn-glass btn-sm" onclick="AdminStore.exportAnalyticsReport('json')"><i class="fas fa-download"></i> Export Full Telemetry (JSON)</button>
+          <button class="btn btn-glass btn-sm" onclick="AdminStore.switchTab('system')"><i class="fas fa-bullhorn"></i> Push Broadcast Announcement</button>
+          <button class="btn btn-glass btn-sm" onclick="AdminStore.switchTab('gmail')"><i class="fas fa-inbox"></i> Open Gmail Inbound Box</button>
+          <button class="btn btn-glass btn-sm" onclick="AdminStore.openNewDemoModal()"><i class="fas fa-calendar-plus"></i> Schedule VIP Demo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         VIEW 2: USERS & COHORTS
+         ══════════════════════════════════════════════════ -->
+    <section class="admin-view" id="view-users">
+      <div class="glass-card" style="padding:24px;">
+        <!-- User Controls Toolbar -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+          <div>
+            <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--text);">User Directory & Cohort Management</h2>
+            <p style="font-size:0.78rem; color:var(--text-dim);">Manage active users, view transaction counts, inspect accounts, and adjust permissions.</p>
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <div style="position:relative; width:240px;">
+              <input type="text" id="user-search-input" class="admin-input" placeholder="Search by name, email, country..." style="padding-left:36px; height:38px;">
+              <i class="fas fa-search" style="position:absolute; left:12px; top:12px; color:var(--text-dim); font-size:0.85rem;"></i>
+            </div>
+
+            <select id="user-tier-filter" class="admin-select" style="width:140px; height:38px;" onchange="AdminStore.renderUsersTable()">
+              <option value="all">All Tiers</option>
+              <option value="enterprise">Enterprise</option>
+              <option value="founder">Founder VIP</option>
+              <option value="pro">Pro</option>
+              <option value="free">Free Beta</option>
+            </select>
+
+            <select id="user-status-filter" class="admin-select" style="width:130px; height:38px;" onchange="AdminStore.renderUsersTable()">
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="idle">Idle</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="admin-table-wrapper">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User Account</th>
+                <th>Tier</th>
+                <th>Status</th>
+                <th>Origin / Country</th>
+                <th>Volume</th>
+                <th>Last Active</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         VIEW 3: USER FEEDBACK & SENTIMENT HUB
+         ══════════════════════════════════════════════════ -->
+    <section class="admin-view" id="view-feedback">
+      <!-- Top Feedback Scorecard -->
+      <div class="admin-metrics-grid" style="margin-bottom:24px;">
+        <div class="admin-metric-card gold">
+          <div class="metric-top">
+            <span class="metric-label">Net Promoter Score</span>
+            <div class="metric-icon-wrap gold"><i class="fas fa-trophy"></i></div>
+          </div>
+          <div class="metric-val">+74 NPS</div>
+          <div class="metric-sub"><span class="ticker-up">94% Promoters</span> (Industry top 1%)</div>
+        </div>
+
+        <div class="admin-metric-card emerald">
+          <div class="metric-top">
+            <span class="metric-label">Average Satisfaction</span>
+            <div class="metric-icon-wrap emerald"><i class="fas fa-smile"></i></div>
+          </div>
+          <div class="metric-val">4.9 / 5.0</div>
+          <div class="metric-sub">Based on verified beta users</div>
+        </div>
+
+        <div class="admin-metric-card cyan">
+          <div class="metric-top">
+            <span class="metric-label">Feedback Triage Rate</span>
+            <div class="metric-icon-wrap cyan"><i class="fas fa-check-double"></i></div>
+          </div>
+          <div class="metric-val">100%</div>
+          <div class="metric-sub">&lt; 2 hrs avg response time</div>
+        </div>
+      </div>
+
+      <!-- Feedback Filter Toolbar -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--text);">User Feedback & In-App Submissions</h2>
+          <p style="font-size:0.78rem; color:var(--text-dim);">Direct ratings, feature requests, and sentiments received through the app.</p>
+        </div>
+
+        <select id="feedback-sentiment-filter" class="admin-select" style="width:160px; height:38px;" onchange="AdminStore.renderFeedbackGrid()">
+          <option value="all">All Sentiments</option>
+          <option value="positive">Positive</option>
+          <option value="neutral">Neutral</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+
+      <!-- Feedback Cards Grid -->
+      <div class="feedback-grid" id="feedback-grid-container">
+        <!-- Dynamically rendered -->
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         VIEW 4: GMAIL & INBOUND COMMUNICATIONS CENTER
+         ══════════════════════════════════════════════════ -->
+    <section class="admin-view" id="view-gmail">
+      <div style="margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--text);"><i class="fab fa-google" style="color:#ea4335; margin-right:8px;"></i> Gmail Inbound Communications Center</h2>
+          <p style="font-size:0.78rem; color:var(--text-dim);">Live triage for emails received via Phyzelyne contact forms, demo requests, and founder inbound.</p>
+        </div>
+        <a href="https://mail.google.com" target="_blank" class="btn btn-gold btn-sm">
+          <i class="fas fa-arrow-up-right-from-square"></i> Open Native Gmail
+        </a>
+      </div>
+
+      <!-- 3-Pane Gmail Client -->
+      <div class="gmail-container">
+        <!-- Pane 1: Folders -->
+        <div class="gmail-folders">
+          <div class="gmail-account-info">
+            <div class="gmail-account-label">Connected Workspace</div>
+            <div class="gmail-account-address">
+              <i class="fas fa-circle" style="color:var(--admin-emerald); font-size:0.55rem;"></i>
+              founders@phyzelyne.com
+            </div>
+          </div>
+
+          <button class="gmail-folder-btn active" data-folder="inbox">
+            <span><i class="fas fa-inbox"></i> Inbox</span>
+            <span class="admin-tab-count">5</span>
+          </button>
+          <button class="gmail-folder-btn" data-folder="starred">
+            <span><i class="fas fa-star"></i> Starred</span>
+            <span class="admin-tab-count">2</span>
+          </button>
+          <button class="gmail-folder-btn" data-folder="enterprise">
+            <span><i class="fas fa-building"></i> Enterprise</span>
+            <span class="admin-tab-count">2</span>
+          </button>
+          <button class="gmail-folder-btn" data-folder="demo">
+            <span><i class="fas fa-video"></i> Demo Requests</span>
+            <span class="admin-tab-count">1</span>
+          </button>
+          <button class="gmail-folder-btn" data-folder="feedback">
+            <span><i class="fas fa-comment-dots"></i> Feedback</span>
+            <span class="admin-tab-count">2</span>
+          </button>
+        </div>
+
+        <!-- Pane 2: Threads List -->
+        <div class="gmail-threads-pane">
+          <div class="gmail-threads-header">
+            <div style="position:relative; width:100%;">
+              <input type="text" id="gmail-search-input" class="admin-input" placeholder="Search emails..." style="padding-left:32px; height:34px; font-size:0.8rem;" oninput="AdminStore.renderGmailThreads()">
+              <i class="fas fa-search" style="position:absolute; left:10px; top:10px; color:var(--text-dim); font-size:0.75rem;"></i>
+            </div>
+          </div>
+          <div class="gmail-threads-list" id="gmail-threads-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Pane 3: Reading Pane -->
+        <div class="gmail-reading-pane" id="gmail-reading-pane">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         VIEW 5: FEATURE USAGE & PRODUCT TELEMETRY
+         ══════════════════════════════════════════════════ -->
+    <section class="admin-view" id="view-features">
+      <div class="admin-split-grid">
+        <div class="glass-card" style="padding:24px;">
+          <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--text); margin-bottom:6px;">Core Feature Invocation Volume</h2>
+          <p style="font-size:0.78rem; color:var(--text-dim); margin-bottom:24px;">Real-time consumption counters across all active user sessions</p>
+
+          <div id="feature-bars-list">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:24px;">
+          <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--text); margin-bottom:6px;">AI Coach & OCR Telemetry</h2>
+          <p style="font-size:0.78rem; color:var(--text-dim); margin-bottom:20px;">Model token consumption and accuracy metrics</p>
+
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:16px; border-radius:12px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <span style="font-size:0.8rem; color:var(--text-dim);">AI Coach Token Consumption</span>
+                <span style="font-family:var(--admin-font-mono); color:var(--gold-light); font-weight:700;">14.2M tokens</span>
+              </div>
+              <div style="font-size:0.72rem; color:var(--admin-emerald);"><i class="fas fa-check-circle"></i> Avg response latency: 840ms</div>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:16px; border-radius:12px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <span style="font-size:0.8rem; color:var(--text-dim);">OCR Receipt Parsing Accuracy</span>
+                <span style="font-family:var(--admin-font-mono); color:var(--admin-emerald); font-weight:700;">99.1%</span>
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-mid);"><i class="fas fa-receipt"></i> 56,400 receipts processed without manual edit</div>
+            </div>
+
+            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:16px; border-radius:12px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <span style="font-size:0.8rem; color:var(--text-dim);">FX Pairs Converted Today</span>
+                <span style="font-family:var(--admin-font-mono); color:var(--admin-cyan); font-weight:700;">142 Pairs</span>
+              </div>
+              <div style="font-size:0.72rem; color:var(--text-mid);"><i class="fas fa-globe"></i> Top: USD/GHS, EUR/USD, GBP/NGN, AED/USD</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         VIEW 6: BOOKED DEMOS & VIP PIPELINE
+         ══════════════════════════════════════════════════ -->
+    <section class="admin-view" id="view-demos">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--text);">Executive VIP Demo Calendar</h2>
+          <p style="font-size:0.78rem; color:var(--text-dim);">Scheduled walkthroughs with enterprise prospects, family offices, and fintech partners.</p>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+          <select id="demos-status-filter" class="admin-select" style="width:150px; height:38px;" onchange="AdminStore.renderDemosList()">
+            <option value="all">All Status</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="completed">Completed</option>
+          </select>
+          <button class="btn btn-gold btn-sm" onclick="AdminStore.openNewDemoModal()">
+            <i class="fas fa-plus"></i> New Demo
+          </button>
+        </div>
+      </div>
+
+      <!-- Demo Cards Grid -->
+      <div class="demo-cards-grid" id="demos-grid-container">
+        <!-- Dynamically rendered -->
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         VIEW 7: SYSTEM HEALTH & BROADCAST ENGINE
+         ══════════════════════════════════════════════════ -->
+    <section class="admin-view" id="view-system">
+      <div class="system-health-grid">
+        <div class="system-health-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:0.8rem; font-weight:700; color:var(--text-mid); text-transform:uppercase;">Supabase Database</span>
+            <span class="status-indicator active">HEALTHY</span>
+          </div>
+          <div style="font-size:1.6rem; font-family:var(--admin-font-mono); font-weight:800; color:var(--text);">99.99%</div>
+          <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">Connections: 18 / 100 • Latency: 12ms</div>
+        </div>
+
+        <div class="system-health-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:0.8rem; font-weight:700; color:var(--text-mid); text-transform:uppercase;">Edge CDN Regions</span>
+            <span class="status-indicator active">18/18 ONLINE</span>
+          </div>
+          <div style="font-size:1.6rem; font-family:var(--admin-font-mono); font-weight:800; color:var(--admin-emerald);">0.00%</div>
+          <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">Error Rate (P99: 42ms)</div>
+        </div>
+
+        <div class="system-health-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:0.8rem; font-weight:700; color:var(--text-mid); text-transform:uppercase;">Security & SSL</span>
+            <span class="status-indicator active">TLS 1.3</span>
+          </div>
+          <div style="font-size:1.6rem; font-family:var(--admin-font-mono); font-weight:800; color:var(--gold-light);">A+ Grade</div>
+          <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">HSTS & CSP headers active</div>
+        </div>
+      </div>
+
+      <!-- In-App Global Broadcast Broadcaster -->
+      <div class="broadcast-builder-card">
+        <div style="margin-bottom:18px;">
+          <h3 style="font-family:var(--font-display); font-size:1.25rem; color:var(--text);"><i class="fas fa-bullhorn" style="color:var(--gold); margin-right:8px;"></i> Live In-App Global Announcement Broadcaster</h3>
+          <p style="font-size:0.78rem; color:var(--text-dim);">Publish a real-time banner visible to all connected users across the web app immediately.</p>
+        </div>
+
+        <div class="admin-input-group">
+          <label class="admin-label">Announcement Message</label>
+          <input type="text" id="broadcast-input-text" class="admin-input" placeholder="e.g. 🚀 Welcome to Phyzelyne Beta! Real-time Multi-Currency & Invoicing v1.0 is now live.">
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+          <div>
+            <label class="admin-label">Banner Type</label>
+            <select id="broadcast-type-select" class="admin-select">
+              <option value="gold">Gold (Celebration & Updates)</option>
+              <option value="emerald">Emerald (New Feature Release)</option>
+              <option value="warning">Orange (Scheduled Maintenance)</option>
+            </select>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px; padding-top:24px;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="broadcast-active-toggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span style="font-size:0.85rem; font-weight:600; color:var(--text);">Activate Banner Across App</span>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:12px;">
+          <button class="btn btn-gold btn-sm" onclick="AdminStore.saveBroadcastAnnouncement()">
+            <i class="fas fa-satellite-dish"></i> Publish Announcement
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     USER INSPECTOR DRAWER
+     ══════════════════════════════════════════════════ -->
+<div id="drawer-overlay" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:1040;" onclick="AdminStore.closeUserDrawer()"></div>
+<aside class="user-drawer" id="user-drawer">
+  <div class="drawer-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="user-avatar-circle" id="drawer-user-initial" style="width:44px; height:44px; font-size:1.1rem;">U</div>
+      <div>
+        <div style="font-weight:700; font-size:1.05rem; color:var(--text);" id="drawer-user-name">User Name</div>
+        <div style="font-size:0.75rem; color:var(--text-dim); font-family:var(--admin-font-mono);" id="drawer-user-email">email@domain.com</div>
+      </div>
+    </div>
+    <button onclick="AdminStore.closeUserDrawer()" style="background:transparent; border:none; color:var(--text-mid); font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+  </div>
+
+  <div class="drawer-body">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:12px; border-radius:10px;">
+        <span style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">Country</span>
+        <div style="font-weight:700; color:var(--text); font-size:0.9rem;" id="drawer-user-country">USA</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:12px; border-radius:10px;">
+        <span style="font-size:0.7rem; color:var(--text-dim); text-transform:uppercase;">Member Since</span>
+        <div style="font-weight:700; color:var(--text); font-size:0.9rem;" id="drawer-user-signup">2026-08-10</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:14px; border-radius:12px; margin-bottom:20px;">
+      <div style="font-size:0.75rem; font-weight:700; color:var(--gold-light); text-transform:uppercase; margin-bottom:10px;">Product Activity</div>
+      <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:6px;">
+        <span style="color:var(--text-dim);">Transactions Logged:</span>
+        <strong style="color:var(--text); font-family:var(--admin-font-mono);" id="drawer-user-txns">142</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:6px;">
+        <span style="color:var(--text-dim);">Invoices Created:</span>
+        <strong style="color:var(--text); font-family:var(--admin-font-mono);" id="drawer-user-invoices">18</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:0.82rem;">
+        <span style="color:var(--text-dim);">AI Financial Coach Prompts:</span>
+        <strong style="color:var(--text); font-family:var(--admin-font-mono);" id="drawer-user-ai">89</strong>
+      </div>
+    </div>
+
+    <div class="admin-input-group">
+      <label class="admin-label">Account Tier</label>
+      <select id="drawer-tier-select" class="admin-select">
+        <option value="free">Free Beta</option>
+        <option value="pro">Pro Tier</option>
+        <option value="enterprise">Enterprise</option>
+        <option value="founder">Founder VIP</option>
+      </select>
+    </div>
+
+    <div class="admin-input-group">
+      <label class="admin-label">Account Status</label>
+      <select id="drawer-status-select" class="admin-select">
+        <option value="active">Active</option>
+        <option value="idle">Idle</option>
+        <option value="suspended">Suspended</option>
+      </select>
+    </div>
+
+    <div class="admin-input-group">
+      <label class="admin-label">CTO / Executive Notes</label>
+      <textarea id="drawer-user-notes" class="admin-textarea" rows="4" placeholder="Add confidential notes on user relationship or deal size..."></textarea>
+    </div>
+  </div>
+
+  <div class="admin-modal-footer">
+    <button class="btn btn-glass btn-sm" onclick="AdminStore.closeUserDrawer()">Cancel</button>
+    <button class="btn btn-gold btn-sm" onclick="AdminStore.saveUserDrawer()">Save Changes</button>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════
+     FEEDBACK RESPONSE MODAL
+     ══════════════════════════════════════════════════ -->
+<div class="admin-modal-overlay" id="feedback-reply-modal">
+  <div class="admin-modal">
+    <div class="admin-modal-header">
+      <h3 style="font-family:var(--font-display); font-size:1.2rem; color:var(--text);"><i class="fas fa-reply" style="color:var(--gold); margin-right:8px;"></i> Respond to User Feedback</h3>
+      <button class="modal-close-btn" onclick="AdminStore.closeModal('feedback-reply-modal')" style="background:transparent; border:none; color:var(--text-mid); font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="admin-modal-body">
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.75rem; color:var(--text-dim); text-transform:uppercase;">Feedback from</div>
+        <div style="font-weight:700; color:var(--text); font-size:0.95rem;" id="modal-fb-user">User</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:14px; border-radius:10px; font-style:italic; font-size:0.88rem; color:var(--text); margin-bottom:18px;" id="modal-fb-quote">
+        Quote
+      </div>
+
+      <div class="admin-input-group">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label class="admin-label" style="margin-bottom:0;">Official Team Response</label>
+          <button type="button" class="btn btn-glass btn-sm" onclick="AdminStore.generateAiFeedbackReply()" style="font-size:0.72rem; padding:4px 8px;">
+            ✨ Generate AI Draft
+          </button>
+        </div>
+        <textarea id="modal-fb-reply-text" class="admin-textarea" rows="4" placeholder="Type your response to the user..."></textarea>
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="btn btn-glass btn-sm" onclick="AdminStore.closeModal('feedback-reply-modal')">Cancel</button>
+      <button class="btn btn-gold btn-sm" onclick="AdminStore.submitFeedbackReply()">Send Official Response</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     NEW DEMO MEETING MODAL
+     ══════════════════════════════════════════════════ -->
+<div class="admin-modal-overlay" id="new-demo-modal">
+  <div class="admin-modal">
+    <div class="admin-modal-header">
+      <h3 style="font-family:var(--font-display); font-size:1.2rem; color:var(--text);"><i class="fas fa-video" style="color:var(--gold); margin-right:8px;"></i> Schedule Enterprise VIP Demo</h3>
+      <button class="modal-close-btn" onclick="AdminStore.closeModal('new-demo-modal')" style="background:transparent; border:none; color:var(--text-mid); font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="admin-modal-body">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="admin-input-group">
+          <label class="admin-label">Company / Organization</label>
+          <input type="text" id="new-demo-company" class="admin-input" placeholder="e.g. Apex Wealth Partners">
+        </div>
+        <div class="admin-input-group">
+          <label class="admin-label">Contact Person</label>
+          <input type="text" id="new-demo-contact" class="admin-input" placeholder="e.g. Sarah Jenkins">
+        </div>
+      </div>
+
+      <div class="admin-input-group">
+        <label class="admin-label">Contact Email</label>
+        <input type="email" id="new-demo-email" class="admin-input" placeholder="e.g. sarah.j@apexventures.io">
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="admin-input-group">
+          <label class="admin-label">Team Seats Scope</label>
+          <select id="new-demo-seats" class="admin-select">
+            <option value="10 - 25 seats">10 - 25 seats</option>
+            <option value="25 - 50 seats" selected>25 - 50 seats</option>
+            <option value="50 - 200 seats">50 - 200 seats</option>
+            <option value="200+ Enterprise">200+ Enterprise</option>
+          </select>
+        </div>
+        <div class="admin-input-group">
+          <label class="admin-label">Estimated Deal ARR</label>
+          <input type="text" id="new-demo-arr" class="admin-input" placeholder="$120,000 / yr">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="admin-input-group">
+          <label class="admin-label">Meeting Date</label>
+          <input type="date" id="new-demo-date" class="admin-input" value="2026-08-20">
+        </div>
+        <div class="admin-input-group">
+          <label class="admin-label">Time & Timezone</label>
+          <input type="text" id="new-demo-time" class="admin-input" value="15:00 GMT">
+        </div>
+      </div>
+
+      <div class="admin-input-group">
+        <label class="admin-label">Demo Agenda & Technical Requirements</label>
+        <textarea id="new-demo-notes" class="admin-textarea" rows="3" placeholder="Key focus areas, specific FX currencies, OCR volume, ERP integrations..."></textarea>
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="btn btn-glass btn-sm" onclick="AdminStore.closeModal('new-demo-modal')">Cancel</button>
+      <button class="btn btn-gold btn-sm" onclick="AdminStore.submitNewDemo()">Book & Generate Google Meet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     EDIT DEMO MODAL
+     ══════════════════════════════════════════════════ -->
+<div class="admin-modal-overlay" id="edit-demo-modal">
+  <div class="admin-modal">
+    <div class="admin-modal-header">
+      <h3 style="font-family:var(--font-display); font-size:1.2rem; color:var(--text);"><i class="fas fa-calendar-check" style="color:var(--gold); margin-right:8px;"></i> Manage Demo Meeting</h3>
+      <button class="modal-close-btn" onclick="AdminStore.closeModal('edit-demo-modal')" style="background:transparent; border:none; color:var(--text-mid); font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="admin-modal-body">
+      <div style="font-size:1rem; font-weight:700; color:var(--gold-light); margin-bottom:14px;" id="edit-demo-company">Company</div>
+      
+      <div class="admin-input-group">
+        <label class="admin-label">Status</label>
+        <select id="edit-demo-status" class="admin-select">
+          <option value="confirmed">Confirmed</option>
+          <option value="completed">Completed</option>
+          <option value="rescheduled">Rescheduled</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div class="admin-input-group">
+          <label class="admin-label">Date</label>
+          <input type="date" id="edit-demo-date" class="admin-input">
+        </div>
+        <div class="admin-input-group">
+          <label class="admin-label">Time</label>
+          <input type="text" id="edit-demo-time" class="admin-input">
+        </div>
+      </div>
+
+      <div class="admin-input-group">
+        <label class="admin-label">Meeting Notes & Outcomes</label>
+        <textarea id="edit-demo-notes" class="admin-textarea" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="btn btn-glass btn-sm" onclick="AdminStore.closeModal('edit-demo-modal')">Cancel</button>
+      <button class="btn btn-gold btn-sm" onclick="AdminStore.saveEditDemo()">Save Demo Details</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Toast Notification -->
+<div id="admin-toast" class="toast"></div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+<script src="admin.js"></script>
+
+<script>
+  // Ensure sidebar is rendered for admin
+  document.addEventListener('DOMContentLoaded', () => {
+    const mount = document.getElementById('sidebar-mount');
+    if (mount && typeof renderSidebar === 'function') {
+      mount.innerHTML = renderSidebar();
+      if (typeof initSidebar === 'function') initSidebar();
+    }
+  });
+</script>
+
+</body>
+</html>

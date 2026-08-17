@@ -1296,7 +1296,33 @@ const Auth = {
       name:      raw.user_metadata?.name || raw.user_metadata?.full_name || raw.email?.split('@')[0] || 'User',
       avatar:    raw.user_metadata?.avatar_url || raw.user_metadata?.picture || raw.user_metadata?.avatar || null,
       onboarded: raw.user_metadata?.onboarded || false,
+      role:      raw.user_metadata?.role || 'user'
     };
+  },
+
+  /* Check if current user has Executive / Admin privileges */
+  isAdmin() {
+    const user = this.getUser();
+    const isUnlocked = sessionStorage.getItem('phyzelyne_admin_session_unlocked') === 'true' || 
+                       localStorage.getItem('phyzelyne_admin_session_unlocked') === 'true';
+    if (isUnlocked) return true;
+    if (!user) return false;
+    
+    // Check role metadata
+    const role = user.role || _sessionCache?.user_metadata?.role;
+    if (role === 'admin' || role === 'cto' || role === 'founder') return true;
+
+    // Check admin whitelist
+    const adminEmails = [
+      'founders@phyzelyne.com',
+      'cto@phyzelyne.com',
+      'admin@phyzelyne.com',
+      'petitgenie@phyzelyne.com'
+    ];
+    if (user.email && (adminEmails.includes(user.email.toLowerCase()) || user.email.endsWith('@phyzelyne.com'))) {
+      return true;
+    }
+    return false;
   },
 
   /* Sign up with email + password + name */
@@ -1878,6 +1904,7 @@ function showToast(msg, type = 'success') {
 function renderSidebar() {
   const user = Auth.getUser();
   const name    = user?.name?.split(' ')[0] || 'User';
+  const isExecutive = (typeof Auth !== 'undefined' && typeof Auth.isAdmin === 'function') ? Auth.isAdmin() : false;
   
   // Custom image display logic inside sidebar
   let avatarMarkup = '';
@@ -1907,6 +1934,12 @@ function renderSidebar() {
     <a href="analysis.html" class="nav-item" data-page="analysis"><i class="fas fa-chart-pie"></i> Analysis</a>
     <span class="nav-section-label">Intelligence</span>
     <a href="cofe.html" class="nav-item" data-page="cofe"><i class="fas fa-briefcase"></i> Business</a>
+    ${isExecutive ? `
+    <span class="nav-section-label">Executive</span>
+    <a href="admin.html" class="nav-item" data-page="admin" style="display:flex; justify-content:space-between; align-items:center;">
+      <span><i class="fas fa-shield-halved" style="color:var(--gold);"></i> Admin Suite</span>
+      <span class="badge" style="font-size:0.62rem; padding:2px 6px; background:rgba(217,165,33,0.22); color:var(--gold-light); font-weight:800; border-radius:4px;">CTO</span>
+    </a>` : ''}
     <span class="nav-section-label">Account</span>
     <a href="settings.html" class="nav-item" data-page="settings"><i class="fas fa-gear"></i> Settings</a>
     <div class="sidebar-bottom">

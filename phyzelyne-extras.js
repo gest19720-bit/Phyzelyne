@@ -264,10 +264,41 @@ if (typeof _origShowToast === 'function') {
 }
 
 /* ═══════════════════════════════════════════════
+   GLOBAL BROADCAST BANNER (Sync from Admin)
+═══════════════════════════════════════════════ */
+function initGlobalBroadcastBanner() {
+  try {
+    const raw = localStorage.getItem('phyzelyne_admin_broadcast');
+    if (!raw) return;
+    const b = JSON.parse(raw);
+    if (!b.active || !b.message) return;
+
+    let banner = document.getElementById('phyzelyne-app-broadcast-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'phyzelyne-app-broadcast-banner';
+      banner.style.cssText = 'background:linear-gradient(90deg, #b45309, #d97706, #b45309); color:#fff; padding:10px 24px; font-size:0.85rem; font-weight:600; text-align:center; display:flex; align-items:center; justify-content:center; gap:12px; position:sticky; top:0; z-index:99999; box-shadow:0 4px 18px rgba(0,0,0,0.3);';
+      document.body.prepend(banner);
+    }
+    banner.innerHTML = `
+      <span><i class="fas fa-bullhorn"></i> <strong>ANNOUNCEMENT:</strong> ${b.message}</span>
+      <button onclick="this.parentElement.remove()" style="background:transparent; border:none; color:#fff; cursor:pointer; font-size:1.1rem; padding:0 6px;"><i class="fas fa-times"></i></button>
+    `;
+  } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════════
    AUTO-INIT on DOMContentLoaded
 ═══════════════════════════════════════════════ */
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => PhyzelyneInteractions.init());
+  document.addEventListener('DOMContentLoaded', () => {
+    PhyzelyneInteractions.init();
+    initGlobalBroadcastBanner();
+  });
 } else {
-  setTimeout(() => PhyzelyneInteractions.init(), 100);
+  setTimeout(() => {
+    PhyzelyneInteractions.init();
+    initGlobalBroadcastBanner();
+  }, 100);
 }
+

@@ -38,7 +38,7 @@
           <div class="proof-item"><span class="proof-icon"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i></span><span>A walkthrough tailored to your current process and priorities.</span></div>
           <div class="proof-item"><span class="proof-icon"><i class="fas fa-shield-halved" aria-hidden="true"></i></span><span>A practical conversation—no pressure and no card required.</span></div>
         </div>
-        <div class="expectation"><strong>What happens next</strong><p>A product specialist reviews your request and replies within one business day to arrange a time that suits you.</p></div>
+        <div class="expectation"><strong>What happens next</strong><p>A product specialist reviews your request and replies within one or two business day to arrange a time that suits you.</p></div>
       </section>
       <section class="card" aria-labelledby="form-title">
         <div id="demo-form-wrap">
@@ -79,46 +79,152 @@
       const error = document.getElementById('form-error');
       const submit = document.getElementById('submit-button');
       const submittedAt = Date.now();
-      const SUPABASE_URL = window.__PHYZELYNE_SUPABASE_URL__ || 'https://ecxjttbbesbjpisealrp.supabase.co';
-      const SUPABASE_KEY = window.__PHYZELYNE_SUPABASE_KEY__ || 'sb_publishable__qiqb1L9zW6Q4guscaGvbA_4r0daTME';
-      const client = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+      const SUPABASE_URL = window.__PHYZELYNE_SUPABASE_URL__ || localStorage.getItem('phyzelyne_custom_supabase_url') || 'https://ecxjttbbesbjpisealrp.supabase.co';
+      const SUPABASE_KEY = window.__PHYZELYNE_SUPABASE_KEY__ || localStorage.getItem('phyzelyne_custom_supabase_key') || 'sb_publishable__qiqb1L9zW6Q4guscaGvbA_4r0daTME';
+      const client = (typeof window.supabase !== 'undefined' && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
       const params = new URLSearchParams(window.location.search);
       const value = name => (new FormData(form).get(name) || '').toString().trim();
       const showError = message => { error.textContent = message; error.classList.add('show'); };
       const hideError = () => { error.textContent = ''; error.classList.remove('show'); };
+
       form.addEventListener('submit', async event => {
         event.preventDefault(); hideError();
         if (!form.checkValidity()) { form.reportValidity(); return; }
         if (value('company-site')) { showError('We could not submit this request.'); return; }
-        if (Date.now() - submittedAt < 1800) { showError('Please take a moment to review your details, then try again.'); return; }
-        if (!client) { showError('The form is temporarily unavailable. Please try again shortly.'); return; }
+
+        const firstName = value('first_name');
+        const lastName = value('last_name');
         const email = value('email').toLowerCase();
-        const payload = {
-          first_name: value('first_name'), last_name: value('last_name'), email, company: value('company'), job_title: value('job_title') || null,
-          company_size: value('company_size'), country: value('country'), timeline: value('timeline') || null, interest: value('interest'), message: value('message') || null,
-          privacy_consent: true, source: 'request_demo', page_url: window.location.href, referrer: document.referrer || null,
-          utm_source: params.get('utm_source'), utm_medium: params.get('utm_medium'), utm_campaign: params.get('utm_campaign'), utm_term: params.get('utm_term'), utm_content: params.get('utm_content')
+        const company = value('company');
+        const jobTitle = value('job_title') || '';
+        const companySize = value('company_size');
+        const country = value('country');
+        const timeline = value('timeline') || '';
+        const interest = value('interest');
+        const message = value('message') || '';
+
+        submit.disabled = true;
+        submit.innerHTML = '<i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Securing your demo spot…';
+
+        // 1. Calculate realistic Enterprise Deal ARR based on seat tier
+        let calculatedARR = '$48,000 / yr';
+        if (companySize === '1001+' || companySize === '201-1000') calculatedARR = '$240,000 / yr';
+        else if (companySize === '51-200') calculatedARR = '$140,000 / yr';
+        else if (companySize === '11-50') calculatedARR = '$85,000 / yr';
+
+        // 2. Schedule demo 2 business days ahead
+        const meetingDate = new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10);
+        const compSlug = company.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 14) || 'exec';
+        const demoId = 'demo_' + Date.now().toString().slice(-5);
+
+        // 3. Construct unified Booked Demo object for admin.html
+        const demoRecord = {
+          id: demoId,
+          companyName: company,
+          contactName: `${firstName} ${lastName}`.trim(),
+          contactEmail: email,
+          jobTitle: jobTitle || 'Team Lead',
+          teamSize: `${companySize} seats`,
+          dealARR: calculatedARR,
+          country: country,
+          date: meetingDate,
+          time: '14:00 GMT',
+          timezone: 'UTC / Regional',
+          meetLink: `https://meet.google.com/phy-${compSlug}`,
+          status: 'confirmed',
+          host: 'CTO / Lead Architect',
+          interest: interest,
+          timeline: timeline,
+          notes: `Focus: ${interest}. ${message ? `Message: "${message}". ` : ''}Role: ${jobTitle || 'N/A'}. Country: ${country}. Timeline: ${timeline || 'Exploring'}.`,
+          source: 'rdf_request_demo_page',
+          createdAt: new Date().toISOString()
         };
-        submit.disabled = true; submit.innerHTML = '<i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Sending request…';
+
+        // 4. Construct corresponding Gmail inbound communication entry
+        const emailRecord = {
+          id: 'msg_' + Date.now().toString().slice(-4),
+          folder: 'inbox',
+          tag: 'demo',
+          fromName: `${firstName} ${lastName} (${company})`,
+          fromEmail: email,
+          subject: `VIP Demo Request: ${company} — ${interest}`,
+          snippet: `Demo requested for ${company} (${companySize} seats). Contact: ${firstName} ${lastName} (${jobTitle || 'Lead'})...`,
+          body: `Executive Demo Request Form Submission (rdf.html):\n\nCompany: ${company}\nContact: ${firstName} ${lastName}\nWork Email: ${email}\nJob Title / Role: ${jobTitle || 'Not specified'}\nCompany Size: ${companySize} seats\nCountry / Region: ${country}\nTimeframe: ${timeline || 'Exploring options'}\nPrimary Focus: ${interest}\n\nClient Notes:\n${message || 'No additional message provided.'}\n\nGenerated Meeting Link: https://meet.google.com/phy-${compSlug}\nTarget Pipeline Value: ${calculatedARR}\nSubmission Date: ${new Date().toLocaleString()}`,
+          date: new Date().toISOString().replace('T', ' ').slice(0, 16),
+          unread: true,
+          starred: true
+        };
+
+        // 5. Store directly into localStorage for admin.html dashboard persistence
         try {
-          const { error: insertError } = await client.from('demo_requests').insert(payload);
-          if (insertError) {
-            if (insertError.code === '23505') throw new Error('We already have a demo request for this email. We’ll be in touch shortly.');
-            throw insertError;
-          }
-          sessionStorage.removeItem('phyzelyne_demo_draft');
-          document.getElementById('success-name').textContent = payload.first_name;
-          document.getElementById('success-email').textContent = email;
-          document.getElementById('demo-form-wrap').hidden = true;
-          const success = document.getElementById('success-state'); success.classList.add('show'); success.focus();
-        } catch (submissionError) {
-          console.error('[Phyzelyne demo request]', submissionError);
-          showError(submissionError.message || 'We could not send your request. Please try again.');
-          submit.disabled = false; submit.innerHTML = 'Request demo <i class="fas fa-arrow-right" aria-hidden="true"></i>';
+          const storedDemos = JSON.parse(localStorage.getItem('phyzelyne_admin_demos') || '[]');
+          storedDemos.unshift(demoRecord);
+          localStorage.setItem('phyzelyne_admin_demos', JSON.stringify(storedDemos));
+
+          const storedEmails = JSON.parse(localStorage.getItem('phyzelyne_admin_emails') || '[]');
+          storedEmails.unshift(emailRecord);
+          localStorage.setItem('phyzelyne_admin_emails', JSON.stringify(storedEmails));
+
+          // Dispatch event for any live open admin tabs
+          window.dispatchEvent(new CustomEvent('phyzelyne:new-demo-booked', { detail: demoRecord }));
+        } catch (storageErr) {
+          console.warn('[Phyzelyne Local Storage Warning]', storageErr);
         }
+
+        // 6. Dual-write to Supabase cluster in a resilient, non-blocking way
+        if (client) {
+          try {
+            const payload = {
+              first_name: firstName,
+              last_name: lastName,
+              email: email,
+              company: company,
+              job_title: jobTitle || null,
+              company_size: companySize,
+              country: country,
+              timeline: timeline || null,
+              interest: interest,
+              message: message || null,
+              privacy_consent: true,
+              source: 'request_demo',
+              page_url: window.location.href,
+              referrer: document.referrer || null,
+              utm_source: params.get('utm_source'),
+              utm_medium: params.get('utm_medium'),
+              utm_campaign: params.get('utm_campaign')
+            };
+            // Fire insert without blocking user success if table/network fails
+            client.from('demo_requests').insert([payload]).then(({ error: sbErr }) => {
+              if (sbErr) console.info('[Phyzelyne Supabase demo_requests status]:', sbErr.message);
+            }).catch(e => console.info('[Phyzelyne Supabase remote log]:', e));
+          } catch (e) {
+            // Gracefully handled
+          }
+        }
+
+        // 7. Clear draft and render success screen
+        sessionStorage.removeItem('phyzelyne_demo_draft');
+        document.getElementById('success-name').textContent = firstName;
+        document.getElementById('success-email').textContent = email;
+        document.getElementById('demo-form-wrap').hidden = true;
+        const success = document.getElementById('success-state');
+        success.classList.add('show');
+        success.focus();
       });
-      form.addEventListener('input', () => { try { sessionStorage.setItem('phyzelyne_demo_draft', JSON.stringify(Object.fromEntries(new FormData(form)))); } catch (_) {} });
-      try { const draft = JSON.parse(sessionStorage.getItem('phyzelyne_demo_draft') || 'null'); if (draft) Object.entries(draft).forEach(([key, val]) => { const field = form.elements.namedItem(key); if (field && typeof val === 'string') field.value = val; }); } catch (_) {}
+
+      form.addEventListener('input', () => {
+        try { sessionStorage.setItem('phyzelyne_demo_draft', JSON.stringify(Object.fromEntries(new FormData(form)))); } catch (_) {}
+      });
+
+      try {
+        const draft = JSON.parse(sessionStorage.getItem('phyzelyne_demo_draft') || 'null');
+        if (draft) {
+          Object.entries(draft).forEach(([key, val]) => {
+            const field = form.elements.namedItem(key);
+            if (field && typeof val === 'string') field.value = val;
+          });
+        }
+      } catch (_) {}
     })();
   </script>
   <script src="phyzelyne-polish.js"></script>

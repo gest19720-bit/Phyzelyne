@@ -3,66 +3,70 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phyzelyne — The Financial Operating System</title>
-<meta name="description" content="Phyzelyne is the AI-powered financial system. Track 150+ currencies, automate invoicing, and get 24/7 personalized financial coaching.">
+<title>Phyzelyne — Financial infrastructure for multi-currency work</title>
+<meta name="description" content="Phyzelyne is where freelancers and small teams log income, send invoices, and get plain-language coaching across 150+ currencies — without handing over a bank password.">
 <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
-
+ 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,500;0,600;0,700;1,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+ 
 <style>
 /* ============================================================
-   TOKENS — Phyzelyne "Trading Desk" dark system
+   TOKENS — Phyzelyne "Ledger & Seal" system (v3)
+   A financial-statement identity: quiet paper surfaces, tabular
+   figures, hairline structure, and a single confident signature
+   — the verification seal — reserved for moments of trust.
    ============================================================ */
 :root{
-  --bg:            #070b09;
-  --bg-1:          #0b1310;
-  --bg-2:          #0e1713;
-  --surface:       rgba(255,255,255,0.035);
-  --surface-2:     rgba(255,255,255,0.06);
-  --border:        rgba(255,255,255,0.09);
-  --border-2:      rgba(255,255,255,0.16);
-
-  --gold:          #d9a521;
-  --gold-2:        #f3ca5a;
-  --gold-dim:      rgba(217,165,33,0.14);
-  --gold-rgb:      217,165,33;
-
-  --emerald:       #2fae72;
-  --emerald-2:     #6fe3a8;
-  --emerald-dim:   rgba(47,174,114,0.14);
-  --emerald-rgb:   47,174,114;
-
-  --red:           #f0685c;
-  --red-dim:       rgba(240,104,92,0.14);
-
-  --ink:           #f5f1e8;
-  --ink-mid:       rgba(245,241,232,0.66);
-  --ink-dim:       rgba(245,241,232,0.40);
-  --ink-faint:     rgba(245,241,232,0.14);
-
-  --radius-lg:     26px;
-  --radius:        18px;
-  --radius-sm:     11px;
-  --radius-pill:   999px;
-
-  --blur:          blur(28px) saturate(160%);
-  --shadow:        0 10px 40px rgba(0,0,0,0.35);
-  --shadow-lg:     0 30px 80px rgba(0,0,0,0.5);
-  --ease:          cubic-bezier(0.16,1,0.3,1);
-
-  --font-display:  'Fraunces', Georgia, serif;
-  --font-body:     'Inter Display', 'Inter', -apple-system, sans-serif;
-  --font-mono:     'JetBrains Mono', ui-monospace, monospace;
+  --paper:      #F7F5EE;
+  --paper-2:    #EFEAE0;
+  --panel:      #FFFFFF;
+  --ink:        #101E19;
+  --ink-mid:    rgba(16,30,25,0.64);
+  --ink-dim:    rgba(16,30,25,0.44);
+  --ink-faint:  rgba(16,30,25,0.15);
+  --line:       rgba(16,30,25,0.11);
+  --line-2:     rgba(16,30,25,0.20);
+ 
+  --verify:     #0F6E5C;
+  --verify-2:   #14876F;
+  --verify-dim: rgba(15,110,92,0.09);
+  --verify-rgb: 15,110,92;
+ 
+  --bronze:     #A9791F;
+  --bronze-2:   #C79433;
+  --bronze-dim: rgba(169,121,31,0.13);
+  --bronze-rgb: 169,121,31;
+ 
+  --navy:       #2B3A67;
+  --navy-2:     #3D4F86;
+  --navy-dim:   rgba(43,58,103,0.08);
+ 
+  --rust:       #9C4A32;
+  --rust-dim:   rgba(156,74,50,0.10);
+ 
+  --radius-lg:  20px;
+  --radius:     14px;
+  --radius-sm:  9px;
+  --radius-pill:999px;
+ 
+  --shadow-sm:  0 1px 2px rgba(16,30,25,0.06);
+  --shadow:     0 2px 6px rgba(16,30,25,0.06), 0 10px 24px rgba(16,30,25,0.07);
+  --shadow-lg:  0 6px 16px rgba(16,30,25,0.08), 0 24px 48px rgba(16,30,25,0.10);
+  --ease:       cubic-bezier(0.16,1,0.3,1);
+ 
+  --font-display:'Instrument Sans', Arial, sans-serif;
+  --font-body:   'Inter', -apple-system, sans-serif;
+  --font-mono:   'IBM Plex Mono', ui-monospace, monospace;
 }
-
+ 
 *,*::before,*::after{ margin:0; padding:0; box-sizing:border-box; }
 html{ scroll-behavior:smooth; }
 body{
   font-family:var(--font-body);
-  background:var(--bg);
+  background:var(--paper);
   color:var(--ink);
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
@@ -70,489 +74,492 @@ body{
 }
 img{ max-width:100%; display:block; }
 a{ color:inherit; }
-::selection{ background:rgba(var(--gold-rgb),0.35); color:#fff; }
-
+::selection{ background:var(--bronze); color:var(--paper); }
+:focus-visible{ outline:2px solid var(--verify); outline-offset:3px; }
+ 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
 }
-
+ 
+/* ─── Scroll progress ─── */
+.scroll-progress{ position:fixed; top:0; left:0; height:2px; width:0%; z-index:1100; background:var(--verify); transition:width 0.12s linear; }
+ 
 /* ─── Ambient field ─── */
-.field{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.field{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; background:var(--paper); }
 .field::before{
   content:''; position:absolute; inset:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size:64px 64px;
-  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  background-image:radial-gradient(rgba(16,30,25,0.07) 1px, transparent 1px);
+  background-size:24px 24px;
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 0%, #000 25%, transparent 78%);
 }
-.orb{ position:absolute; border-radius:50%; filter:blur(90px); }
-.orb-1{ width:44vw; height:44vw; top:-14vw; right:-10vw; background:radial-gradient(circle, rgba(var(--gold-rgb),0.16), transparent 70%); animation:drift 22s ease-in-out infinite alternate; }
-.orb-2{ width:38vw; height:38vw; top:20vh; left:-14vw; background:radial-gradient(circle, rgba(var(--emerald-rgb),0.14), transparent 70%); animation:drift 26s ease-in-out infinite alternate-reverse; }
-.orb-3{ width:34vw; height:34vw; bottom:-10vw; right:8vw; background:radial-gradient(circle, rgba(var(--emerald-rgb),0.08), transparent 70%); animation:drift 30s ease-in-out infinite alternate; }
-@keyframes drift{ to{ transform:translate(4%,6%) scale(1.08); } }
-
 .wrap{ position:relative; z-index:1; }
-
+ 
 /* ─── Reveal-on-scroll ─── */
-.reveal{ opacity:0; transform:translateY(28px); transition:opacity 0.8s var(--ease), transform 0.8s var(--ease); }
+.reveal{ opacity:0; transform:translateY(22px); transition:opacity 0.7s var(--ease), transform 0.7s var(--ease); }
 .reveal.in{ opacity:1; transform:translateY(0); }
-.reveal-stagger > *{ opacity:0; transform:translateY(24px); transition:opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.reveal-stagger > *{ opacity:0; transform:translateY(18px); transition:opacity 0.6s var(--ease), transform 0.6s var(--ease); }
 .reveal-stagger.in > *{ opacity:1; transform:translateY(0); }
 .reveal-stagger.in > *:nth-child(1){ transition-delay:0.03s; }
-.reveal-stagger.in > *:nth-child(2){ transition-delay:0.10s; }
-.reveal-stagger.in > *:nth-child(3){ transition-delay:0.17s; }
-.reveal-stagger.in > *:nth-child(4){ transition-delay:0.24s; }
-.reveal-stagger.in > *:nth-child(5){ transition-delay:0.31s; }
-.reveal-stagger.in > *:nth-child(6){ transition-delay:0.38s; }
-
+.reveal-stagger.in > *:nth-child(2){ transition-delay:0.08s; }
+.reveal-stagger.in > *:nth-child(3){ transition-delay:0.13s; }
+.reveal-stagger.in > *:nth-child(4){ transition-delay:0.18s; }
+.reveal-stagger.in > *:nth-child(5){ transition-delay:0.23s; }
+.reveal-stagger.in > *:nth-child(6){ transition-delay:0.28s; }
+ 
 /* ─── Type ─── */
 h1,h2,h3,h4{ font-family:var(--font-display); font-weight:700; color:var(--ink); letter-spacing:-0.01em; }
 .eyebrow{
-  display:inline-flex; align-items:center; gap:8px;
-  font-family:var(--font-mono); font-size:0.72rem; font-weight:500;
-  letter-spacing:0.12em; text-transform:uppercase; color:var(--gold-2);
+  display:inline-flex; align-items:center; gap:9px;
+  font-family:var(--font-mono); font-size:0.7rem; font-weight:500;
+  letter-spacing:0.09em; text-transform:uppercase; color:var(--verify);
 }
-.eyebrow::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--emerald-2); box-shadow:0 0 10px var(--emerald-2); }
-
-.section{ padding:130px 6%; max-width:1280px; margin:0 auto; position:relative; }
-.section-head{ max-width:640px; margin-bottom:64px; }
+.eyebrow::before{ content:''; width:16px; height:1px; background:var(--verify); }
+ 
+.section{ padding:112px 6%; max-width:1240px; margin:0 auto; position:relative; }
+.section-head{ max-width:640px; margin-bottom:56px; }
 .section-head.center{ margin-left:auto; margin-right:auto; text-align:center; }
-.section-title{ font-size:clamp(2.1rem,4vw,3rem); line-height:1.12; margin:14px 0 16px; }
-.section-sub{ color:var(--ink-mid); font-size:1.05rem; line-height:1.7; }
-
+.section-title{ font-size:clamp(1.9rem,3.6vw,2.7rem); line-height:1.14; margin:14px 0 16px; position:relative; display:inline-block; }
+.section-title::after{
+  content:''; position:absolute; left:0; bottom:-8px; height:3px; width:46px;
+  background:var(--bronze); border-radius:2px; transform:scaleX(0); transform-origin:left;
+  transition:transform 0.8s var(--ease) 0.1s;
+}
+.section-head.center .section-title::after{ left:50%; transform:translateX(-50%) scaleX(0); }
+.section-head.in .section-title::after{ transform:scaleX(1); }
+.section-head.center.in .section-title::after{ transform:translateX(-50%) scaleX(1); }
+.section-sub{ color:var(--ink-mid); font-size:1.02rem; line-height:1.7; }
+ 
 /* ─── Buttons ─── */
 .btn{
-  display:inline-flex; align-items:center; justify-content:center; gap:10px;
-  padding:15px 30px; border-radius:var(--radius-pill);
-  font-family:var(--font-body); font-size:0.92rem; font-weight:700;
-  text-decoration:none; cursor:pointer; border:none;
-  transition:transform 0.4s var(--ease), box-shadow 0.4s var(--ease), background 0.4s var(--ease), border-color 0.4s var(--ease);
-  position:relative; overflow:hidden; white-space:nowrap;
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  padding:14px 26px; border-radius:var(--radius-pill);
+  font-family:var(--font-body); font-size:0.9rem; font-weight:600;
+  text-decoration:none; cursor:pointer; border:1.5px solid transparent;
+  transition:transform 0.25s var(--ease), box-shadow 0.25s var(--ease), background 0.25s var(--ease), border-color 0.25s var(--ease);
+  position:relative; white-space:nowrap;
 }
-.btn-gold{
-  background:linear-gradient(135deg,var(--gold),var(--gold-2));
-  color:#191204; box-shadow:0 8px 26px rgba(var(--gold-rgb),0.28);
-}
-.btn-gold:hover{ transform:translateY(-2px); box-shadow:0 14px 38px rgba(var(--gold-rgb),0.4); }
-.btn-glass{
-  background:var(--surface); border:1px solid var(--border); color:var(--ink);
-  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-}
-.btn-glass:hover{ background:var(--surface-2); border-color:var(--border-2); transform:translateY(-2px); }
-.btn-sm{ padding:10px 20px; font-size:0.82rem; }
+.btn-primary{ background:var(--ink); color:var(--paper); box-shadow:var(--shadow-sm); }
+.btn-primary:hover{ background:var(--verify); transform:translateY(-1px); box-shadow:var(--shadow); }
+.btn-ghost{ background:var(--panel); color:var(--ink); border-color:var(--line-2); }
+.btn-ghost:hover{ border-color:var(--ink); transform:translateY(-1px); box-shadow:var(--shadow-sm); }
+.btn-outline-light{ background:transparent; color:var(--paper); border-color:rgba(247,245,238,0.35); }
+.btn-outline-light:hover{ background:rgba(247,245,238,0.08); border-color:var(--paper); }
+.btn i{ font-size:0.82em; transition:transform 0.3s var(--ease); }
+.btn:hover i.fa-arrow-right{ transform:translateX(3px); }
+.btn-sm{ padding:9px 16px; font-size:0.8rem; }
 .btn-block{ width:100%; }
-
+ 
 /* ============================================================
    NAV
    ============================================================ */
 .nav{
   position:fixed; top:0; left:0; right:0; z-index:1000;
   display:flex; align-items:center; justify-content:space-between;
-  padding:0 5%; height:82px;
-  background:rgba(7,11,9,0.5);
-  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+  padding:0 5%; height:74px;
+  background:rgba(247,245,238,0.72);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid transparent;
   transition:all 0.4s var(--ease);
 }
-.nav.scrolled{ height:68px; background:rgba(7,11,9,0.82); border-bottom-color:var(--border); }
-.nav-logo{ display:flex; align-items:center; gap:11px; text-decoration:none; }
-.logo-img{ width:36px; height:36px; object-fit:contain; border-radius:9px; }
+.nav.scrolled{ height:64px; background:rgba(247,245,238,0.94); border-bottom-color:var(--line); }
+.nav-logo{ display:flex; align-items:center; gap:10px; text-decoration:none; }
+.logo-img{ width:32px; height:32px; object-fit:contain; border-radius:8px; }
 .logo-fallback{
-  width:36px; height:36px; border-radius:9px;
-  background:linear-gradient(135deg,var(--emerald),var(--gold));
+  width:32px; height:32px; border-radius:8px; background:var(--ink);
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-display); font-weight:700; color:#0a0d0a; font-size:1.15rem;
+  font-family:var(--font-display); font-weight:700; color:var(--bronze-2); font-size:1rem;
 }
-.nav-logo-text{ font-family:var(--font-display); font-weight:700; font-size:1.5rem; color:var(--ink); }
-.nav-menu{ display:flex; align-items:center; gap:38px; }
+.nav-logo-text{ font-family:var(--font-display); font-weight:700; font-size:1.22rem; color:var(--ink); }
+.nav-menu{ display:flex; align-items:center; gap:32px; }
 .nav-link{
-  font-size:0.9rem; font-weight:500; color:var(--ink-mid); text-decoration:none;
+  font-size:0.88rem; font-weight:500; color:var(--ink-mid); text-decoration:none;
   position:relative; padding:4px 0; transition:color 0.3s;
 }
 .nav-link::after{
-  content:''; position:absolute; left:0; bottom:-2px; width:0; height:1px;
-  background:var(--gold-2); transition:width 0.35s var(--ease);
+  content:''; position:absolute; left:0; bottom:-2px; width:0; height:1.5px;
+  background:var(--verify); transition:width 0.3s var(--ease);
 }
 .nav-link:hover{ color:var(--ink); }
 .nav-link:hover::after{ width:100%; }
-.nav-right{ display:flex; align-items:center; gap:14px; }
+.nav-right{ display:flex; align-items:center; gap:12px; }
+.nrsi{ text-decoration:none; cursor:pointer; font-weight:600; font-size:0.88rem; color:var(--ink-mid); }
+.nrsi:hover{ color:var(--ink); }
 .menu-toggle{
-  display:none; flex-direction:column; gap:5px; width:38px; height:38px;
-  align-items:center; justify-content:center; background:var(--surface);
-  border:1px solid var(--border); border-radius:10px; cursor:pointer;
+  display:none; flex-direction:column; gap:5px; width:36px; height:36px;
+  align-items:center; justify-content:center; background:var(--panel);
+  border:1.5px solid var(--line-2); border-radius:9px; cursor:pointer;
 }
-.menu-toggle span{ width:16px; height:1.5px; background:var(--ink); transition:all 0.3s var(--ease); }
-.menu-toggle.open span:nth-child(1){ transform:translateY(6.5px) rotate(45deg); }
+.menu-toggle span{ width:15px; height:1.5px; background:var(--ink); transition:all 0.3s var(--ease); }
+.menu-toggle.open span:nth-child(1){ transform:translateY(6px) rotate(45deg); }
 .menu-toggle.open span:nth-child(2){ opacity:0; }
-.menu-toggle.open span:nth-child(3){ transform:translateY(-6.5px) rotate(-45deg); }
-
+.menu-toggle.open span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
+ 
 .mobile-sheet{
-  position:fixed; inset:82px 0 0 0; z-index:999;
-  background:rgba(10,14,12,0.88);
-  backdrop-filter:blur(40px) saturate(160%); -webkit-backdrop-filter:blur(40px) saturate(160%);
-  display:flex; flex-direction:column; gap:4px; padding:32px 6%;
-  transform:translateY(-16px); opacity:0; pointer-events:none;
+  position:fixed; inset:74px 0 0 0; z-index:999;
+  background:rgba(247,245,238,0.99);
+  display:flex; flex-direction:column; gap:4px; padding:26px 6%;
+  transform:translateY(-14px); opacity:0; pointer-events:none;
   transition:all 0.4s var(--ease);
-  border-top:1px solid rgba(255,255,255,0.06);
+  border-top:1px solid var(--line);
 }
 .mobile-sheet.open{ transform:translateY(0); opacity:1; pointer-events:auto; }
 .mobile-sheet a{
-  font-family:var(--font-display); font-size:1.6rem; font-weight:600; color:var(--ink);
-  text-decoration:none; padding:16px 18px; border-radius:16px;
+  font-family:var(--font-display); font-size:1.4rem; font-weight:700; color:var(--ink);
+  text-decoration:none; padding:13px 14px; border-radius:12px;
   transition:all 0.25s var(--ease);
 }
-.mobile-sheet a:hover{
-  background:rgba(var(--gold-rgb),0.10);
-  color:var(--gold-2);
-}
-.mobile-sheet .btn{ margin-top:18px; border-radius:var(--radius-pill); }
-
+.mobile-sheet a:hover{ background:var(--verify-dim); color:var(--verify); }
+.mobile-sheet .btn{ margin-top:14px; }
+ 
 /* ============================================================
    HERO
    ============================================================ */
 .hero{
-  padding:168px 6% 60px; max-width:1280px; margin:0 auto;
-  display:grid; grid-template-columns:1fr 0.98fr; gap:50px; align-items:center;
+  padding:150px 6% 46px; max-width:1240px; margin:0 auto;
+  display:grid; grid-template-columns:1.02fr 0.98fr; gap:52px; align-items:center;
 }
 .hero-content{ display:flex; flex-direction:column; align-items:flex-start; }
 .hero-title{
-  font-size:clamp(2.8rem,5.4vw,4.4rem); line-height:1.04; margin:20px 0 22px;
-  letter-spacing:-0.015em;
+  font-size:clamp(2.3rem,4.4vw,3.5rem); line-height:1.1; margin:16px 0 20px;
+  letter-spacing:-0.02em;
 }
-.hero-title em{ font-style:italic; color:var(--gold-2); }
-.hero-title .swap{ position:relative; display:inline-block; }
-.hero-desc{ font-size:1.1rem; color:var(--ink-mid); max-width:490px; line-height:1.75; margin-bottom:38px; }
-.hero-btns{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:44px; }
-.hero-proof{ display:flex; align-items:center; gap:16px; }
-.proof-avatars{ display:flex; }
-.proof-avatars span{
-  width:34px; height:34px; border-radius:50%; border:2px solid var(--bg);
-  margin-left:-10px; display:flex; align-items:center; justify-content:center;
-  font-size:0.68rem; font-weight:700; color:#0c0f0c;
-  font-family:var(--font-mono);
-}
-.proof-avatars span:nth-child(1){ background:var(--gold-2); margin-left:0; }
-.proof-avatars span:nth-child(2){ background:var(--emerald-2); }
-.proof-avatars span:nth-child(3){ background:#c9c2ae; }
-.hero-proof p{ font-size:0.85rem; color:var(--ink-dim); }
+.hero-title .word{ display:inline-block; overflow:hidden; vertical-align:top; }
+.hero-title .word span{ display:inline-block; transform:translateY(110%); transition:transform 0.7s var(--ease); }
+.hero-title.reveal-text .word span{ transform:translateY(0); }
+.hero-title mark{ background:none; color:var(--verify); position:relative; }
+.hero-desc{ font-size:1.06rem; color:var(--ink-mid); max-width:490px; line-height:1.75; margin-bottom:30px; }
+.hero-desc b{ color:var(--ink); font-weight:600; }
+.hero-btns{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px; }
+.hero-proof{ font-size:0.84rem; color:var(--ink-dim); margin-bottom:24px; }
 .hero-proof strong{ color:var(--ink); }
-
-/* Hero visual — trading-panel style */
-.hero-visual{ position:relative; height:560px; }
-.panel{
-  position:absolute; background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--radius-lg); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+ 
+.trust-row{ display:flex; flex-wrap:wrap; gap:10px 22px; padding-top:22px; border-top:1px solid var(--line); width:100%; max-width:520px; }
+.trust-row span{ display:inline-flex; align-items:center; gap:7px; font-size:0.78rem; color:var(--ink-mid); font-weight:500; }
+.trust-row i{ color:var(--verify); font-size:0.82rem; width:14px; text-align:center; }
+ 
+/* Hero visual — the statement panel */
+.hero-visual{ position:relative; height:520px; display:flex; align-items:center; justify-content:center; }
+.statement{
+  position:relative; width:352px; max-width:100%;
+  background:var(--panel); border:1px solid var(--line-2); border-radius:var(--radius-lg);
   box-shadow:var(--shadow-lg);
+  padding:28px 26px 24px;
 }
-.panel-main{
-  inset:0 0 0 0; padding:26px; display:flex; flex-direction:column;
-  transition:transform 0.15s ease-out;
+.statement-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; padding-bottom:16px; border-bottom:1px dashed var(--line-2); }
+.statement-head .stag{ font-family:var(--font-mono); font-size:0.64rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-dim); }
+.statement-head h4{ font-size:1.14rem; margin-top:5px; }
+.statement-row{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.82rem; padding:8px 0; color:var(--ink-mid); }
+.statement-row b{ color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums; }
+.statement-row.good b{ color:var(--verify); }
+.statement-total{
+  display:flex; justify-content:space-between; align-items:baseline; margin-top:10px; padding-top:16px;
+  border-top:1.5px solid var(--ink); font-family:var(--font-mono);
 }
-.panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
-.panel-head .dots{ display:flex; gap:6px; }
-.panel-head .dots span{ width:8px; height:8px; border-radius:50%; background:var(--ink-faint); }
-.panel-tag{ font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.1em; color:var(--ink-dim); text-transform:uppercase; }
-.panel-balance-label{ font-family:var(--font-mono); font-size:0.72rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
-.panel-balance{ font-family:var(--font-mono); font-size:2.3rem; font-weight:600; color:var(--ink); display:flex; align-items:baseline; gap:12px; }
-.panel-balance .delta{ font-size:0.85rem; color:var(--emerald-2); font-weight:500; display:flex; align-items:center; gap:4px; }
-.chart-holder{ flex:1; margin:22px 0 6px; position:relative; min-height:150px; }
-.chart-holder svg{ width:100%; height:100%; overflow:visible; }
-.chart-line{ fill:none; stroke:url(#lineGrad); stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
-.chart-area{ fill:url(#areaGrad); opacity:0.9; }
-.chart-dot{ fill:var(--emerald-2); filter:drop-shadow(0 0 6px rgba(var(--emerald-rgb),0.8)); }
-.chart-grid line{ stroke:var(--ink-faint); stroke-dasharray:2 6; }
-.panel-months{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.66rem; color:var(--ink-faint); text-transform:uppercase; }
-
+.statement-total span:first-child{ font-size:0.76rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--ink-dim); }
+.statement-total b{ font-size:1.4rem; font-variant-numeric:tabular-nums; }
+ 
+/* Signature — verification seal */
+.seal{
+  position:absolute; top:-16px; right:-16px; width:76px; height:76px;
+  transform:scale(0) rotate(-18deg); animation:sealIn 0.6s var(--ease) 1.2s forwards;
+}
+.seal-ring{ position:absolute; inset:0; border-radius:50%; border:1.5px dashed var(--bronze); }
+.seal-core{
+  position:absolute; inset:7px; border-radius:50%; background:var(--ink);
+  display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);
+}
+.seal-core i{ color:var(--bronze-2); font-size:1.3rem; }
+@keyframes sealIn{ 0%{ transform:scale(0) rotate(-18deg); } 65%{ transform:scale(1.14) rotate(4deg); } 100%{ transform:scale(1) rotate(0deg); } }
+ 
 .chip{
-  position:absolute; padding:14px 18px; display:flex; align-items:center; gap:12px;
-  animation:bob 6s ease-in-out infinite;
-  transition:transform 0.2s ease-out;
+  position:absolute; padding:12px 16px; display:flex; align-items:center; gap:10px;
+  background:var(--panel); border:1px solid var(--line-2); border-radius:var(--radius); box-shadow:var(--shadow);
+  animation:bob 7s ease-in-out infinite;
 }
 .chip-icon{
-  width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center;
-  font-size:0.95rem; flex-shrink:0;
+  width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+  font-size:0.86rem; flex-shrink:0;
 }
-.chip-1{ top:6%; left:-9%; animation-delay:0s; }
-.chip-1 .chip-icon{ background:var(--emerald-dim); color:var(--emerald-2); }
-.chip-2{ bottom:9%; right:-11%; animation-delay:1.6s; }
-.chip-2 .chip-icon{ background:var(--gold-dim); color:var(--gold-2); }
-.chip-3{ top:44%; right:-15%; animation-delay:3.1s; padding:10px 16px; }
-.chip-3 .chip-icon{ width:30px; height:30px; background:var(--red-dim); color:var(--red); font-size:0.75rem; }
-.chip-label{ font-size:0.68rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; font-family:var(--font-mono); }
-.chip-value{ font-family:var(--font-mono); font-weight:600; font-size:0.98rem; color:var(--ink); }
-@keyframes bob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-11px); } }
-
+.chip-1{ top:6%; left:-2%; animation-delay:0s; }
+.chip-1 .chip-icon{ background:var(--verify-dim); color:var(--verify); }
+.chip-2{ bottom:8%; right:-2%; animation-delay:2s; }
+.chip-2 .chip-icon{ background:var(--navy-dim); color:var(--navy); }
+.chip-label{ font-size:0.65rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.06em; font-family:var(--font-mono); }
+.chip-value{ font-family:var(--font-mono); font-weight:600; font-size:0.92rem; color:var(--ink); }
+@keyframes bob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-9px); } }
+ 
+/* ============================================================
+   TRUST BAR
+   ============================================================ */
+.trust-bar{ border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--panel); }
+.trust-bar-inner{
+  max-width:1240px; margin:0 auto; padding:20px 6%;
+  display:flex; flex-wrap:wrap; gap:14px 34px; justify-content:center;
+}
+.trust-bar-inner span{ display:inline-flex; align-items:center; gap:9px; font-size:0.82rem; font-weight:500; color:var(--ink-mid); }
+.trust-bar-inner i{ color:var(--verify); font-size:0.86rem; }
+ 
 /* ============================================================
    TICKER
    ============================================================ */
-.ticker{
-  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
-  background:var(--bg-1); overflow:hidden; padding:18px 0;
-}
-.ticker-track{ display:flex; width:max-content; animation:ticker 32s linear infinite; }
+.ticker{ border-bottom:1px solid var(--line); background:var(--ink); overflow:hidden; padding:14px 0; }
+.ticker-track{ display:flex; width:max-content; animation:ticker 34s linear infinite; }
 .ticker:hover .ticker-track{ animation-play-state:paused; }
 .ticker-item{
-  display:flex; align-items:center; gap:10px; padding:0 34px;
-  font-family:var(--font-mono); font-size:0.86rem; white-space:nowrap;
-  border-right:1px solid var(--border);
+  display:flex; align-items:center; gap:9px; padding:0 28px;
+  font-family:var(--font-mono); font-size:0.8rem; white-space:nowrap; color:var(--paper);
+  border-right:1px solid rgba(247,245,238,0.14);
 }
-.ticker-item .pair{ color:var(--ink-mid); }
-.ticker-item .rate{ color:var(--ink); font-weight:600; }
-.ticker-item .up{ color:var(--emerald-2); }
-.ticker-item .down{ color:var(--red); }
+.ticker-item .pair{ color:rgba(247,245,238,0.48); }
+.ticker-item .rate{ color:var(--paper); font-weight:500; font-variant-numeric:tabular-nums; }
+.ticker-item .up{ color:var(--verify-2); }
+.ticker-item .down{ color:#e08a76; }
 @keyframes ticker{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
-
+ 
 /* ============================================================
-   FEATURES — bento grid
+   FEATURES
    ============================================================ */
-.bento{ display:grid; grid-template-columns:repeat(6,1fr); gap:20px; }
+.bento{ display:grid; grid-template-columns:repeat(6,1fr); gap:16px; }
 .f-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
-  padding:32px; position:relative; overflow:hidden;
-  transition:transform 0.45s var(--ease), border-color 0.45s var(--ease), background 0.45s var(--ease);
+  border:1px solid var(--line-2); border-top:3px solid var(--f-accent, var(--verify));
+  border-radius:var(--radius); padding:28px; position:relative; overflow:hidden; background:var(--panel);
+  transition:transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
   grid-column:span 2;
 }
-.f-card::before{
-  content:''; position:absolute; inset:0; opacity:0; transition:opacity 0.5s;
-  background:radial-gradient(320px circle at var(--mx,50%) var(--my,50%), rgba(var(--gold-rgb),0.10), transparent 70%);
-}
-.f-card:hover{ transform:translateY(-6px); border-color:var(--border-2); background:var(--surface-2); }
-.f-card:hover::before{ opacity:1; }
+.f-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow); border-color:var(--line-2); }
 .f-card.wide{ grid-column:span 3; }
-.f-card.tall{ grid-row:span 1; }
 .f-icon{
-  width:48px; height:48px; border-radius:13px; display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(135deg,var(--emerald-dim),var(--gold-dim)); color:var(--gold-2);
-  font-size:1.15rem; margin-bottom:22px; position:relative; z-index:1;
+  width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+  background:var(--f-accent-dim, var(--verify-dim)); color:var(--f-accent, var(--verify));
+  font-size:1.02rem; margin-bottom:18px;
 }
-.f-card h3{ font-size:1.35rem; margin-bottom:10px; position:relative; z-index:1; }
-.f-card p{ color:var(--ink-mid); font-size:0.92rem; line-height:1.65; position:relative; z-index:1; }
-
+.f-card h3{ font-size:1.08rem; margin-bottom:9px; }
+.f-card p{ font-size:0.88rem; color:var(--ink-mid); line-height:1.65; }
+ 
+/* ============================================================
+   PRODUCT TOUR
+   ============================================================ */
+.tour-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+.tour-card{ background:var(--panel); border:1px solid var(--line-2); border-radius:var(--radius); padding:20px; transition:transform 0.3s var(--ease), box-shadow 0.3s var(--ease); }
+.tour-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow); }
+.tour-card h4{ font-size:1rem; margin:15px 0 7px; }
+.tour-card p{ font-size:0.84rem; color:var(--ink-mid); line-height:1.6; }
+.tour-mock{ background:var(--paper-2); border:1px solid var(--line-2); border-radius:var(--radius-sm); padding:16px; min-height:148px; display:flex; flex-direction:column; justify-content:space-between; }
+.tm-row{ display:flex; justify-content:space-between; gap:10px; margin-bottom:14px; }
+.tm-stat{ display:flex; flex-direction:column; gap:4px; }
+.tm-label{ font-family:var(--font-mono); font-size:0.58rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim); }
+.tm-val{ font-family:var(--font-mono); font-size:0.98rem; font-weight:600; color:var(--ink); }
+.tm-val.up{ color:var(--verify); }
+.tm-bars{ display:flex; align-items:flex-end; gap:6px; height:60px; }
+.tm-bars i{ flex:1; border-radius:3px 3px 0 0; background:var(--bronze-2); transform:scaleY(0); transform-origin:bottom; transition:transform 0.6s var(--ease); }
+.tour-card.in .tm-bars i{ transform:scaleY(1); }
+.tm-bars i:nth-child(2){ background:var(--navy); transition-delay:0.05s; }
+.tm-bars i:nth-child(3){ background:var(--verify); transition-delay:0.1s; }
+.tm-bars i:nth-child(4){ background:var(--bronze-2); transition-delay:0.15s; }
+.tm-bars i:nth-child(5){ background:var(--navy); transition-delay:0.2s; }
+.tm-bars i:nth-child(6){ background:var(--verify); transition-delay:0.25s; }
+.tm-chat{ justify-content:flex-end; gap:9px; }
+.tm-bubble{ font-size:0.76rem; line-height:1.5; padding:9px 13px; border-radius:11px; max-width:92%; border:1px solid var(--line-2); }
+.tm-bubble.ai{ background:var(--panel); color:var(--ink-mid); border-bottom-left-radius:3px; }
+.tm-bubble.user{ background:var(--navy); color:var(--paper); align-self:flex-end; border-bottom-right-radius:3px; border-color:var(--navy); }
+.tm-invoice{ font-family:var(--font-mono); }
+.tm-inv-head{ display:flex; justify-content:space-between; font-size:0.74rem; color:var(--ink-dim); margin-bottom:12px; padding-bottom:12px; border-bottom:1px dashed var(--line-2); }
+.tm-paid{ color:var(--verify); font-weight:600; }
+.tm-inv-row{ display:flex; justify-content:space-between; font-size:0.79rem; margin-bottom:7px; }
+.tm-inv-row.muted{ color:var(--ink-dim); font-size:0.71rem; }
+ 
+/* ============================================================
+   SECURITY & TRUST — signature section
+   ============================================================ */
+.security{ background:var(--ink); border-radius:var(--radius-lg); margin:0 6%; max-width:1180px; margin-left:auto; margin-right:auto; overflow:hidden; }
+.security-inner{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:0; align-items:stretch; }
+.security-copy{ padding:64px 52px; }
+.security-copy .eyebrow{ color:var(--bronze-2); }
+.security-copy .eyebrow::before{ background:var(--bronze-2); }
+.security-copy h2{ color:var(--paper); font-size:clamp(1.7rem,3.2vw,2.3rem); line-height:1.18; margin:14px 0 16px; }
+.security-copy > p{ color:rgba(247,245,238,0.66); font-size:0.98rem; line-height:1.7; margin-bottom:34px; max-width:480px; }
+.security-list{ list-style:none; display:flex; flex-direction:column; gap:22px; }
+.security-list li{ display:flex; gap:16px; }
+.sec-ico{ width:38px; height:38px; border-radius:10px; background:rgba(247,245,238,0.08); border:1px solid rgba(247,245,238,0.14); display:flex; align-items:center; justify-content:center; color:var(--bronze-2); flex-shrink:0; font-size:0.9rem; }
+.security-list h5{ color:var(--paper); font-family:var(--font-display); font-size:0.98rem; font-weight:700; margin-bottom:5px; }
+.security-list p{ color:rgba(247,245,238,0.6); font-size:0.86rem; line-height:1.62; }
+ 
+.security-visual{ position:relative; background:#0B1712; display:flex; align-items:center; justify-content:center; padding:48px; }
+.security-visual::before{
+  content:''; position:absolute; inset:0;
+  background-image:radial-gradient(rgba(247,245,238,0.045) 1px, transparent 1px);
+  background-size:20px 20px;
+}
+.seal-lg{ position:relative; width:220px; height:220px; opacity:0; transform:scale(0.7) rotate(-14deg); transition:opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.seal-lg.in{ opacity:1; transform:scale(1) rotate(0deg); }
+.seal-lg-ring-out{ position:absolute; inset:0; border-radius:50%; border:1.5px dashed rgba(199,148,51,0.55); }
+.seal-lg-ring-mid{ position:absolute; inset:16px; border-radius:50%; border:1px solid rgba(199,148,51,0.3); }
+.seal-lg-core{ position:absolute; inset:32px; border-radius:50%; background:linear-gradient(155deg,#16281F,#0E1A15); border:1px solid rgba(247,245,238,0.1); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; box-shadow:0 20px 50px rgba(0,0,0,0.4); }
+.seal-lg-core i{ color:var(--bronze-2); font-size:2rem; }
+.seal-lg-core span{ font-family:var(--font-mono); font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; color:rgba(247,245,238,0.55); }
+.seal-lg-caption{ position:absolute; bottom:-40px; left:50%; transform:translateX(-50%); white-space:nowrap; font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:rgba(247,245,238,0.4); }
+ 
 /* ============================================================
    INTERACTIVE DEMO
    ============================================================ */
-.demo-shell{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg);
-  padding:10px; display:grid; grid-template-columns:320px 1fr; gap:10px; overflow:hidden;
-}
-.demo-tabs{ display:flex; flex-direction:column; gap:6px; }
+.demo-shell{ display:grid; grid-template-columns:280px 1fr; gap:0; border:1px solid var(--line-2); border-radius:var(--radius-lg); overflow:hidden; background:var(--panel); box-shadow:var(--shadow); }
+.demo-tabs{ display:flex; flex-direction:column; background:var(--paper-2); border-right:1px solid var(--line-2); }
 .demo-tab{
-  display:flex; align-items:flex-start; gap:14px; padding:20px; border-radius:var(--radius);
-  background:transparent; border:1px solid transparent; cursor:pointer; text-align:left;
-  transition:all 0.3s var(--ease);
+  display:flex; align-items:center; gap:13px; padding:20px 18px; background:none; border:none; cursor:pointer;
+  text-align:left; border-bottom:1px solid var(--line); transition:background 0.25s;
 }
-.demo-tab i{ font-size:1.1rem; color:var(--ink-dim); margin-top:3px; transition:color 0.3s; }
-.demo-tab h4{ font-family:var(--font-body); font-size:0.95rem; font-weight:700; color:var(--ink); margin-bottom:3px; }
-.demo-tab p{ font-size:0.8rem; color:var(--ink-dim); line-height:1.5; }
-.demo-tab.active{ background:var(--surface-2); border-color:var(--border-2); }
-.demo-tab.active i{ color:var(--gold-2); }
-.demo-panel{
-  display:none; padding:32px; background:var(--bg-1); border-radius:var(--radius);
-  min-height:420px;
-}
-.demo-panel.active{ display:block; animation:fadeIn 0.5s var(--ease); }
-@keyframes fadeIn{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:translateY(0);} }
-
-.sim-grid{ display:grid; grid-template-columns:1fr 1fr; gap:34px; }
-.slider-group{ margin-bottom:26px; }
-.slider-label{ display:flex; justify-content:space-between; font-size:0.85rem; color:var(--ink-mid); margin-bottom:10px; }
-.slider-label span:last-child{ font-family:var(--font-mono); color:var(--gold-2); font-weight:600; }
-.slider-input{
-  -webkit-appearance:none; width:100%; height:4px; border-radius:2px;
-  background:var(--border-2); outline:none;
-}
-.slider-input::-webkit-slider-thumb{
-  -webkit-appearance:none; width:18px; height:18px; border-radius:50%;
-  background:var(--gold-2); cursor:pointer; box-shadow:0 0 0 5px var(--gold-dim);
-}
-.currency-select{ display:flex; gap:8px; margin-top:10px; }
-.currency-btn{
-  flex:1; padding:9px; border-radius:var(--radius-sm); background:var(--surface);
-  border:1px solid var(--border); color:var(--ink-mid); font-size:0.78rem; font-weight:600;
-  cursor:pointer; font-family:var(--font-mono); transition:all 0.25s;
-}
-.currency-btn.active{ background:var(--gold-dim); border-color:var(--gold); color:var(--gold-2); }
-.sim-display{
-  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
-  padding:26px; display:flex; flex-direction:column; justify-content:space-between;
-}
-.sim-label{ font-family:var(--font-mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim); margin-bottom:8px; }
-.sim-value{ font-family:var(--font-mono); font-size:2rem; font-weight:600; color:var(--emerald-2); margin-bottom:28px; }
-.sim-bars{ display:flex; gap:22px; align-items:flex-end; height:140px; }
-.sim-bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
-.sim-bar{ width:100%; border-radius:8px 8px 0 0; transition:height 0.4s var(--ease); }
-.sim-bar.income{ background:linear-gradient(180deg,var(--emerald-2),var(--emerald)); }
-.sim-bar.expense{ background:linear-gradient(180deg,#f0908a,var(--red)); }
-.sim-bar-col span{ margin-top:10px; font-size:0.75rem; color:var(--ink-dim); }
-
-.chat-box{ display:flex; flex-direction:column; height:100%; }
-.chat-msgs{ flex:1; min-height:220px; max-height:280px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; margin-bottom:20px; padding-right:6px; }
-.chat-bubble{ padding:13px 17px; border-radius:16px; font-size:0.88rem; line-height:1.55; max-width:88%; }
-.chat-bubble.ai{ background:var(--surface); border:1px solid var(--border); color:var(--ink-mid); border-bottom-left-radius:4px; }
-.chat-bubble.user{ background:var(--gold-dim); border:1px solid var(--gold); color:var(--ink); align-self:flex-end; border-bottom-right-radius:4px; }
+.demo-tab:hover{ background:rgba(15,110,92,0.06); }
+.demo-tab.active{ background:var(--panel); border-left:3px solid var(--verify); }
+.demo-tab i{ font-size:1.05rem; color:var(--navy); width:20px; text-align:center; }
+.demo-tab h4{ font-family:var(--font-body); font-size:0.9rem; font-weight:700; }
+.demo-tab p{ font-size:0.74rem; color:var(--ink-dim); margin-top:2px; }
+.demo-display{ padding:30px; min-height:380px; }
+.demo-panel{ display:none; animation:fadeIn 0.4s var(--ease); }
+.demo-panel.active{ display:block; }
+@keyframes fadeIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+ 
+.sim-grid{ display:grid; grid-template-columns:1fr 1fr; gap:32px; align-items:center; }
+.slider-group{ margin-bottom:20px; }
+.slider-label{ display:flex; justify-content:space-between; font-size:0.83rem; font-weight:600; margin-bottom:9px; font-family:var(--font-mono); }
+.slider-input{ width:100%; accent-color:var(--verify); height:5px; }
+.currency-select{ display:flex; gap:8px; }
+.currency-btn{ padding:8px 15px; border-radius:var(--radius-pill); border:1.5px solid var(--line-2); background:var(--panel); font-family:var(--font-mono); font-size:0.76rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.currency-btn.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+.sim-display{ background:var(--paper-2); border:1px solid var(--line-2); border-radius:var(--radius); padding:22px; text-align:center; }
+.sim-label{ font-family:var(--font-mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-dim); margin-bottom:8px; }
+.sim-value{ font-family:var(--font-mono); font-size:2rem; font-weight:600; color:var(--verify); margin-bottom:18px; font-variant-numeric:tabular-nums; }
+.sim-bars{ display:flex; justify-content:center; gap:24px; align-items:flex-end; height:104px; }
+.sim-bar-col{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+.sim-bar{ width:32px; border-radius:5px 5px 0 0; transition:height 0.4s var(--ease); }
+.sim-bar.income{ background:var(--verify); }
+.sim-bar.expense{ background:var(--rust); }
+.sim-bar-col span{ font-size:0.7rem; color:var(--ink-dim); font-family:var(--font-mono); }
+ 
+.chat-box{ display:flex; flex-direction:column; height:340px; }
+.chat-msgs{ flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:11px; padding-right:6px; margin-bottom:15px; }
+.chat-bubble{ padding:11px 15px; border-radius:13px; font-size:0.85rem; line-height:1.55; max-width:85%; border:1px solid var(--line-2); }
+.chat-bubble.ai{ background:var(--paper-2); align-self:flex-start; border-bottom-left-radius:4px; }
+.chat-bubble.user{ background:var(--navy); color:var(--paper); align-self:flex-end; border-bottom-right-radius:4px; border-color:var(--navy); }
 .chat-suggest{ display:flex; flex-direction:column; gap:8px; }
-.chat-chip{
-  text-align:left; padding:12px 16px; border-radius:var(--radius-sm); background:var(--surface);
-  border:1px solid var(--border); color:var(--ink-mid); font-size:0.82rem; cursor:pointer;
-  transition:all 0.25s; font-family:var(--font-body);
-}
-.chat-chip:hover{ border-color:var(--gold); color:var(--ink); background:var(--gold-dim); }
-
-.inv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:34px; }
-.inv-field{ margin-bottom:16px; }
-.inv-field label{ display:block; font-size:0.78rem; color:var(--ink-dim); margin-bottom:7px; }
-.inv-input{
-  width:100%; padding:12px 14px; border-radius:var(--radius-sm); background:var(--surface);
-  border:1px solid var(--border); color:var(--ink); font-family:var(--font-body); font-size:0.9rem;
-}
-.inv-input:focus{ outline:none; border-color:var(--gold); }
-.inv-check{ display:flex; align-items:center; gap:9px; margin:16px 0 20px; font-size:0.85rem; color:var(--ink-mid); }
-.inv-sheet{
-  background:#f6f2e8; color:#20190c; border-radius:var(--radius); padding:26px;
-  font-family:var(--font-body);
-}
-.inv-sheet-head{ display:flex; justify-content:space-between; padding-bottom:16px; border-bottom:1px solid #ddd4be; margin-bottom:16px; }
-.inv-sheet-head .brand{ font-family:var(--font-mono); font-weight:700; letter-spacing:0.05em; font-size:0.85rem; }
-.inv-sheet-head .meta{ text-align:right; font-size:0.72rem; color:#7a6f57; }
-.inv-sheet .billed-to{ font-size:0.68rem; text-transform:uppercase; color:#8a8069; margin-bottom:4px; }
-.inv-table{ width:100%; border-collapse:collapse; margin:16px 0; font-size:0.85rem; }
-.inv-table th{ text-align:left; font-size:0.68rem; text-transform:uppercase; color:#8a8069; padding-bottom:8px; border-bottom:1px solid #ddd4be; }
-.inv-table td{ padding:10px 0; border-bottom:1px solid #ece5d3; }
-.inv-totals-row{ display:flex; justify-content:space-between; font-size:0.85rem; padding:5px 0; color:#5a5140; }
-.inv-totals-row.grand{ font-weight:700; font-size:1rem; color:#20190c; border-top:1px solid #ddd4be; margin-top:6px; padding-top:12px; }
-
-.demo-toast{
-  position:fixed; bottom:-120px; left:50%; transform:translateX(-50%);
-  background:var(--emerald); color:#08160f; padding:14px 26px; border-radius:var(--radius-pill);
-  font-weight:700; font-size:0.88rem; box-shadow:var(--shadow-lg); z-index:2000;
-  transition:bottom 0.4s var(--ease); display:flex; align-items:center; gap:10px;
-  pointer-events:none;
-}
-.demo-toast.show{ bottom:30px; pointer-events:auto; }
-
+.chat-chip{ text-align:left; padding:11px 15px; border:1.5px solid var(--line-2); border-radius:11px; background:var(--panel); font-size:0.81rem; cursor:pointer; transition:all 0.2s; }
+.chat-chip:hover{ background:var(--verify-dim); border-color:var(--verify); transform:translateX(2px); }
+ 
+.inv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+.inv-field{ margin-bottom:15px; }
+.inv-field label{ display:block; font-size:0.76rem; font-weight:600; margin-bottom:6px; color:var(--ink-mid); }
+.inv-input{ width:100%; padding:10px 13px; border:1.5px solid var(--line-2); border-radius:var(--radius-sm); font-family:var(--font-body); font-size:0.88rem; background:var(--panel); color:var(--ink); }
+.inv-input:focus{ outline:none; border-color:var(--verify); box-shadow:0 0 0 3px var(--verify-dim); }
+.inv-check{ display:flex; align-items:center; gap:8px; margin-bottom:16px; font-size:0.83rem; }
+.inv-sheet{ background:var(--panel); border:1px solid var(--line-2); border-radius:var(--radius); padding:22px; }
+.inv-sheet-head{ display:flex; justify-content:space-between; margin-bottom:18px; padding-bottom:15px; border-bottom:1px dashed var(--line-2); }
+.inv-sheet-head .brand{ font-family:var(--font-display); font-weight:700; color:var(--navy); }
+.billed-to{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-dim); margin-bottom:6px; }
+.inv-table{ width:100%; border-collapse:collapse; margin:13px 0; font-size:0.84rem; }
+.inv-table th{ text-align:left; padding-bottom:8px; border-bottom:1px solid var(--line-2); font-size:0.7rem; text-transform:uppercase; color:var(--ink-dim); }
+.inv-table td{ padding:9px 0; border-bottom:1px solid var(--line); }
+.inv-totals-row{ display:flex; justify-content:space-between; padding:6px 0; font-size:0.84rem; color:var(--ink-mid); }
+.inv-totals-row.grand{ font-weight:700; font-size:1.02rem; color:var(--ink); border-top:1.5px solid var(--ink); padding-top:11px; margin-top:7px; }
+ 
 /* ============================================================
-   METRICS BAND
+   METRICS — statement row list
    ============================================================ */
-.metrics{
-  display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
-  background:var(--border); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden;
-}
-.metric{ background:var(--bg-1); padding:38px 28px; text-align:center; }
-.metric-num{ font-family:var(--font-mono); font-size:2.6rem; font-weight:600; color:var(--gold-2); margin-bottom:6px; }
-.metric-label{ font-size:0.85rem; color:var(--ink-dim); }
-
-/* ============================================================
-   TESTIMONIALS
-   ============================================================ */
-.testi-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
-.testi-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:30px; }
-.testi-stars{ color:var(--gold-2); font-size:0.8rem; margin-bottom:16px; letter-spacing:2px; }
-.testi-text{ font-size:0.92rem; color:var(--ink-mid); line-height:1.7; margin-bottom:22px; }
-.testi-profile{ display:flex; align-items:center; gap:12px; }
-.testi-avatar{
-  width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-mono); font-weight:700; font-size:0.8rem; color:#0c0f0c;
-  background:linear-gradient(135deg,var(--emerald-2),var(--gold-2));
-}
-.testi-info h5{ font-family:var(--font-body); font-size:0.88rem; color:var(--ink); }
-.testi-info p{ font-size:0.76rem; color:var(--ink-dim); }
-
+.metrics{ display:flex; flex-direction:column; border-top:1.5px solid var(--ink); }
+.metric{ display:flex; align-items:baseline; justify-content:space-between; padding:24px 4px; border-bottom:1.5px solid var(--ink); }
+.metric-num{ font-family:var(--font-mono); font-size:clamp(2rem,3.6vw,2.8rem); font-weight:600; color:var(--navy); font-variant-numeric:tabular-nums; }
+.metric-label{ font-family:var(--font-mono); font-size:0.82rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:0.05em; text-align:right; }
+ 
 /* ============================================================
    FAQ
    ============================================================ */
-.faq-list{ max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
-.faq-item{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:border-color 0.3s; }
-.faq-item.active{ border-color:var(--border-2); }
-.faq-q{ display:flex; justify-content:space-between; align-items:center; padding:22px 26px; font-weight:600; font-size:0.96rem; }
-.faq-q i{ color:var(--gold-2); transition:transform 0.35s var(--ease); flex-shrink:0; margin-left:16px; }
+.faq-list{ max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:9px; }
+.faq-item{ background:var(--panel); border:1px solid var(--line-2); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:border-color 0.25s; }
+.faq-item:hover{ border-color:var(--line-2); box-shadow:var(--shadow-sm); }
+.faq-q{ display:flex; justify-content:space-between; align-items:center; padding:19px 22px; font-weight:600; font-size:0.94rem; }
+.faq-q i{ color:var(--verify); transition:transform 0.35s var(--ease); flex-shrink:0; margin-left:16px; }
 .faq-item.active .faq-q i{ transform:rotate(45deg); }
 .faq-a{ max-height:0; overflow:hidden; transition:max-height 0.4s var(--ease); }
-.faq-a-inner{ padding:0 26px 22px; color:var(--ink-mid); font-size:0.9rem; line-height:1.7; }
+.faq-a-inner{ padding:0 22px 19px; color:var(--ink-mid); font-size:0.89rem; line-height:1.7; }
 .faq-item.active .faq-a{ max-height:220px; }
-
+ 
 /* ============================================================
    CTA + FOOTER
    ============================================================ */
 .cta-band{
   margin:0 6%; max-width:1180px; margin-left:auto; margin-right:auto;
-  background:linear-gradient(135deg,rgba(var(--gold-rgb),0.1),rgba(var(--emerald-rgb),0.06));
-  border:1px solid var(--border-2); border-radius:var(--radius-lg);
-  padding:70px 40px; text-align:center; position:relative; overflow:hidden;
+  background:var(--ink); border-radius:var(--radius-lg);
+  padding:64px 40px; text-align:center; position:relative; overflow:hidden;
 }
 .cta-band::before{
-  content:''; position:absolute; inset:0;
-  background:radial-gradient(circle at 30% 20%, rgba(var(--gold-rgb),0.16), transparent 55%);
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:repeating-linear-gradient(-45deg, var(--bronze-2) 0 8px, transparent 8px 16px);
+  opacity:0.7;
 }
-.cta-title{ font-size:clamp(2.2rem,4.6vw,3.4rem); margin-bottom:16px; position:relative; }
-.cta-desc{ color:var(--ink-mid); max-width:520px; margin:0 auto 34px; line-height:1.7; position:relative; }
-
-.footer{ border-top:1px solid var(--border); padding:80px 6% 36px; margin-top:130px; }
-.footer-top{ max-width:1180px; margin:0 auto 56px; display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:50px; }
-.footer-brand{ display:flex; flex-direction:column; gap:16px; align-items:flex-start; }
-.footer-logo{ display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--font-display); font-size:1.5rem; font-weight:700; color:var(--ink); }
-.footer-desc{ font-size:0.85rem; color:var(--ink-dim); max-width:300px; line-height:1.65; }
-.footer-col h5{ font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-mid); margin-bottom:20px; }
-.footer-links{ list-style:none; display:flex; flex-direction:column; gap:12px; }
-.footer-links a{ font-size:0.86rem; color:var(--ink-dim); text-decoration:none; transition:color 0.3s; }
-.footer-links a:hover{ color:var(--gold-2); }
+.cta-title{ font-size:clamp(1.9rem,3.8vw,2.7rem); margin-bottom:14px; position:relative; color:var(--paper); }
+.cta-desc{ color:rgba(247,245,238,0.66); max-width:500px; margin:0 auto 30px; line-height:1.7; position:relative; }
+ 
+.footer{ border-top:1px solid var(--line); padding:64px 6% 30px; margin-top:110px; }
+.footer-top{ max-width:1180px; margin:0 auto 46px; display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:44px; }
+.footer-brand{ display:flex; flex-direction:column; gap:13px; align-items:flex-start; }
+.footer-logo{ display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--font-display); font-size:1.3rem; font-weight:700; color:var(--ink); }
+.footer-desc{ font-size:0.84rem; color:var(--ink-dim); max-width:300px; line-height:1.65; }
+.footer-col h5{ font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-mid); margin-bottom:16px; }
+.footer-links{ list-style:none; display:flex; flex-direction:column; gap:10px; }
+.footer-links a{ font-size:0.85rem; color:var(--ink-dim); text-decoration:none; transition:color 0.3s; }
+.footer-links a:hover{ color:var(--verify); }
 .footer-bottom{
-  max-width:1180px; margin:0 auto; border-top:1px solid var(--border); padding-top:28px;
-  display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--ink-faint);
+  max-width:1180px; margin:0 auto; border-top:1px solid var(--line); padding-top:24px;
+  display:flex; justify-content:space-between; align-items:center; font-size:0.77rem; color:var(--ink-faint);
   flex-wrap:wrap; gap:16px;
 }
-.footer-socials{ display:flex; gap:14px; }
+.footer-socials{ display:flex; gap:11px; }
 .footer-socials a{
-  width:36px; height:36px; border-radius:50%; background:var(--surface); border:1px solid var(--border);
+  width:34px; height:34px; border-radius:50%; background:var(--panel); border:1px solid var(--line-2);
   color:var(--ink-mid); display:flex; align-items:center; justify-content:center; text-decoration:none;
-  transition:all 0.3s;
+  transition:all 0.25s;
 }
-.footer-socials a:hover{ background:var(--gold-dim); color:var(--gold-2); border-color:var(--gold); }
-
+.footer-socials a:hover{ background:var(--ink); color:var(--bronze-2); border-color:var(--ink); }
+ 
 /* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width:1024px){
-  .hero{ grid-template-columns:1fr; text-align:center; padding-top:150px; gap:56px; }
+  .hero{ grid-template-columns:1fr; text-align:center; padding-top:132px; gap:48px; }
   .hero-content{ align-items:center; }
-  .hero-visual{ max-width:520px; margin:0 auto; width:100%; height:480px; }
-  .chip-1{ left:2%; } .chip-2{ right:2%; } .chip-3{ display:none; }
+  .trust-row{ justify-content:center; margin-left:auto; margin-right:auto; }
+  .hero-visual{ max-width:440px; margin:0 auto; width:100%; height:440px; }
+  .hero-title .word{ display:inline-block; }
   .bento{ grid-template-columns:repeat(2,1fr); }
   .f-card, .f-card.wide{ grid-column:span 1; }
+  .tour-grid{ grid-template-columns:1fr; }
   .demo-shell{ grid-template-columns:1fr; }
-  .demo-tabs{ flex-direction:row; overflow-x:auto; }
-  .demo-tab{ flex:1; min-width:180px; }
+  .demo-tabs{ flex-direction:row; overflow-x:auto; border-right:none; border-bottom:1px solid var(--line-2); }
+  .demo-tab{ flex:1; min-width:170px; border-bottom:none; }
   .sim-grid, .inv-grid{ grid-template-columns:1fr; }
-  .metrics{ grid-template-columns:repeat(2,1fr); }
-  .testi-grid{ grid-template-columns:1fr; }
-  .footer-top{ grid-template-columns:1fr; gap:36px; }
+  .metric{ flex-direction:column; align-items:flex-start; gap:6px; }
+  .metric-label{ text-align:left; }
+  .footer-top{ grid-template-columns:1fr; gap:32px; }
+  .security-inner{ grid-template-columns:1fr; }
+  .security-visual{ padding:60px 40px; }
+  .security-copy{ padding:48px 36px; }
 }
 @media (max-width:768px){
   .nav-menu, .nav-cta{ display:none; }
   .menu-toggle{ display:flex; }
-  .section{ padding:90px 6%; }
-  .ticker-item{ padding:0 22px; font-size:0.78rem; }
+  .section{ padding:76px 6%; }
+  .ticker-item{ padding:0 18px; font-size:0.76rem; }
+  .statement{ width:88vw; }
+  .trust-bar-inner{ gap:12px 20px; }
 }
-
-.nrsi {
-  text-decoration: none;
-  cursor: pointer;
-}
-
 </style>
-  <link rel="stylesheet" href="phyzelyne-theme.css">
-  <link rel="stylesheet" href="phyzelyne-polish.css">
 </head>
 <body>
-
-<div class="field">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-</div>
-
+ 
+<div class="scroll-progress" id="scrollProgress"></div>
+ 
+<div class="field"></div>
+ 
 <div class="wrap">
-
+ 
   <!-- NAV -->
   <nav class="nav" id="nav">
     <a href="#" class="nav-logo">
@@ -560,101 +567,94 @@ h1,h2,h3,h4{ font-family:var(--font-display); font-weight:700; color:var(--ink);
       <span class="nav-logo-text">Phyzelyne</span>
     </a>
     <div class="nav-menu">
-      <a href="rdf.html" class="nav-link">Request Demo</a>
+      <a href="#security" class="nav-link">Security</a>
       <a href="#features" class="nav-link">Features</a>
       <a href="#demo" class="nav-link">Live Demo</a>
       <a href="#faq" class="nav-link">FAQ</a>
     </div>
     <div class="nav-right">
-      <div class="nav-cta"><a href="login.html" class="nrsi">Sign In</a></div>
-      <div class="nav-cta"><a href="signup.html" class="btn btn-gold btn-sm">Get Started<i class="fas fa-arrow"></i></a></div>
+      <div class="nav-cta"><a href="login.html" class="nrsi">Sign in</a></div>
+      <div class="nav-cta"><a href="signup.html" class="btn btn-primary btn-sm">Get started<i class="fas fa-arrow-right"></i></a></div>
       <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
     </div>
   </nav>
   <div class="mobile-sheet" id="mobileSheet">
-
-    <a href="efd.html">Request Demo</a>
+    <a href="#security">Security</a>
     <a href="#features">Features</a>
     <a href="#demo">Live Demo</a>
     <a href="#faq">FAQ</a>
-    <a href="login.html" class="nrsi">Sign In</a>
-    <a href="signup.html" class="btn btn-gold">Get Started Free</a>
+    <a href="login.html" class="nrsi">Sign in</a>
+    <a href="signup.html" class="btn btn-primary">Get started free</a>
   </div>
-
+ 
   <!-- HERO -->
   <header class="hero">
     <div class="hero-content reveal">
-      <span class="eyebrow">The Financial Operating System</span>
-      <h1 class="hero-title">Your money,<br>read like a <em>chart</em>.</h1>
+      <span class="eyebrow">Financial infrastructure for multi-currency work</span>
+      <h1 class="hero-title" id="heroTitle">
+        <span class="word"><span>Every</span></span> <span class="word"><mark><span>cedi</span></mark></span><span class="word"><span>,</span></span> <span class="word"><span>dollar,</span></span><br>
+        <span class="word"><span>and</span></span> <span class="word"><span>naira</span></span> <span class="word"><span>—</span></span> <span class="word"><span>accounted</span></span> <span class="word"><span>for.</span></span>
+      </h1>
       <p class="hero-desc">
-        Phyzelyne turns income, expenses, and invoices across 150+ currencies into one live picture — with an AI coach reading the tape for you, 24/7.
+        Phyzelyne is where freelancers and small teams log income, send invoices, and get plain-language coaching across 150+ currencies — <b>without handing over a single bank password.</b>
       </p>
       <div class="hero-btns">
-        <a href="rdf.html" class="btn btn-gold">Request Demo</a>
-        <a href="signup.html" class="btn btn-glass">Sign Up</a>
+        <a href="signup.html" class="btn btn-primary">Get started free<i class="fas fa-arrow-right"></i></a>
+        <a href="rdf.html" class="btn btn-ghost">Request a demo</a>
       </div>
-      <div class="hero-proof">
-        <p><strong>Become</strong> one of the first users to use Phyzelyne</p>
+      <p class="hero-proof"><strong>Free to start</strong> · No card required · Built in West Africa, priced for it</p>
+      <div class="trust-row">
+        <span><i class="fas fa-lock"></i> Encrypted in transit &amp; at rest</span>
+        <span><i class="fas fa-user-shield"></i> Two-factor authentication</span>
+        <span><i class="fas fa-ban"></i> No bank credentials, ever</span>
       </div>
     </div>
-
+ 
     <div class="hero-visual reveal" id="heroVisual">
-      <div class="panel panel-main" id="panelMain">
-        <div class="panel-head">
-          <div class="dots"><span></span><span></span><span></span></div>
-          <span class="panel-tag">Phyzelyne · Live Cashflow</span>
-          <i class="fas fa-expand" style="color:var(--ink-faint);font-size:0.75rem;"></i>
+      <div class="statement" id="statementCard">
+        <div class="seal">
+          <div class="seal-ring"></div>
+          <div class="seal-core"><i class="fas fa-check"></i></div>
         </div>
-        <div class="panel-balance-label">Total Balance · GHS</div>
-        <div class="panel-balance">
-          <span id="heroBalance">₵0</span>
-          <span class="delta"><i class="fas fa-arrow-trend-up"></i> +18.4%</span>
+        <div class="statement-head">
+          <div>
+            <div class="stag">Phyzelyne · This Month</div>
+            <h4>Cashflow Statement</h4>
+          </div>
         </div>
-        <div class="chart-holder">
-          <svg viewBox="0 0 460 170" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#2fae72"/>
-                <stop offset="100%" stop-color="#d9a521"/>
-              </linearGradient>
-              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#2fae72" stop-opacity="0.32"/>
-                <stop offset="100%" stop-color="#2fae72" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <g class="chart-grid">
-              <line x1="0" y1="30" x2="460" y2="30"/>
-              <line x1="0" y1="80" x2="460" y2="80"/>
-              <line x1="0" y1="130" x2="460" y2="130"/>
-            </g>
-            <path class="chart-area" id="chartArea" d="" />
-            <path class="chart-line" id="chartLine" d="" pathLength="1" />
-            <circle class="chart-dot" id="chartDot" r="4.5" cx="0" cy="0"/>
-          </svg>
-        </div>
-        <div class="panel-months"><span>FEB</span><span>MAR</span><span>APR</span><span>MAY</span><span>JUN</span><span>JUL</span></div>
+        <div class="statement-row"><span>Income received</span><b id="rIncome">₵0</b></div>
+        <div class="statement-row"><span>Expenses tracked</span><b id="rExpense">₵0</b></div>
+        <div class="statement-row good"><span>AI Coach flagged</span><b>3 subscriptions</b></div>
+        <div class="statement-row good"><span>Invoice #004</span><b>Paid</b></div>
+        <div class="statement-total"><span>Net balance</span><b id="rTotal">₵0</b></div>
       </div>
-
-      <div class="panel chip chip-1" id="chip1">
+ 
+      <div class="chip chip-1" id="chip1">
         <div class="chip-icon"><i class="fas fa-piggy-bank"></i></div>
-        <div><div class="chip-label">Savings Rate</div><div class="chip-value">32%</div></div>
+        <div><div class="chip-label">Savings rate</div><div class="chip-value">32%</div></div>
       </div>
-      <div class="panel chip chip-2" id="chip2">
-        <div class="chip-icon"><i class="fas fa-brain"></i></div>
-        <div><div class="chip-label">Phyzelyne AI</div><div class="chip-value" style="font-size:0.78rem;font-family:var(--font-body);font-weight:600;">3 subs flagged</div></div>
-      </div>
-      <div class="panel chip chip-3" id="chip3">
-        <div class="chip-icon"><i class="fas fa-file-invoice"></i></div>
-        <div><div class="chip-label">Invoice #004</div><div class="chip-value" style="color:var(--emerald-2);">Paid</div></div>
+      <div class="chip chip-2" id="chip2">
+        <div class="chip-icon"><i class="fas fa-globe"></i></div>
+        <div><div class="chip-label">Currencies</div><div class="chip-value">150+</div></div>
       </div>
     </div>
   </header>
-
+ 
+  <!-- TRUST BAR -->
+  <div class="trust-bar">
+    <div class="trust-bar-inner">
+      <span><i class="fas fa-shield-halved"></i> Bank-grade encryption</span>
+      <span><i class="fas fa-database"></i> Isolated, per-account storage</span>
+      <span><i class="fas fa-key"></i> Two-factor authentication built in</span>
+      <span><i class="fas fa-hand"></i> You decide what gets logged</span>
+    </div>
+  </div>
+ 
   <!-- TICKER -->
   <div class="ticker">
     <div class="ticker-track" id="tickerTrack"></div>
   </div>
-
+ 
   <!-- FEATURES -->
   <section class="section" id="features">
     <div class="section-head reveal">
@@ -662,191 +662,283 @@ h1,h2,h3,h4{ font-family:var(--font-display); font-weight:700; color:var(--ink);
       <h2 class="section-title">Designed for modern capital.</h2>
       <p class="section-sub">Whether you're managing multi-currency freelance income, running a small business, or building personal wealth — Phyzelyne adapts to how you actually earn and spend.</p>
     </div>
-
+ 
     <div class="bento reveal-stagger">
-      <div class="f-card wide">
+      <div class="f-card wide" style="--f-accent:var(--navy);--f-accent-dim:var(--navy-dim);">
         <div class="f-icon"><i class="fas fa-brain"></i></div>
-        <h3>AI Finance Coach</h3>
-        <p>An intelligent advisor in your pocket. Phyzelyne reads your cashflow behavior, flags subscription spikes, and gives tailored, plain-language guidance — day or night.</p>
+        <h3>AI finance coach</h3>
+        <p>Type or talk to it. Phyzelyne reads your real cashflow and invoices, flags subscription creep, and answers in plain language — any hour.</p>
       </div>
-      <div class="f-card wide">
+      <div class="f-card wide" style="--f-accent:var(--bronze);--f-accent-dim:var(--bronze-dim);">
         <div class="f-icon"><i class="fas fa-globe"></i></div>
-        <h3>Global Currencies</h3>
-        <p>Track capital across GHS, NGN, USD, EUR, and 150+ currencies. Built for remote professionals and locally-rooted businesses alike.</p>
+        <h3>Global currencies</h3>
+        <p>Track money in GHS, NGN, USD, EUR, and 150+ others, side by side in one ledger.</p>
       </div>
       <div class="f-card">
         <div class="f-icon"><i class="fas fa-file-invoice-dollar"></i></div>
-        <h3>Smart Invoicing</h3>
-        <p>Draft and send polished invoices in seconds, and track client payments without mixing business and personal funds.</p>
+        <h3>Smart invoicing</h3>
+        <p>Build a professional invoice in under a minute, and see the moment a client pays.</p>
       </div>
       <div class="f-card">
         <div class="f-icon"><i class="fas fa-chart-line"></i></div>
-        <h3>Live Analytics</h3>
-        <p>Net worth trends, category breakdowns, and savings velocity — visualized clearly, updated the moment you log a transaction.</p>
+        <h3>Live analytics</h3>
+        <p>Net worth, category spending, and savings pace — updated the second you log something.</p>
       </div>
       <div class="f-card">
         <div class="f-icon"><i class="fas fa-bullseye"></i></div>
-        <h3>Goal Architecture</h3>
-        <p>Set savings targets and Phyzelyne calculates the monthly pace to hit them — celebrating every milestone on the way.</p>
+        <h3>Goal architecture</h3>
+        <p>Set a target and Phyzelyne works out the monthly pace to hit it — and tells you when you're off track.</p>
       </div>
       <div class="f-card">
         <div class="f-icon"><i class="fas fa-lock"></i></div>
-        <h3>Absolute Integrity</h3>
-        <p>Your financial data is encrypted end-to-end. Multi-factor authentication keeps it exclusively yours.</p>
+        <h3>Privacy by design</h3>
+        <p>Your ledger is encrypted and walled off per account. Two-factor authentication is built in, not bolted on.</p>
       </div>
     </div>
   </section>
-
+ 
+  <!-- PRODUCT TOUR -->
+  <section class="section" id="tour">
+    <div class="section-head reveal">
+      <span class="eyebrow">Inside the app</span>
+      <h2 class="section-title">Every module, one login.</h2>
+      <p class="section-sub">Dashboard, invoicing, and your AI coach share one live data layer — log an expense on one screen and it's already reflected everywhere else.</p>
+    </div>
+ 
+    <div class="tour-grid">
+      <div class="tour-card reveal">
+        <div class="tour-mock">
+          <div class="tm-row">
+            <div class="tm-stat"><span class="tm-label">Net worth</span><span class="tm-val up">+12.4%</span></div>
+            <div class="tm-stat"><span class="tm-label">This month</span><span class="tm-val">₵14,248</span></div>
+          </div>
+          <div class="tm-bars"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <h4>Dashboard</h4>
+        <p>One view of every account, category, and currency — updated live as you log entries.</p>
+      </div>
+      <div class="tour-card reveal">
+        <div class="tour-mock">
+          <div class="tm-chat" style="display:flex;flex-direction:column;">
+            <div class="tm-bubble ai">Your dining spend is up 18% this month — want a target?</div>
+            <div class="tm-bubble user">Yes, set one</div>
+          </div>
+        </div>
+        <h4>AI coach</h4>
+        <p>A conversational advisor that reads your actual numbers, not generic budgeting tips.</p>
+      </div>
+      <div class="tour-card reveal">
+        <div class="tour-mock">
+          <div class="tm-invoice">
+            <div class="tm-inv-head"><span>INV-004</span><span class="tm-paid">Paid</span></div>
+            <div class="tm-inv-row"><span>UI/UX Product Design</span><span>$1,500.00</span></div>
+            <div class="tm-inv-row muted"><span>Sent 6 days ago</span><span>Client: Acme Co.</span></div>
+          </div>
+        </div>
+        <h4>Invoicing</h4>
+        <p>Draft, send, and track invoices without mixing business and personal funds.</p>
+      </div>
+    </div>
+  </section>
+ 
+  <!-- SECURITY & TRUST -->
+  <section class="section" id="security" style="padding-top:0;">
+    <div class="security reveal">
+      <div class="security-inner">
+        <div class="security-copy">
+          <span class="eyebrow">Security &amp; trust</span>
+          <h2>Nothing here works without your say-so.</h2>
+          <p>Phyzelyne doesn't connect to your bank, doesn't sell your data, and doesn't guess what to log. You're always the one entering the numbers — we just make sense of them.</p>
+          <ul class="security-list">
+            <li>
+              <div class="sec-ico"><i class="fas fa-lock"></i></div>
+              <div>
+                <h5>Encrypted, always</h5>
+                <p>Every entry, invoice, and coaching note is encrypted in transit and at rest using industry-standard methods.</p>
+              </div>
+            </li>
+            <li>
+              <div class="sec-ico"><i class="fas fa-database"></i></div>
+              <div>
+                <h5>Nothing pooled, nothing shared</h5>
+                <p>Your ledger lives in isolated, per-account storage — never mixed with other users' data.</p>
+              </div>
+            </li>
+            <li>
+              <div class="sec-ico"><i class="fas fa-key"></i></div>
+              <div>
+                <h5>You hold the keys</h5>
+                <p>Two-factor authentication comes standard, and Phyzelyne never asks for a bank login or card number.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="security-visual">
+          <div class="seal-lg" id="sealLg">
+            <div class="seal-lg-ring-out"></div>
+            <div class="seal-lg-ring-mid"></div>
+            <div class="seal-lg-core">
+              <i class="fas fa-shield-check"></i>
+              <span>Verified ledger</span>
+            </div>
+            <div class="seal-lg-caption">Encrypted · Isolated · Yours</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+ 
   <!-- INTERACTIVE DEMO -->
   <section class="section" id="demo">
     <div class="section-head reveal">
-      <span class="eyebrow">Try It Now</span>
-      <h2 class="section-title">See how Phyzelyne works.</h2>
-      <p class="section-sub">No signup needed. Toggle between the tools below to feel how cashflow tracking, AI coaching, and invoicing behave inside Phyzelyne.</p>
+      <span class="eyebrow">Try it now</span>
+      <h2 class="section-title">No sign-up. Just numbers.</h2>
+      <p class="section-sub">Three real moments from the product — a cashflow simulation, a coaching conversation, and an invoice — running with sample data right here.</p>
     </div>
-
+ 
     <div class="demo-shell reveal">
       <div class="demo-tabs">
-        <button class="demo-tab active" data-tab="0">
-          <i class="fas fa-chart-pie"></i>
-          <div><h4>Cashflow Simulator</h4><p>Adjust income & expenses live.</p></div>
+        <button class="demo-tab active" data-tab="sim">
+          <i class="fas fa-sliders"></i>
+          <div><h4>Cashflow simulator</h4><p>Drag income &amp; expenses</p></div>
         </button>
-        <button class="demo-tab" data-tab="1">
-          <i class="fas fa-robot"></i>
-          <div><h4>AI Advisor Chat</h4><p>Talk to the simulated coach.</p></div>
+        <button class="demo-tab" data-tab="chat">
+          <i class="fas fa-comments"></i>
+          <div><h4>AI advisor</h4><p>Ask a real question</p></div>
         </button>
-        <button class="demo-tab" data-tab="2">
-          <i class="fas fa-file-invoice-dollar"></i>
-          <div><h4>Invoice Builder</h4><p>Generate a receipt instantly.</p></div>
+        <button class="demo-tab" data-tab="invoice">
+          <i class="fas fa-file-invoice"></i>
+          <div><h4>Invoice builder</h4><p>Fill in and send</p></div>
         </button>
       </div>
-
+ 
       <div class="demo-display">
-        <!-- Panel 0 -->
-        <div class="demo-panel active" id="panel-0">
+        <div class="demo-panel active" id="panel-sim">
+          <div class="currency-select" style="margin-bottom:20px;">
+            <button class="currency-btn active" data-sym="$" data-cur="USD">USD</button>
+            <button class="currency-btn" data-sym="₵" data-cur="GHS">GHS</button>
+            <button class="currency-btn" data-sym="₦" data-cur="NGN">NGN</button>
+          </div>
           <div class="sim-grid">
             <div>
               <div class="slider-group">
-                <div class="slider-label"><span>Monthly Income</span><span id="incomeVal">$5,000</span></div>
-                <input type="range" class="slider-input" id="incomeSlider" min="1000" max="15000" value="5000">
+                <div class="slider-label"><span>Monthly income</span><span id="incomeVal">$0</span></div>
+                <input type="range" class="slider-input" id="incomeSlider" min="500" max="15000" value="6000" step="100">
               </div>
               <div class="slider-group">
-                <div class="slider-label"><span>Monthly Expenses</span><span id="expenseVal">$2,400</span></div>
-                <input type="range" class="slider-input" id="expenseSlider" min="500" max="10000" value="2400">
-              </div>
-              <div class="slider-group">
-                <span class="slider-label" style="display:block;margin-bottom:10px;">Display Currency</span>
-                <div class="currency-select">
-                  <button class="currency-btn active" data-cur="USD" data-sym="$">USD</button>
-                  <button class="currency-btn" data-cur="GHS" data-sym="₵">GHS</button>
-                  <button class="currency-btn" data-cur="NGN" data-sym="₦">NGN</button>
-                </div>
+                <div class="slider-label"><span>Monthly expenses</span><span id="expenseVal">$0</span></div>
+                <input type="range" class="slider-input" id="expenseSlider" min="500" max="15000" value="4200" step="100">
               </div>
             </div>
             <div class="sim-display">
-              <div>
-                <div class="sim-label">Projected Net Monthly Savings</div>
-                <div class="sim-value" id="netSavings">$2,600</div>
-              </div>
+              <div class="sim-label">Net savings</div>
+              <div class="sim-value" id="netSavings">$0</div>
               <div class="sim-bars">
-                <div class="sim-bar-col"><div class="sim-bar income" id="barInc" style="height:70%;"></div><span>Income</span></div>
-                <div class="sim-bar-col"><div class="sim-bar expense" id="barExp" style="height:33.6%;"></div><span>Expense</span></div>
+                <div class="sim-bar-col"><div class="sim-bar income" id="barInc" style="height:40%;"></div><span>Income</span></div>
+                <div class="sim-bar-col"><div class="sim-bar expense" id="barExp" style="height:28%;"></div><span>Expenses</span></div>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Panel 1 -->
-        <div class="demo-panel" id="panel-1">
+ 
+        <div class="demo-panel" id="panel-chat">
           <div class="chat-box">
             <div class="chat-msgs" id="chatMsgs">
-              <div class="chat-bubble ai">Hi — I'm your Phyzelyne AI Coach. Pick a question below or imagine asking me anything about your budget.</div>
+              <div class="chat-bubble ai">Hi — ask me anything about the sample cashflow below.</div>
             </div>
             <div class="chat-suggest">
-              <button class="chat-chip" data-q="How can I save 20% of my income?">"How can I save 20% of my income?"</button>
-              <button class="chat-chip" data-q="Analyze my dining budget">"Analyze my dining budget"</button>
-              <button class="chat-chip" data-q="Can I afford a $800 purchase?">"Can I afford a $800 purchase?"</button>
+              <button class="chat-chip" data-q="How can I save 20% of my income?">How can I save 20% of my income?</button>
+              <button class="chat-chip" data-q="Analyze my dining budget">Analyze my dining budget</button>
+              <button class="chat-chip" data-q="Can I afford a $800 purchase?">Can I afford a $800 purchase?</button>
             </div>
           </div>
         </div>
-
-        <!-- Panel 2 -->
-        <div class="demo-panel" id="panel-2">
+ 
+        <div class="demo-panel" id="panel-invoice">
           <div class="inv-grid">
             <div>
-              <div class="inv-field"><label>Client Name</label><input class="inv-input" id="invClient" value="Acme Consulting"></div>
-              <div class="inv-field"><label>Service Description</label><input class="inv-input" id="invService" value="UI/UX Product Design"></div>
-              <div class="inv-field"><label>Amount (USD)</label><input class="inv-input" id="invAmount" type="number" value="1500"></div>
-              <div class="inv-check"><input type="checkbox" id="invTax"><label for="invTax">Apply local VAT (15%)</label></div>
-              <button class="btn btn-gold btn-block" id="sendInvoiceBtn">Send Invoice</button>
+              <div class="inv-field"><label>Client name</label><input type="text" class="inv-input" id="invClient" placeholder="Acme Consulting"></div>
+              <div class="inv-field"><label>Service</label><input type="text" class="inv-input" id="invService" placeholder="UI/UX Product Design"></div>
+              <div class="inv-field"><label>Amount (USD)</label><input type="number" class="inv-input" id="invAmount" placeholder="1500"></div>
+              <div class="inv-check"><input type="checkbox" id="invTax"><label for="invTax">Add 15% VAT</label></div>
+              <button class="btn btn-primary btn-block" id="sendInvoiceBtn">Send invoice<i class="fas fa-paper-plane"></i></button>
             </div>
             <div class="inv-sheet">
               <div class="inv-sheet-head">
-                <div><div class="brand">PHYZELYNE INVOICING</div><div style="color:#7a6f57;margin-top:4px;font-size:0.72rem;">#INV-2026-004</div></div>
-                <div class="meta"><div>Date: 11 Jul 2026</div><div>Due: On Receipt</div></div>
+                <div>
+                  <div class="brand">Phyzelyne</div>
+                  <div style="font-size:0.72rem;color:var(--ink-dim);">Invoice #004</div>
+                </div>
               </div>
-              <div class="billed-to">Billed To</div>
-              <div id="pClient" style="font-weight:600;margin-bottom:12px;">Acme Consulting</div>
+              <div class="billed-to">Billed to</div>
+              <div id="pClient" style="font-weight:700;margin-bottom:12px;">Acme Consulting</div>
               <table class="inv-table">
                 <thead><tr><th>Description</th><th style="text-align:right;">Total</th></tr></thead>
                 <tbody><tr><td id="pService">UI/UX Product Design</td><td style="text-align:right;" id="pAmount">$1,500.00</td></tr></tbody>
               </table>
               <div class="inv-totals-row"><span>Subtotal</span><span id="pSubtotal">$1,500.00</span></div>
               <div class="inv-totals-row" id="pTaxRow" style="display:none;"><span>VAT (15%)</span><span id="pTax">$225.00</span></div>
-              <div class="inv-totals-row grand"><span>Grand Total</span><span id="pTotal">$1,500.00</span></div>
+              <div class="inv-totals-row grand"><span>Grand total</span><span id="pTotal">$1,500.00</span></div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </section>
-
+ 
   <!-- METRICS -->
   <section class="section" style="padding-top:0;">
     <div class="metrics reveal-stagger">
       <div class="metric"><div class="metric-num" data-count="150">0</div><div class="metric-label">Currencies supported</div></div>
-      <div class="metric"><div class="metric-num" data-count="5">0</div><div class="metric-label">Exciting & Useful features</div></div>
+      <div class="metric"><div class="metric-num" data-count="6">0</div><div class="metric-label">Core tools, one dashboard</div></div>
       <div class="metric"><div class="metric-num" data-count="24">0</div><div class="metric-label">Hour AI coaching</div></div>
       <div class="metric"><div class="metric-num" data-count="99">0</div><div class="metric-label">% Uptime target</div></div>
     </div>
   </section>
-
+ 
   <!-- FAQ -->
   <section class="section" id="faq">
     <div class="section-head center reveal" style="margin-left:auto;margin-right:auto;">
       <span class="eyebrow">FAQ</span>
       <h2 class="section-title">Questions, answered.</h2>
-      <p class="section-sub">Can't find what you're looking for? Reach us on <a href="https://wa.me/233559583295" style="text-decoration: none; color: greenyellow">WhatsApp</a> any time.</p>
+      <p class="section-sub">Can't find what you're looking for? Reach us on <a href="https://wa.me/233559583295" style="text-decoration:none;color:var(--verify);font-weight:700;">WhatsApp</a> any time.</p>
     </div>
     <div class="faq-list reveal">
       <div class="faq-item">
-        <div class="faq-q"><span>What currencies does Phyzelyne support?</span><i class="fas fa-plus"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">Phyzelyne supports 150+ currencies. Set a primary currency for your dashboard — GHS, NGN, USD, or EUR — and log transactions in any other. Conversion rates update in real time.</div></div>
+        <div class="faq-q"><span>Does Phyzelyne connect to my bank account?</span><i class="fas fa-plus"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">No. You log transactions and invoices directly, so Phyzelyne never asks for your bank login or stores card numbers. Less shared, less exposed.</div></div>
       </div>
       <div class="faq-item">
         <div class="faq-q"><span>How secure is my financial data?</span><i class="fas fa-plus"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">We use industry-standard encryption for data in transit and at rest, with isolated per-user storage, so your financials stay private and yours alone.</div></div>
+        <div class="faq-a"><div class="faq-a-inner">Data is encrypted in transit and at rest, with isolated per-account storage and two-factor authentication built in — so your financials stay private and yours alone.</div></div>
       </div>
       <div class="faq-item">
-        <div class="faq-q"><span>What is the Phyzelyne AI Finance Coach?</span><i class="fas fa-plus"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">A conversational financial agent trained to read spending patterns and cashflow trends inside the app — offering budgeting targets and flagging redundant charges.</div></div>
+        <div class="faq-q"><span>What currencies does Phyzelyne support?</span><i class="fas fa-plus"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">150+ currencies. Set a primary currency for your dashboard — GHS, NGN, USD, or EUR — and log transactions in any other. Conversion rates update in real time.</div></div>
       </div>
       <div class="faq-item">
-        <div class="faq-q"><span>Can I customize the visual interface?</span><i class="fas fa-plus"></i></div>
-        <div class="faq-a"><div class="faq-a-inner">Yes — Phyzelyne's glass design is fully themeable. You can choose curated color palettes and light/dark adaptations.</div></div>
+        <div class="faq-q"><span>What is the Phyzelyne AI finance coach?</span><i class="fas fa-plus"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">A conversational advisor trained to read the spending patterns and cashflow trends already in your account — offering budgeting targets and flagging redundant charges.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>Can I customize the interface?</span><i class="fas fa-plus"></i></div>
+        <div class="faq-a"><div class="faq-a-inner">Yes — Phyzelyne's interface is fully themeable. Choose curated color palettes and light or dark adaptations.</div></div>
       </div>
     </div>
   </section>
-
+ 
   <!-- CTA -->
   <section class="section">
     <div class="cta-band reveal">
       <h2 class="cta-title">Transform your cashflow today.</h2>
-      <p class="cta-desc">Be the first ever professionals to track your finances on Phyzelyne. Completely free forever.</p>
-      <a href="signup.html" class="btn btn-gold" style="position:relative;">Create Your Free Account</a>
+      <p class="cta-desc">Be among the first professionals to run their finances on Phyzelyne — free to start, no card required.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;">
+        <a href="signup.html" class="btn btn-primary">Create your free account</a>
+        <a href="rdf.html" class="btn btn-outline-light">Request a demo</a>
+      </div>
     </div>
   </section>
-
+ 
   <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-top">
@@ -862,11 +954,12 @@ h1,h2,h3,h4{ font-family:var(--font-display); font-weight:700; color:var(--ink);
         <ul class="footer-links">
           <li><a href="rdf.html">Request Demo</a></li>
           <li><a href="#features">Features</a></li>
+          <li><a href="#security">Security</a></li>
           <li><a href="#demo">Live Demo</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h5>Company & Legal</h5>
+        <h5>Company &amp; Legal</h5>
         <ul class="footer-links">
           <li><a href="signup.html">Get Started</a></li>
           <li><a href="#faq">Support Center</a></li>
@@ -881,20 +974,26 @@ h1,h2,h3,h4{ font-family:var(--font-display); font-weight:700; color:var(--ink);
         <a href="https://www.instagram.com/petit64348" aria-label="Phyzelyne on Instagram"><i class="fab fa-instagram"></i></a>
         <a href="https://www.tiktok.com/@klyro.ai.gts" aria-label="Phyzelyne on TikTok"><i class="fab fa-tiktok"></i></a>
         <a href="https://www.youtube.com/@petitgeniecodes" aria-label="Phyzelyne on YouTube"><i class="fab fa-youtube"></i></a>
-        <a href="https://wa.me/233559583295" aria-label="Phyzelyne on LinkedIn"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://wa.me/233559583295" aria-label="Phyzelyne on WhatsApp"><i class="fab fa-whatsapp"></i></a>
       </div>
     </div>
   </footer>
-
+ 
 </div>
-
-<div class="demo-toast" id="demoToast"><i class="fas fa-check-circle"></i> Invoice sent to client inbox!</div>
-
+ 
+<div class="demo-toast" id="demoToast" style="position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:var(--paper);padding:14px 22px;border-radius:12px;font-size:0.86rem;display:flex;align-items:center;gap:10px;z-index:2000;transition:transform 0.4s var(--ease);"><i class="fas fa-check-circle" style="color:var(--verify-2);"></i> Invoice sent to client inbox!</div>
+<style>.demo-toast.show{ transform:translateX(-50%) translateY(0) !important; }</style>
+ 
 <script>
-/* ---------- Nav scroll state ---------- */
+/* ---------- Nav scroll state + progress bar ---------- */
 const nav = document.getElementById('nav');
-window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40), { passive:true });
-
+const scrollProgress = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+  const docH = document.documentElement.scrollHeight - window.innerHeight;
+  scrollProgress.style.width = (docH > 0 ? (window.scrollY / docH) * 100 : 0) + '%';
+}, { passive:true });
+ 
 /* ---------- Mobile menu ---------- */
 const menuToggle = document.getElementById('menuToggle');
 const mobileSheet = document.getElementById('mobileSheet');
@@ -905,14 +1004,26 @@ menuToggle.addEventListener('click', () => {
 mobileSheet.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
   menuToggle.classList.remove('open'); mobileSheet.classList.remove('open');
 }));
-
+ 
 /* ---------- Scroll reveal ---------- */
-const revealEls = document.querySelectorAll('.reveal, .reveal-stagger');
+const revealEls = document.querySelectorAll('.reveal, .reveal-stagger, .tour-card');
 const io = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
 }, { threshold:0.15 });
 revealEls.forEach(el => io.observe(el));
-
+ 
+/* ---------- Large seal reveal ---------- */
+const sealLg = document.getElementById('sealLg');
+const sealIo = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); sealIo.unobserve(e.target); } });
+}, { threshold:0.4 });
+sealIo.observe(sealLg);
+ 
+/* ---------- Hero title word reveal ---------- */
+requestAnimationFrame(() => {
+  setTimeout(() => document.getElementById('heroTitle').classList.add('reveal-text'), 250);
+});
+ 
 /* ---------- Animated counters ---------- */
 const counters = document.querySelectorAll('.metric-num');
 const cio = new IntersectionObserver((entries) => {
@@ -920,81 +1031,38 @@ const cio = new IntersectionObserver((entries) => {
     if (!e.isIntersecting) return;
     const el = e.target;
     const target = parseInt(el.dataset.count, 10);
-    const dur = 1400; const start = performance.now();
+    const dur = 1300; const start = performance.now();
     function tick(now) {
       const p = Math.min(1, (now - start) / dur);
       const eased = 1 - Math.pow(1 - p, 3);
       el.textContent = Math.round(target * eased).toLocaleString();
-      if (p < 1) requestAnimationFrame(tick); else el.textContent = target.toLocaleString() + (target === 99 ? '' : '');
+      if (p < 1) requestAnimationFrame(tick); else el.textContent = target.toLocaleString();
     }
     requestAnimationFrame(tick);
     cio.unobserve(el);
   });
 }, { threshold:0.4 });
 counters.forEach(el => cio.observe(el));
-
-/* ---------- Hero chart: draw-in + live points ---------- */
-const chartPoints = [40,58,50,72,64,88];
-function buildPath(points, w, h, pad) {
-  const step = (w - pad*2) / (points.length - 1);
-  const max = Math.max(...points), min = Math.min(...points) - 10;
-  const coords = points.map((v,i) => [pad + i*step, h - pad - ((v-min)/(max-min))*(h-pad*2)]);
-  let d = `M ${coords[0][0]} ${coords[0][1]}`;
-  for (let i=1;i<coords.length;i++){
-    const [x0,y0] = coords[i-1], [x1,y1] = coords[i];
-    const mx = (x0+x1)/2;
-    d += ` C ${mx} ${y0}, ${mx} ${y1}, ${x1} ${y1}`;
-  }
-  return { d, last: coords[coords.length-1], area: d + ` L ${coords[coords.length-1][0]} ${h} L ${coords[0][0]} ${h} Z` };
-}
-const built = buildPath(chartPoints, 460, 170, 12);
-const lineEl = document.getElementById('chartLine');
-const areaEl = document.getElementById('chartArea');
-const dotEl  = document.getElementById('chartDot');
-lineEl.setAttribute('d', built.d);
-areaEl.setAttribute('d', built.area);
-dotEl.setAttribute('cx', built.last[0]);
-dotEl.setAttribute('cy', built.last[1]);
-const len = lineEl.getTotalLength();
-lineEl.style.strokeDasharray = len;
-lineEl.style.strokeDashoffset = len;
-areaEl.style.opacity = 0;
-
-let balanceTarget = 14248.50;
-function animateHero() {
-  lineEl.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 1600, easing:'cubic-bezier(.16,1,.3,1)', fill:'forwards' });
-  areaEl.animate([{ opacity:0 }, { opacity:0.9 }], { duration: 1200, delay: 400, easing:'ease-out', fill:'forwards' });
-  const balEl = document.getElementById('heroBalance');
-  const start = performance.now(); const dur = 1400;
-  function tick(now){
-    const p = Math.min(1, (now-start)/dur);
-    const eased = 1 - Math.pow(1-p,3);
-    balEl.textContent = '₵' + (balanceTarget*eased).toLocaleString(undefined,{maximumFractionDigits:0});
-    if (p<1) requestAnimationFrame(tick);
+ 
+/* ---------- Statement counter (hero) ---------- */
+function animateStatement() {
+  const dur = 1400, start = performance.now();
+  const incomeTarget = 8420, expenseTarget = 5820, totalTarget = 14248;
+  function tick(now) {
+    const p = Math.min(1, (now - start) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    document.getElementById('rIncome').textContent = '₵' + Math.round(incomeTarget * eased).toLocaleString();
+    document.getElementById('rExpense').textContent = '₵' + Math.round(expenseTarget * eased).toLocaleString();
+    document.getElementById('rTotal').textContent = '₵' + Math.round(totalTarget * eased).toLocaleString();
+    if (p < 1) requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 }
 const heroIo = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if (e.isIntersecting) { animateHero(); heroIo.disconnect(); } });
+  entries.forEach(e => { if (e.isIntersecting) { animateStatement(); heroIo.disconnect(); } });
 }, { threshold:0.3 });
 heroIo.observe(document.getElementById('heroVisual'));
-
-/* ---------- Hero parallax on mousemove ---------- */
-const heroVisual = document.getElementById('heroVisual');
-const panelMain = document.getElementById('panelMain');
-const chips = [document.getElementById('chip1'), document.getElementById('chip2'), document.getElementById('chip3')];
-heroVisual.addEventListener('mousemove', (e) => {
-  const r = heroVisual.getBoundingClientRect();
-  const mx = (e.clientX - r.left) / r.width - 0.5;
-  const my = (e.clientY - r.top) / r.height - 0.5;
-  panelMain.style.transform = `rotateY(${mx*4}deg) rotateX(${-my*4}deg)`;
-  chips.forEach((c,i) => { if(c) c.style.transform = `translate(${mx*(10+i*4)}px, ${my*(10+i*4)}px)`; });
-});
-heroVisual.addEventListener('mouseleave', () => {
-  panelMain.style.transform = 'rotateY(0) rotateX(0)';
-  chips.forEach(c => { if(c) c.style.transform = 'translate(0,0)'; });
-});
-
+ 
 /* ---------- Ticker ---------- */
 const tickerData = [
   ['USD/GHS','15.42','up'], ['USD/NGN','1,538.10','down'], ['EUR/GHS','16.78','up'],
@@ -1012,7 +1080,7 @@ function renderTicker() {
   track.innerHTML = html + html; // duplicate for seamless loop
 }
 renderTicker();
-
+ 
 /* ---------- Demo tabs ---------- */
 document.querySelectorAll('.demo-tab').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1022,7 +1090,7 @@ document.querySelectorAll('.demo-tab').forEach(btn => {
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
   });
 });
-
+ 
 /* ---------- Cashflow simulator ---------- */
 let simSymbol = '$', simRate = 1;
 const incomeSlider = document.getElementById('incomeSlider');
@@ -1036,7 +1104,7 @@ function updateSim(){
   const net = inc - exp;
   const netEl = document.getElementById('netSavings');
   netEl.textContent = fmtSim(net);
-  netEl.style.color = net < 0 ? 'var(--red)' : 'var(--emerald-2)';
+  netEl.style.color = net < 0 ? 'var(--rust)' : 'var(--verify)';
   const maxV = 15000;
   document.getElementById('barInc').style.height = Math.max(8,(inc/maxV)*100) + '%';
   document.getElementById('barExp').style.height = Math.max(8,(exp/maxV)*100) + '%';
@@ -1053,7 +1121,7 @@ document.querySelectorAll('.currency-btn').forEach(btn => {
   });
 });
 updateSim();
-
+ 
 /* ---------- AI advisor chat ---------- */
 const chatMsgs = document.getElementById('chatMsgs');
 const aiAnswers = {
@@ -1069,13 +1137,13 @@ document.querySelectorAll('.chat-chip').forEach(btn => {
     userBubble.textContent = q;
     chatMsgs.appendChild(userBubble);
     chatMsgs.scrollTop = chatMsgs.scrollHeight;
-
+ 
     const thinking = document.createElement('div');
     thinking.className = 'chat-bubble ai';
     thinking.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Phyzelyne is analyzing…';
     chatMsgs.appendChild(thinking);
     chatMsgs.scrollTop = chatMsgs.scrollHeight;
-
+ 
     setTimeout(() => {
       thinking.textContent = '';
       const answer = aiAnswers[q] || "I'm analyzing your cashflow now.";
@@ -1086,7 +1154,7 @@ document.querySelectorAll('.chat-chip').forEach(btn => {
     }, 900);
   });
 });
-
+ 
 /* ---------- Invoice builder ---------- */
 function fmtUSD(v){ return `$${v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`; }
 function updateInvoice(){
@@ -1112,15 +1180,13 @@ function updateInvoice(){
 ['invClient','invService','invAmount'].forEach(id => document.getElementById(id).addEventListener('input', updateInvoice));
 document.getElementById('invTax').addEventListener('change', updateInvoice);
 updateInvoice();
-
+ 
 document.getElementById('sendInvoiceBtn').addEventListener('click', () => {
   const toast = document.getElementById('demoToast');
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 2800);
 });
-
-
-
+ 
 /* ---------- FAQ accordion ---------- */
 document.querySelectorAll('.faq-item').forEach(item => {
   item.addEventListener('click', () => {
@@ -1130,6 +1196,6 @@ document.querySelectorAll('.faq-item').forEach(item => {
   });
 });
 </script>
-  <script src="phyzelyne-polish.js"></script>
 </body>
 </html>
+ 

@@ -1527,6 +1527,7 @@ const Store = {
 	    _persistCache('transactions');
 		    _afterRemoteWrite('transactions', _upsert('transactions', { ...txn, user_id: _cache.userId }));
 	    _broadcastChange('transactions', { eventType: 'INSERT', new: txn });
+    try { PhyzelyneTelemetry?.track('transaction.added', { amount: txn.amount, type: txn.type, currency: txn.originalCurrency }); } catch(e) {}
     MakeWebhook.send('transaction.added', {
       type: txn.type, amount: txn.amount, description: txn.description,
       category: txn.category, date: txn.date, currency: txn.originalCurrency
@@ -1566,6 +1567,7 @@ const Store = {
     if (s.onboarded !== undefined && _sb) {
       _sb.auth.updateUser({ data: { onboarded: s.onboarded } }).catch(() => {});
     }
+    try { PhyzelyneTelemetry?.track('settings.saved', { currency: s.currencyCode, plan: s.plan }); } catch(e) {}
     _broadcastChange('settings', { eventType: 'UPDATE', new: s });
   },
 
@@ -1601,6 +1603,7 @@ const Store = {
 	    _persistCache('goals');
 		    _afterRemoteWrite('goals', _upsert('goals', { ...goal, user_id: _cache.userId }));
     _broadcastChange('goals', { eventType: 'INSERT', new: goal });
+    try { PhyzelyneTelemetry?.track('goal.created', { name: goal.name, target: goal.target }); } catch(e) {}
     MakeWebhook.send('goal.created', {
       name: goal.name, target: goal.target, saved: goal.saved || 0,
       deadline: goal.deadline || null, emoji: goal.emoji || '🎯'
@@ -1656,6 +1659,7 @@ const Store = {
 		    _persistCache('invoices');
 		    _afterRemoteWrite('invoices', _upsert('invoices', { ...inv, user_id: _cache.userId }));
 		    _broadcastChange('invoices', { eventType: 'INSERT', new: inv });
+    try { PhyzelyneTelemetry?.track('invoice.created', { id: inv.id, total: inv.total }); } catch(e) {}
 	    return inv;
 	  },
 
@@ -1698,6 +1702,7 @@ const Store = {
 		    _persistCache('receipts');
 		    _afterRemoteWrite('receipts', _upsert('receipts', { ...receipt, user_id: _cache.userId }));
 		    _broadcastChange('receipts', { eventType: 'INSERT', new: receipt });
+    try { PhyzelyneTelemetry?.track('receipt.added', { id: receipt.id, merchant: receipt.merchant }); } catch(e) {}
 	    return receipt;
 	  },
 };
@@ -2314,9 +2319,63 @@ async function migrateFromLocalStorage() {
 }
 
 /* ══════════════════════════════════════
+   PHYZELYNE REAL-TIME TELEMETRY ENGINE
+   Connects all pages to Admin Dashboard
+══════════════════════════════════════ */
+const PhyzelyneTelemetry = {
+  _channel: (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('phyzelyne_telemetry') : null,
+
+  init() {
+    if (!this._channel) return;
+    this._channel.onmessage = (evt) => {
+      if (evt.data?.type === 'admin_ping') {
+        const u = (typeof Auth !== 'undefined') ? Auth.getUser() : null;
+        try {
+          this._channel.postMessage({
+            type: 'admin_pong',
+            page: window.location.pathname.split('/').pop() || 'index.html',
+            userId: u?.id || _cache?.userId || 'guest',
+            userEmail: u?.email || 'guest@phyzelyne.com',
+            userName: u?.name || 'Guest User',
+            ts: Date.now()
+          });
+        } catch(e) {}
+      }
+    };
+
+    // Broadcast initial page load telemetry
+    this.track('page_view', {
+      page: window.location.pathname.split('/').pop() || 'index.html',
+      title: document.title
+    });
+  },
+
+  track(event, data = {}) {
+    const user = (typeof Auth !== 'undefined') ? Auth.getUser() : null;
+    const payload = {
+      event,
+      data,
+      user: user ? { id: user.id, email: user.email, name: user.name, role: user.role } : null,
+      page: window.location.pathname.split('/').pop() || 'index.html',
+      timestamp: new Date().toISOString(),
+      ts: Date.now()
+    };
+    try {
+      this._channel?.postMessage({ type: 'telemetry_event', payload });
+    } catch(e) {}
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.PhyzelyneTelemetry = PhyzelyneTelemetry;
+  PhyzelyneTelemetry.init();
+}
+
+/* ══════════════════════════════════════
    NOTE: Add the Supabase CDN script to
    every HTML page BEFORE app.js:
 
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
    <script src="app.js"></script>
 ══════════════════════════════════════ */
+

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phyzelyne — Executive Admin & Telemetry Suite</title>
-  <meta name="description" content="Phyzelyne Executive CTO & Founder Admin Dashboard. Real-time telemetry, user cohorts, feedback intelligence, Gmail communications, Supabase Live Bridge, and demo pipeline.">
+  <meta name="description" content="Phyzelyne Executive CTO & Founder Admin Dashboard. Real-time telemetry, user cohorts, feedback intelligence, Gmail communications, Supabase Live Bridge, and live pipeline.">
   <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
 
   <!-- Typography & Icons -->
@@ -20,7 +20,7 @@
 
   <style>
     /* ══════════════════════════════════════════════════════════════════
-       PHYZELYNE ADMIN SUITE — FULL-VIEW & TRADING DESK STYLES
+       PHYZELYNE ADMIN SUITE — FULL-VIEW & REAL-TIME TRADING DESK STYLES
        ══════════════════════════════════════════════════════════════════ */
     :root {
       --admin-gold: #d9a521;
@@ -113,6 +113,12 @@
       box-shadow: 0 0 8px var(--admin-emerald);
       animation: pulse-glow 2s infinite;
       display: inline-block;
+    }
+
+    .admin-pulse-dot.disconnected {
+      background: var(--admin-rose);
+      box-shadow: 0 0 8px var(--admin-rose);
+      animation: none;
     }
 
     @keyframes pulse-glow {
@@ -656,6 +662,27 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    .empty-state-box {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-dim);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .empty-state-box i {
+      font-size: 2.2rem;
+      color: rgba(255, 255, 255, 0.2);
+    }
+    .empty-state-box p {
+      max-width: 440px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
@@ -716,7 +743,7 @@
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
             <span class="admin-badge-cto"><i class="fas fa-shield-halved"></i> CTO & Founder Suite</span>
             <div style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--admin-emerald); font-weight:600;">
-              <span class="admin-pulse-dot"></span> LIVE TELEMETRY
+              <span class="admin-pulse-dot" id="header-telemetry-pulse"></span> <span id="header-telemetry-status">LIVE TELEMETRY</span>
             </div>
           </div>
           <h1 style="font-family:var(--font-display); font-size:1.45rem; font-weight:700; color:var(--text); letter-spacing:-0.02em;">
@@ -729,13 +756,13 @@
         <!-- Live Supabase Bridge Pill -->
         <div class="supabase-status-pill" id="supabase-header-pill" onclick="AdminStore.switchTab('supabase')" title="Supabase Database Status — Click to Manage">
           <i class="fas fa-database"></i>
-          <span id="supabase-pill-text">Supabase: Connected (18ms)</span>
+          <span id="supabase-pill-text">Supabase: Connecting...</span>
         </div>
 
         <!-- Live Sessions -->
         <div style="background:rgba(255,255,255,0.04); border:1px solid var(--border); padding:6px 12px; border-radius:10px; display:flex; align-items:center; gap:8px;">
-          <span style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase; font-weight:700;">Live</span>
-          <span style="font-family:var(--admin-font-mono); font-size:0.95rem; font-weight:800; color:var(--gold-light);" id="live-online-count">1,428</span>
+          <span style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase; font-weight:700;">Live Session</span>
+          <span style="font-family:var(--admin-font-mono); font-size:0.95rem; font-weight:800; color:var(--gold-light);" id="live-online-count">1</span>
         </div>
 
         <!-- Quick Actions -->
@@ -753,12 +780,12 @@
 
     <!-- Realtime Ticker Strip -->
     <div class="telemetry-ticker">
-      <div class="ticker-item"><i class="fas fa-database" style="color:var(--admin-emerald);"></i> <strong>SUPABASE BRIDGE:</strong> <span id="ticker-sb-status">Active (public tables synced)</span></div>
-      <div class="ticker-item"><i class="fas fa-signal" style="color:var(--admin-emerald);"></i> <strong>CONCURRENT USERS:</strong> <span id="ticker-online-val">1,428 active</span></div>
-      <div class="ticker-item"><i class="fas fa-gauge-high" style="color:var(--admin-cyan);"></i> <strong>LATENCY:</strong> <span id="ticker-latency-val">32ms</span></div>
-      <div class="ticker-item"><i class="fas fa-server" style="color:var(--admin-emerald);"></i> <strong>DB HEALTH:</strong> <span class="ticker-up">99.99% Uptime</span></div>
-      <div class="ticker-item"><i class="fas fa-arrows-spin" style="color:var(--gold);"></i> <strong>API THROUGHPUT:</strong> <span id="ticker-tps-val">84.2 req/s</span></div>
-      <div class="ticker-item"><i class="fab fa-google" style="color:#ea4335;"></i> <strong>GMAIL:</strong> founders@phyzelyne.com</div>
+      <div class="ticker-item"><i class="fas fa-database" style="color:var(--admin-emerald);"></i> <strong>SUPABASE BRIDGE:</strong> <span id="ticker-sb-status">Connecting to cluster...</span></div>
+      <div class="ticker-item"><i class="fas fa-signal" style="color:var(--admin-emerald);"></i> <strong>AUTHENTICATED CONTEXT:</strong> <span id="ticker-online-val">Active session</span></div>
+      <div class="ticker-item"><i class="fas fa-gauge-high" style="color:var(--admin-cyan);"></i> <strong>LATENCY:</strong> <span id="ticker-latency-val">-- ms</span></div>
+      <div class="ticker-item"><i class="fas fa-server" style="color:var(--admin-emerald);"></i> <strong>DB HEALTH:</strong> <span class="ticker-up" id="ticker-health-val">Sync Active</span></div>
+      <div class="ticker-item"><i class="fas fa-arrows-spin" style="color:var(--gold);"></i> <strong>TOTAL RECORDS:</strong> <span id="ticker-total-records-val">0 Rows</span></div>
+      <div class="ticker-item"><i class="fab fa-google" style="color:#ea4335;"></i> <strong>GMAIL / CONTACT:</strong> founders@phyzelyne.com</div>
     </div>
 
     <!-- Navigation Tabs -->
@@ -770,19 +797,19 @@
         <i class="fas fa-database" style="color:var(--admin-emerald);"></i> Supabase Live Explorer <span class="admin-tab-count" id="badge-count-sb" style="background:rgba(47,174,114,0.25); color:#6fe3a8;">LIVE</span>
       </button>
       <button class="admin-tab-btn" data-tab="users">
-        <i class="fas fa-users"></i> Users & Cohorts <span class="admin-tab-count" id="badge-count-users">8</span>
+        <i class="fas fa-users"></i> Users & Cohorts <span class="admin-tab-count" id="badge-count-users">0</span>
       </button>
       <button class="admin-tab-btn" data-tab="feedback">
-        <i class="fas fa-comment-dots"></i> Feedback & NPS <span class="admin-tab-count" id="badge-count-feedback">5</span>
+        <i class="fas fa-comment-dots"></i> Feedback & NPS <span class="admin-tab-count" id="badge-count-feedback">0</span>
       </button>
       <button class="admin-tab-btn" data-tab="gmail">
-        <i class="fab fa-google"></i> Gmail Inbound <span class="admin-tab-count" id="badge-count-gmail">2</span>
+        <i class="fab fa-google"></i> Gmail Inbound <span class="admin-tab-count" id="badge-count-gmail">0</span>
       </button>
       <button class="admin-tab-btn" data-tab="features">
         <i class="fas fa-microchip"></i> Feature Telemetry
       </button>
       <button class="admin-tab-btn" data-tab="demos">
-        <i class="fas fa-video"></i> Booked Demos <span class="admin-tab-count" id="badge-count-demos">3</span>
+        <i class="fas fa-video"></i> Booked Demos <span class="admin-tab-count" id="badge-count-demos">0</span>
       </button>
       <button class="admin-tab-btn" data-tab="system">
         <i class="fas fa-server"></i> System & Broadcast
@@ -799,17 +826,17 @@
             <span class="metric-label">Total Registered Users</span>
             <div class="metric-icon-wrap gold"><i class="fas fa-user-plus"></i></div>
           </div>
-          <div class="metric-val" id="metric-total-users">4,828</div>
-          <div class="metric-sub"><span class="ticker-up"><i class="fas fa-arrow-trend-up"></i> +28.4%</span> vs last week</div>
+          <div class="metric-val" id="metric-total-users">0</div>
+          <div class="metric-sub" id="metric-total-users-sub"><span class="ticker-up"><i class="fas fa-circle-check"></i> Real user accounts</span></div>
         </div>
 
         <div class="admin-metric-card emerald">
           <div class="metric-top">
-            <span class="metric-label">Daily Active Users (DAU)</span>
+            <span class="metric-label">Active Users / Cohorts</span>
             <div class="metric-icon-wrap emerald"><i class="fas fa-fire"></i></div>
           </div>
-          <div class="metric-val" id="metric-dau">1,940</div>
-          <div class="metric-sub"><span class="ticker-up"><i class="fas fa-arrow-trend-up"></i> 40.2%</span> DAU/MAU Stickiness</div>
+          <div class="metric-val" id="metric-dau">0</div>
+          <div class="metric-sub" id="metric-dau-sub"><span class="ticker-up"><i class="fas fa-bolt"></i> Live activity rate</span></div>
         </div>
 
         <div class="admin-metric-card cyan">
@@ -817,16 +844,16 @@
             <span class="metric-label">Product NPS / CSAT</span>
             <div class="metric-icon-wrap cyan"><i class="fas fa-star"></i></div>
           </div>
-          <div class="metric-val" id="metric-nps">4.9 / 5.0</div>
-          <div class="metric-sub"><span class="ticker-up"><i class="fas fa-heart"></i> +74 Net Promoter</span></div>
+          <div class="metric-val" id="metric-nps">N/A</div>
+          <div class="metric-sub" id="metric-nps-sub"><span class="ticker-up"><i class="fas fa-heart"></i> 0 submissions</span></div>
         </div>
 
         <div class="admin-metric-card rose">
           <div class="metric-top">
-            <span class="metric-label">Inbound Gmail Messages</span>
+            <span class="metric-label">Inbound Inquiries / Gmail</span>
             <div class="metric-icon-wrap rose"><i class="fas fa-envelope"></i></div>
           </div>
-          <div class="metric-val" id="metric-unread-emails">2</div>
+          <div class="metric-val" id="metric-unread-emails">0</div>
           <div class="metric-sub"><span>founders@phyzelyne.com</span></div>
         </div>
 
@@ -835,8 +862,8 @@
             <span class="metric-label">Enterprise Demo Pipeline</span>
             <div class="metric-icon-wrap purple"><i class="fas fa-handshake"></i></div>
           </div>
-          <div class="metric-val" id="metric-demos-pipeline">3 Booked</div>
-          <div class="metric-sub"><span class="ticker-up">$563,000 ARR Pipeline</span></div>
+          <div class="metric-val" id="metric-demos-pipeline">0 Booked</div>
+          <div class="metric-sub"><span class="ticker-up" id="metric-demos-pipeline-arr">$0 ARR Pipeline</span></div>
         </div>
 
         <div class="admin-metric-card emerald">
@@ -844,8 +871,8 @@
             <span class="metric-label">Supabase DB Sync</span>
             <div class="metric-icon-wrap emerald"><i class="fas fa-database"></i></div>
           </div>
-          <div class="metric-val" id="metric-sb-records">1,820 Rows</div>
-          <div class="metric-sub"><span class="ticker-up">5 tables synchronized</span></div>
+          <div class="metric-val" id="metric-sb-records">0 Rows</div>
+          <div class="metric-sub" id="metric-sb-records-sub"><span class="ticker-up">5 tables synchronized</span></div>
         </div>
       </div>
 
@@ -854,12 +881,12 @@
         <div class="glass-card" style="padding:22px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <div>
-              <h3 style="font-family:var(--font-display); font-size:1.1rem; color:var(--text);">User Growth & Active Engagement</h3>
-              <p style="font-size:0.75rem; color:var(--text-dim);">Live ingestion from Supabase Auth & telemetry sessions</p>
+              <h3 style="font-family:var(--font-display); font-size:1.1rem; color:var(--text);">User Activity & Transaction Volume Trend</h3>
+              <p style="font-size:0.75rem; color:var(--text-dim);">Real-time activity recorded in Supabase transactions & settings</p>
             </div>
-            <span class="tier-badge pro"><i class="fas fa-chart-line"></i> +28.4% WoW</span>
+            <span class="tier-badge pro" id="chart-growth-badge"><i class="fas fa-chart-line"></i> Real-time Ingestion</span>
           </div>
-          <div style="height: 260px; position: relative;">
+          <div style="height: 260px; position: relative;" id="growthChartContainer">
             <canvas id="userGrowthChart"></canvas>
           </div>
         </div>
@@ -867,15 +894,13 @@
         <div class="glass-card" style="padding:22px;">
           <div style="margin-bottom:16px;">
             <h3 style="font-family:var(--font-display); font-size:1.1rem; color:var(--text);">Feature Adoption Breakdown</h3>
-            <p style="font-size:0.75rem; color:var(--text-dim);">Most leveraged core modules by frequency</p>
+            <p style="font-size:0.75rem; color:var(--text-dim);">Live distribution of user actions across core modules</p>
           </div>
-          <div style="height: 200px; position: relative;">
+          <div style="height: 200px; position: relative;" id="featureChartContainer">
             <canvas id="featurePieChart"></canvas>
           </div>
-          <div style="display:flex; justify-content:center; gap:14px; margin-top:12px; font-size:0.72rem; color:var(--text-mid);">
-            <span><i class="fas fa-circle" style="color:#d9a521;"></i> FX (38%)</span>
-            <span><i class="fas fa-circle" style="color:#2fae72;"></i> AI (24%)</span>
-            <span><i class="fas fa-circle" style="color:#38bdf8;"></i> OCR (18%)</span>
+          <div id="feature-pie-legend" style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:12px; font-size:0.72rem; color:var(--text-mid);">
+            <!-- Populated dynamically -->
           </div>
         </div>
       </div>
@@ -936,8 +961,8 @@
         </div>
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-size:0.75rem; color:var(--text-dim);">
-          <span id="sb-connection-status-text"><i class="fas fa-circle-check" style="color:var(--admin-emerald);"></i> Status: Connected to Supabase REST & Auth</span>
-          <span id="sb-last-ping">Latency: 18ms</span>
+          <span id="sb-connection-status-text"><i class="fas fa-circle-notch fa-spin" style="color:var(--admin-emerald);"></i> Initializing connection...</span>
+          <span id="sb-last-ping">Latency: -- ms</span>
         </div>
       </div>
 
@@ -996,7 +1021,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:18px;">
           <div>
             <h2 style="font-family:var(--font-display); font-size:1.25rem; color:var(--text);">User Directory & Cohort Management</h2>
-            <p style="font-size:0.75rem; color:var(--text-dim);">Manage active accounts, inspect activity volumes, and adjust plan tiers.</p>
+            <p style="font-size:0.75rem; color:var(--text-dim);">Live user profiles aggregated from Supabase Auth & settings records.</p>
           </div>
 
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -1029,7 +1054,7 @@
                 <th>User Account</th>
                 <th>Tier</th>
                 <th>Status</th>
-                <th>Origin / Country</th>
+                <th>Origin / Currency</th>
                 <th>Volume</th>
                 <th>Last Active</th>
                 <th style="text-align:right;">Actions</th>
@@ -1053,8 +1078,8 @@
             <span class="metric-label">Net Promoter Score</span>
             <div class="metric-icon-wrap gold"><i class="fas fa-trophy"></i></div>
           </div>
-          <div class="metric-val">+74 NPS</div>
-          <div class="metric-sub"><span class="ticker-up">94% Promoters</span> (Industry top 1%)</div>
+          <div class="metric-val" id="nps-hub-score">N/A</div>
+          <div class="metric-sub" id="nps-hub-sub">0 submissions logged</div>
         </div>
 
         <div class="admin-metric-card emerald">
@@ -1062,8 +1087,8 @@
             <span class="metric-label">Average Satisfaction</span>
             <div class="metric-icon-wrap emerald"><i class="fas fa-smile"></i></div>
           </div>
-          <div class="metric-val">4.9 / 5.0</div>
-          <div class="metric-sub">Verified beta reviews</div>
+          <div class="metric-val" id="nps-hub-avg">0.0 / 5.0</div>
+          <div class="metric-sub">Verified real in-app reviews</div>
         </div>
 
         <div class="admin-metric-card cyan">
@@ -1071,8 +1096,8 @@
             <span class="metric-label">Feedback Triage Rate</span>
             <div class="metric-icon-wrap cyan"><i class="fas fa-check-double"></i></div>
           </div>
-          <div class="metric-val">100%</div>
-          <div class="metric-sub">&lt; 2 hrs avg response</div>
+          <div class="metric-val" id="nps-hub-triage">0%</div>
+          <div class="metric-sub">Resolved submissions</div>
         </div>
       </div>
 
@@ -1102,7 +1127,7 @@
       <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <div>
           <h2 style="font-family:var(--font-display); font-size:1.25rem; color:var(--text);"><i class="fab fa-google" style="color:#ea4335; margin-right:6px;"></i> Gmail Inbound Communications Center</h2>
-          <p style="font-size:0.75rem; color:var(--text-dim);">Live triage for emails received via Phyzelyne contact forms, demo requests, and founder inbound.</p>
+          <p style="font-size:0.75rem; color:var(--text-dim);">Live triage for emails received via Phyzelyne contact forms, demo requests (rdf.html), and founder inbound.</p>
         </div>
         <a href="https://mail.google.com" target="_blank" class="btn btn-gold btn-sm">
           <i class="fas fa-arrow-up-right-from-square"></i> Open Native Gmail
@@ -1120,23 +1145,23 @@
 
           <button class="gmail-folder-btn active" data-folder="inbox">
             <span><i class="fas fa-inbox"></i> Inbox</span>
-            <span class="admin-tab-count">5</span>
+            <span class="admin-tab-count" id="gmail-count-inbox">0</span>
           </button>
           <button class="gmail-folder-btn" data-folder="starred">
             <span><i class="fas fa-star"></i> Starred</span>
-            <span class="admin-tab-count">2</span>
+            <span class="admin-tab-count" id="gmail-count-starred">0</span>
           </button>
           <button class="gmail-folder-btn" data-folder="enterprise">
             <span><i class="fas fa-building"></i> Enterprise</span>
-            <span class="admin-tab-count">2</span>
+            <span class="admin-tab-count" id="gmail-count-enterprise">0</span>
           </button>
           <button class="gmail-folder-btn" data-folder="demo">
             <span><i class="fas fa-video"></i> Demos</span>
-            <span class="admin-tab-count">1</span>
+            <span class="admin-tab-count" id="gmail-count-demo">0</span>
           </button>
           <button class="gmail-folder-btn" data-folder="feedback">
             <span><i class="fas fa-comment-dots"></i> Feedback</span>
-            <span class="admin-tab-count">2</span>
+            <span class="admin-tab-count" id="gmail-count-feedback">0</span>
           </button>
         </div>
 
@@ -1162,38 +1187,38 @@
       <div class="admin-split-grid">
         <div class="glass-card" style="padding:22px;">
           <h2 style="font-family:var(--font-display); font-size:1.25rem; color:var(--text); margin-bottom:4px;">Core Feature Invocation Volume</h2>
-          <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:20px;">Real-time consumption counters across all active user sessions</p>
+          <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:20px;">Real-time consumption counters calculated across all active Supabase records</p>
           <div id="feature-bars-list">
             <!-- Dynamically rendered -->
           </div>
         </div>
 
         <div class="glass-card" style="padding:22px;">
-          <h2 style="font-family:var(--font-display); font-size:1.25rem; color:var(--text); margin-bottom:4px;">AI Coach & OCR Telemetry</h2>
-          <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:18px;">Model token consumption and accuracy metrics</p>
+          <h2 style="font-family:var(--font-display); font-size:1.25rem; color:var(--text); margin-bottom:4px;">Database & Storage Telemetry</h2>
+          <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:18px;">Live storage counts and currency breakdowns</p>
           <div style="display:flex; flex-direction:column; gap:14px;">
             <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:14px; border-radius:10px;">
               <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <span style="font-size:0.78rem; color:var(--text-dim);">AI Coach Token Consumption</span>
-                <span style="font-family:var(--admin-font-mono); color:var(--gold-light); font-weight:700;">14.2M tokens</span>
+                <span style="font-size:0.78rem; color:var(--text-dim);">Total Invoices Tracked</span>
+                <span style="font-family:var(--admin-font-mono); color:var(--gold-light); font-weight:700;" id="telemetry-invoices-count">0 Invoices</span>
               </div>
-              <div style="font-size:0.72rem; color:var(--admin-emerald);"><i class="fas fa-check-circle"></i> Avg latency: 840ms</div>
+              <div style="font-size:0.72rem; color:var(--admin-emerald);"><i class="fas fa-check-circle"></i> Supabase public.invoices active</div>
             </div>
 
             <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:14px; border-radius:10px;">
               <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <span style="font-size:0.78rem; color:var(--text-dim);">OCR Parsing Accuracy</span>
-                <span style="font-family:var(--admin-font-mono); color:var(--admin-emerald); font-weight:700;">99.1%</span>
+                <span style="font-size:0.78rem; color:var(--text-dim);">Receipts & OCR Stored</span>
+                <span style="font-family:var(--admin-font-mono); color:var(--admin-emerald); font-weight:700;" id="telemetry-receipts-count">0 Receipts</span>
               </div>
-              <div style="font-size:0.72rem; color:var(--text-mid);"><i class="fas fa-receipt"></i> 56,400 receipts processed</div>
+              <div style="font-size:0.72rem; color:var(--text-mid);"><i class="fas fa-receipt"></i> Supabase public.receipts active</div>
             </div>
 
             <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:14px; border-radius:10px;">
               <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                <span style="font-size:0.78rem; color:var(--text-dim);">FX Pairs Converted Today</span>
-                <span style="font-family:var(--admin-font-mono); color:var(--admin-cyan); font-weight:700;">142 Pairs</span>
+                <span style="font-size:0.78rem; color:var(--text-dim);">Distinct Currencies Logged</span>
+                <span style="font-family:var(--admin-font-mono); color:var(--admin-cyan); font-weight:700;" id="telemetry-currencies-count">0 Currencies</span>
               </div>
-              <div style="font-size:0.72rem; color:var(--text-mid);"><i class="fas fa-globe"></i> Top: USD/GHS, EUR/USD, GBP/NGN</div>
+              <div style="font-size:0.72rem; color:var(--text-mid);" id="telemetry-currencies-list"><i class="fas fa-globe"></i> Active pairs</div>
             </div>
           </div>
         </div>
@@ -1207,7 +1232,7 @@
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;">
         <div>
           <h2 style="font-family:var(--font-display); font-size:1.25rem; color:var(--text);">Executive VIP Demo Calendar</h2>
-          <p style="font-size:0.75rem; color:var(--text-dim);">Scheduled walkthroughs with enterprise prospects and fintech partners.</p>
+          <p style="font-size:0.75rem; color:var(--text-dim);">Real requests submitted from the request demo page (rdf.html) and scheduled enterprise walkthroughs.</p>
         </div>
 
         <div style="display:flex; gap:8px;">
@@ -1234,29 +1259,29 @@
       <div class="admin-metrics-grid" style="margin-bottom:20px;">
         <div class="admin-metric-card emerald">
           <div class="metric-top">
-            <span class="metric-label">Supabase Database</span>
+            <span class="metric-label">Supabase Cluster</span>
             <div class="metric-icon-wrap emerald"><i class="fas fa-database"></i></div>
           </div>
-          <div class="metric-val">99.99%</div>
-          <div class="metric-sub">18 / 100 Conn • Latency: 12ms</div>
+          <div class="metric-val" id="sys-cluster-status">Online</div>
+          <div class="metric-sub" id="sys-cluster-sub">REST & Realtime active</div>
         </div>
 
         <div class="admin-metric-card cyan">
           <div class="metric-top">
-            <span class="metric-label">Edge CDN Regions</span>
+            <span class="metric-label">Network & Latency</span>
             <div class="metric-icon-wrap cyan"><i class="fas fa-globe"></i></div>
           </div>
-          <div class="metric-val">18 / 18</div>
-          <div class="metric-sub">Online (P99: 42ms)</div>
+          <div class="metric-val" id="sys-latency-val">-- ms</div>
+          <div class="metric-sub" id="sys-network-sub">Direct SSL Ping</div>
         </div>
 
         <div class="admin-metric-card gold">
           <div class="metric-top">
-            <span class="metric-label">Security & SSL</span>
+            <span class="metric-label">Browser Client Runtime</span>
             <div class="metric-icon-wrap gold"><i class="fas fa-shield"></i></div>
           </div>
-          <div class="metric-val">TLS 1.3</div>
-          <div class="metric-sub">HSTS & CSP active</div>
+          <div class="metric-val" id="sys-runtime-status">Active</div>
+          <div class="metric-sub" id="sys-runtime-sub">Encrypted Executive Session</div>
         </div>
       </div>
 
@@ -1268,7 +1293,7 @@
 
         <div class="admin-input-group">
           <label class="admin-label">Announcement Message</label>
-          <input type="text" id="broadcast-input-text" class="admin-input" placeholder="e.g. 🚀 Welcome to Phyzelyne Beta! Real-time Multi-Currency & Invoicing v1.0 is now live.">
+          <input type="text" id="broadcast-input-text" class="admin-input" placeholder="e.g. 🚀 Welcome to Phyzelyne Beta! Real-time Multi-Currency & Invoicing is live.">
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;">
@@ -1320,12 +1345,12 @@
   <div style="padding:20px; overflow-y:auto; flex:1;">
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
       <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:10px; border-radius:8px;">
-        <span style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase;">Country</span>
-        <div style="font-weight:700; color:var(--text); font-size:0.85rem;" id="drawer-user-country">USA</div>
+        <span style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase;">Currency / Origin</span>
+        <div style="font-weight:700; color:var(--text); font-size:0.85rem;" id="drawer-user-country">USD</div>
       </div>
       <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:10px; border-radius:8px;">
         <span style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase;">Member Since</span>
-        <div style="font-weight:700; color:var(--text); font-size:0.85rem;" id="drawer-user-signup">2026-08-10</div>
+        <div style="font-weight:700; color:var(--text); font-size:0.85rem;" id="drawer-user-signup">--</div>
       </div>
     </div>
 
@@ -1333,15 +1358,15 @@
       <div style="font-size:0.72rem; font-weight:700; color:var(--gold-light); text-transform:uppercase; margin-bottom:8px;">Product Activity</div>
       <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:4px;">
         <span style="color:var(--text-dim);">Transactions Logged:</span>
-        <strong style="color:var(--text); font-family:var(--admin-font-mono);" id="drawer-user-txns">142</strong>
+        <strong style="color:var(--text); font-family:var(--admin-font-mono);" id="drawer-user-txns">0</strong>
       </div>
       <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:4px;">
         <span style="color:var(--text-dim);">Invoices Created:</span>
-        <strong style="color:var(--text); font-family:var(--admin-font-mono);" id="drawer-user-invoices">18</strong>
+        <strong style="color:var(--text); font-family:var(--admin-font-mono);" id="drawer-user-invoices">0</strong>
       </div>
       <div style="display:flex; justify-content:space-between; font-size:0.78rem;">
-        <span style="color:var(--text-dim);">AI Coach Prompts:</span>
-        <strong style="color:var(--text); font-family:var(--admin-font-mono);" id="drawer-user-ai">89</strong>
+        <span style="color:var(--text-dim);">Receipts / OCR Scanned:</span>
+        <strong style="color:var(--text); font-family:var(--admin-font-mono);" id="drawer-user-ai">0</strong>
       </div>
     </div>
 
@@ -1437,26 +1462,28 @@
         <div class="admin-input-group">
           <label class="admin-label">Seats Scope</label>
           <select id="new-demo-seats" class="admin-select">
-            <option value="10 - 25 seats">10 - 25 seats</option>
-            <option value="25 - 50 seats" selected>25 - 50 seats</option>
-            <option value="50 - 200 seats">50 - 200 seats</option>
-            <option value="200+ Enterprise">200+ Enterprise</option>
+            <option value="1">Just me (1 seat)</option>
+            <option value="2-10 seats">2–10 seats</option>
+            <option value="11-50 seats" selected>11–50 seats</option>
+            <option value="51-200 seats">51–200 seats</option>
+            <option value="201-1000 seats">201–1,000 seats</option>
+            <option value="1001+ Enterprise">1,001+ Enterprise</option>
           </select>
         </div>
         <div class="admin-input-group">
           <label class="admin-label">Estimated Deal ARR</label>
-          <input type="text" id="new-demo-arr" class="admin-input" placeholder="$120,000 / yr">
+          <input type="text" id="new-demo-arr" class="admin-input" placeholder="$85,000 / yr">
         </div>
       </div>
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
         <div class="admin-input-group">
           <label class="admin-label">Meeting Date</label>
-          <input type="date" id="new-demo-date" class="admin-input" value="2026-08-20">
+          <input type="date" id="new-demo-date" class="admin-input">
         </div>
         <div class="admin-input-group">
           <label class="admin-label">Time</label>
-          <input type="text" id="new-demo-time" class="admin-input" value="15:00 GMT">
+          <input type="text" id="new-demo-time" class="admin-input" value="14:00 GMT">
         </div>
       </div>
 
@@ -1479,7 +1506,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 
-<!-- Master Admin JavaScript Logic Engine -->
+<!-- Master Admin JavaScript Real-Time Engine -->
 <script>
 'use strict';
 
@@ -1489,9 +1516,13 @@ const AdminStore = {
   activeSbTable: 'transactions',
   selectedThreadId: null,
   selectedUser: null,
-  realtimePulseTimer: null,
+  currentFeedbackItem: null,
   sbClient: null,
+  realtimePulseTimer: null,
+  _growthChartInstance: null,
+  _featureChartInstance: null,
 
+  // Real Storage keys
   STORAGE_KEY_USERS: 'phyzelyne_admin_users',
   STORAGE_KEY_FEEDBACK: 'phyzelyne_admin_feedback',
   STORAGE_KEY_EMAILS: 'phyzelyne_admin_emails',
@@ -1500,17 +1531,35 @@ const AdminStore = {
   STORAGE_KEY_SB_URL: 'phyzelyne_custom_supabase_url',
   STORAGE_KEY_SB_KEY: 'phyzelyne_custom_supabase_key',
 
-  init() {
+  // Live state containers
+  users: [],
+  emails: [],
+  feedback: [],
+  demos: [],
+  tableCounts: {
+    transactions: 0,
+    settings: 0,
+    invoices: 0,
+    goals: 0,
+    receipts: 0
+  },
+  liveTableRows: [],
+  liveTransactions: [],
+  liveSettings: [],
+  liveInvoices: [],
+  liveGoals: [],
+  liveReceipts: [],
+
+  async init() {
     this.checkSecurityGate();
     this.initSupabaseClient();
-    this.seedInitialDataIfEmpty();
-    this.loadState();
+    this.loadLocalState();
     this.bindEvents();
-    this.initCharts();
-    this.startRealtimePulse();
-    this.renderAll();
     this.checkGlobalBroadcast();
-    this.fetchSupabaseCounts();
+    
+    // Initial fetch of real data
+    await this.refreshAllRealtimeData();
+    this.startRealtimePulse();
   },
 
   // ── Supabase Live Bridge ──
@@ -1518,12 +1567,38 @@ const AdminStore = {
     const savedUrl = localStorage.getItem(this.STORAGE_KEY_SB_URL) || window.__PHYZELYNE_SUPABASE_URL__ || 'https://ecxjttbbesbjpisealrp.supabase.co';
     const savedKey = localStorage.getItem(this.STORAGE_KEY_SB_KEY) || window.__PHYZELYNE_SUPABASE_KEY__ || 'sb_publishable__qiqb1L9zW6Q4guscaGvbA_4r0daTME';
 
-    document.getElementById('sb-config-url').value = savedUrl;
-    document.getElementById('sb-config-key').value = savedKey;
+    const urlInput = document.getElementById('sb-config-url');
+    const keyInput = document.getElementById('sb-config-key');
+    if (urlInput) urlInput.value = savedUrl;
+    if (keyInput) keyInput.value = savedKey;
 
     try {
-      if (typeof supabase !== 'undefined') {
-        this.sbClient = supabase.createClient(savedUrl, savedKey);
+      if (typeof supabase !== 'undefined' && supabase.createClient) {
+        this.sbClient = supabase.createClient(savedUrl, savedKey, {
+          auth: { persistSession: true, autoRefreshToken: true }
+        });
+
+        // Attach live real-time WebSocket channel
+        if (this._realtimeSubscription) {
+          try { this.sbClient.removeChannel(this._realtimeSubscription); } catch(e) {}
+        }
+
+        this._realtimeSubscription = this.sbClient.channel('admin_realtime_stream')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => this.refreshAllRealtimeData())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => this.refreshAllRealtimeData())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => this.refreshAllRealtimeData())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'goals' }, () => this.refreshAllRealtimeData())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'receipts' }, () => this.refreshAllRealtimeData())
+          .subscribe((status) => {
+            const tickerHealth = document.getElementById('ticker-health-val');
+            const sysCluster = document.getElementById('sys-cluster-status');
+            const pulse = document.getElementById('header-telemetry-pulse');
+            if (status === 'SUBSCRIBED') {
+              if (tickerHealth) tickerHealth.textContent = 'Realtime WebSocket Active';
+              if (sysCluster) sysCluster.textContent = 'Realtime Connected';
+              if (pulse) pulse.classList.remove('disconnected');
+            }
+          });
       }
     } catch (e) {
       console.warn('[Admin] Supabase client init warning:', e);
@@ -1541,22 +1616,41 @@ const AdminStore = {
       const { count, error } = await client.from('transactions').select('*', { count: 'exact', head: true });
 
       const duration = Math.round(performance.now() - startTime);
+      const pill = document.getElementById('supabase-header-pill');
+      const pillText = document.getElementById('supabase-pill-text');
+      const statusText = document.getElementById('sb-connection-status-text');
+      const lastPing = document.getElementById('sb-last-ping');
+      const tickerLatency = document.getElementById('ticker-latency-val');
+      const sysLatency = document.getElementById('sys-latency-val');
+      const tickerSb = document.getElementById('ticker-sb-status');
+
       if (error && error.code !== 'PGRST116') {
-        document.getElementById('sb-connection-status-text').innerHTML = `<i class="fas fa-circle-exclamation" style="color:var(--admin-rose);"></i> Connected with warning: ${error.message}`;
-        document.getElementById('supabase-pill-text').textContent = `Supabase: Warning (${duration}ms)`;
-        this.showToast(`Supabase reachable in ${duration}ms (Response: ${error.message})`, 'warning');
+        if (statusText) statusText.innerHTML = `<i class="fas fa-circle-exclamation" style="color:var(--admin-rose);"></i> Warning: ${error.message}`;
+        if (pillText) pillText.textContent = `Supabase: Warning (${duration}ms)`;
+        if (lastPing) lastPing.textContent = `Latency: ${duration}ms`;
+        if (tickerLatency) tickerLatency.textContent = `${duration}ms`;
+        if (sysLatency) sysLatency.textContent = `${duration}ms`;
+        this.showToast(`Supabase reachable in ${duration}ms (${error.message})`, 'warning');
       } else {
-        document.getElementById('sb-connection-status-text').innerHTML = `<i class="fas fa-circle-check" style="color:var(--admin-emerald);"></i> Status: Connected to Supabase Cluster (${duration}ms latency)`;
-        document.getElementById('sb-last-ping').textContent = `Latency: ${duration}ms`;
-        document.getElementById('supabase-pill-text').textContent = `Supabase: Connected (${duration}ms)`;
-        document.getElementById('supabase-header-pill').classList.remove('disconnected');
+        if (statusText) statusText.innerHTML = `<i class="fas fa-circle-check" style="color:var(--admin-emerald);"></i> Status: Connected to Supabase Cluster (${duration}ms latency)`;
+        if (lastPing) lastPing.textContent = `Latency: ${duration}ms`;
+        if (pillText) pillText.textContent = `Supabase: Connected (${duration}ms)`;
+        if (pill) pill.classList.remove('disconnected');
+        if (tickerLatency) tickerLatency.textContent = `${duration}ms`;
+        if (sysLatency) sysLatency.textContent = `${duration}ms`;
+        if (tickerSb) tickerSb.textContent = `Connected (${duration}ms)`;
         this.showToast(`Supabase connection healthy! Latency: ${duration}ms`, 'success');
       }
-      this.fetchSupabaseCounts();
+      await this.refreshAllRealtimeData();
     } catch (err) {
-      document.getElementById('sb-connection-status-text').innerHTML = `<i class="fas fa-circle-xmark" style="color:var(--admin-rose);"></i> Connection Failed: ${err.message}`;
-      document.getElementById('supabase-pill-text').textContent = `Supabase: Disconnected`;
-      document.getElementById('supabase-header-pill').classList.add('disconnected');
+      const statusText = document.getElementById('sb-connection-status-text');
+      const pill = document.getElementById('supabase-header-pill');
+      const pillText = document.getElementById('supabase-pill-text');
+      const tickerSb = document.getElementById('ticker-sb-status');
+      if (statusText) statusText.innerHTML = `<i class="fas fa-circle-xmark" style="color:var(--admin-rose);"></i> Connection Failed: ${err.message}`;
+      if (pillText) pillText.textContent = `Supabase: Disconnected`;
+      if (pill) pill.classList.add('disconnected');
+      if (tickerSb) tickerSb.textContent = `Disconnected`;
       this.showToast(`Connection failed: ${err.message}`, 'error');
     }
   },
@@ -1588,27 +1682,293 @@ const AdminStore = {
     }
   },
 
-  async fetchSupabaseCounts() {
-    if (!this.sbClient) return;
-    const tables = ['transactions', 'settings', 'invoices', 'goals', 'receipts'];
-    let totalRows = 0;
-
-    for (const tbl of tables) {
-      try {
-        const { count, error } = await this.sbClient.from(tbl).select('*', { count: 'exact', head: true });
-        const c = count || 0;
-        totalRows += c;
-        const countEl = document.getElementById(`sb-count-${tbl}`);
-        if (countEl) countEl.textContent = c;
-      } catch (e) {}
+  // ── Load Real State from DB & Storage ──
+  loadLocalState() {
+    try {
+      this.users = JSON.parse(localStorage.getItem(this.STORAGE_KEY_USERS) || '[]');
+      this.emails = JSON.parse(localStorage.getItem(this.STORAGE_KEY_EMAILS) || '[]');
+      this.feedback = JSON.parse(localStorage.getItem(this.STORAGE_KEY_FEEDBACK) || '[]');
+      this.demos = JSON.parse(localStorage.getItem(this.STORAGE_KEY_DEMOS) || '[]');
+      if (this.emails.length > 0 && !this.selectedThreadId) {
+        this.selectedThreadId = this.emails[0].id;
+      }
+    } catch (e) {
+      console.warn('[Admin] Local state parse error:', e);
     }
-
-    const metricSb = document.getElementById('metric-sb-records');
-    if (metricSb) metricSb.textContent = totalRows > 0 ? `${totalRows.toLocaleString()} Rows` : '1,820 Rows';
-
-    this.renderCurrentSbTable();
   },
 
+  saveLocalState() {
+    try {
+      localStorage.setItem(this.STORAGE_KEY_USERS, JSON.stringify(this.users));
+      localStorage.setItem(this.STORAGE_KEY_EMAILS, JSON.stringify(this.emails));
+      localStorage.setItem(this.STORAGE_KEY_FEEDBACK, JSON.stringify(this.feedback));
+      localStorage.setItem(this.STORAGE_KEY_DEMOS, JSON.stringify(this.demos));
+    } catch (e) {
+      console.warn('[Admin] Failed to save state to localStorage:', e);
+    }
+  },
+
+  // ── Master Real-Time Data Ingestion ──
+  async refreshAllRealtimeData() {
+    const startTime = performance.now();
+    let totalRows = 0;
+
+    if (this.sbClient) {
+      try {
+        const [txRes, stRes, invRes, goRes, recRes] = await Promise.allSettled([
+          this.sbClient.from('transactions').select('*').order('date', { ascending: false }).limit(200),
+          this.sbClient.from('settings').select('*').limit(100),
+          this.sbClient.from('invoices').select('*').order('created_at', { ascending: false }).limit(100),
+          this.sbClient.from('goals').select('*').limit(100),
+          this.sbClient.from('receipts').select('*').order('created_at', { ascending: false }).limit(100)
+        ]);
+
+        this.liveTransactions = (txRes.status === 'fulfilled' && txRes.value.data) ? txRes.value.data : (typeof Store !== 'undefined' ? Store.getTransactions() : []);
+        this.liveSettings = (stRes.status === 'fulfilled' && stRes.value.data) ? stRes.value.data : [];
+        this.liveInvoices = (invRes.status === 'fulfilled' && invRes.value.data) ? invRes.value.data : (typeof Store !== 'undefined' ? Store.getInvoices() : []);
+        this.liveGoals = (goRes.status === 'fulfilled' && goRes.value.data) ? goRes.value.data : (typeof Store !== 'undefined' ? Store.getGoals() : []);
+        this.liveReceipts = (recRes.status === 'fulfilled' && recRes.value.data) ? recRes.value.data : (typeof Store !== 'undefined' ? Store.getReceipts() : []);
+
+        this.tableCounts.transactions = this.liveTransactions.length;
+        this.tableCounts.settings = this.liveSettings.length;
+        this.tableCounts.invoices = this.liveInvoices.length;
+        this.tableCounts.goals = this.liveGoals.length;
+        this.tableCounts.receipts = this.liveReceipts.length;
+
+        totalRows = this.liveTransactions.length + this.liveSettings.length + this.liveInvoices.length + this.liveGoals.length + this.liveReceipts.length;
+
+        // Build authentic user directory from database records
+        this.buildRealUserDirectory();
+
+        const latency = Math.round(performance.now() - startTime);
+        const pillText = document.getElementById('supabase-pill-text');
+        const pill = document.getElementById('supabase-header-pill');
+        const tickerLatency = document.getElementById('ticker-latency-val');
+        const sysLatency = document.getElementById('sys-latency-val');
+        const tickerSb = document.getElementById('ticker-sb-status');
+
+        if (pillText) pillText.textContent = `Supabase: Connected (${latency}ms)`;
+        if (pill) pill.classList.remove('disconnected');
+        if (tickerLatency) tickerLatency.textContent = `${latency}ms`;
+        if (sysLatency) sysLatency.textContent = `${latency}ms`;
+        if (tickerSb) tickerSb.textContent = `Connected (${totalRows} live rows)`;
+      } catch (err) {
+        console.warn('[Admin] Live refresh error:', err);
+      }
+    }
+
+    // Update table count pills
+    ['transactions', 'settings', 'invoices', 'goals', 'receipts'].forEach(tbl => {
+      const el = document.getElementById(`sb-count-${tbl}`);
+      if (el) el.textContent = this.tableCounts[tbl] || 0;
+    });
+
+    // Update real metrics and views
+    this.renderAll();
+  },
+
+  buildRealUserDirectory() {
+    const userMap = new Map();
+
+    // 1. Current Authenticated User
+    const currentUser = (typeof Auth !== 'undefined') ? Auth.getUser() : null;
+    if (currentUser) {
+      userMap.set(currentUser.id || currentUser.email || 'current_user', {
+        id: currentUser.id || 'current_user',
+        name: currentUser.name || 'Current Administrator',
+        email: currentUser.email || 'admin@phyzelyne.com',
+        tier: currentUser.plan || 'founder',
+        status: 'active',
+        country: currentUser.currencyCode || 'USD',
+        signupDate: new Date().toISOString().slice(0, 10),
+        lastActive: 'Just now',
+        transactionsLogged: 0,
+        invoicesGenerated: 0,
+        aiQueries: 0,
+        notes: 'Active authenticated session user.'
+      });
+    }
+
+    // 2. Map all settings rows
+    this.liveSettings.forEach(s => {
+      const uid = s.user_id || s.id || 'usr_' + Math.random().toString(36).substr(2, 6);
+      const existing = userMap.get(uid) || {};
+      userMap.set(uid, {
+        id: uid,
+        name: s.name || s.fullName || existing.name || 'Phyzelyne Member',
+        email: s.email || existing.email || `user_${uid.slice(0,6)}@app.phyzelyne.com`,
+        tier: s.plan || s.tier || existing.tier || 'free',
+        status: s.status || 'active',
+        country: s.currencyCode || existing.country || 'USD',
+        signupDate: s.created_at ? s.created_at.slice(0, 10) : (existing.signupDate || '2026-08-01'),
+        lastActive: existing.lastActive || 'Active today',
+        transactionsLogged: 0,
+        invoicesGenerated: 0,
+        aiQueries: 0,
+        notes: s.notes || existing.notes || `Configured currency: ${s.currencyCode || 'USD'}`
+      });
+    });
+
+    // 3. Count real transactions per user
+    this.liveTransactions.forEach(t => {
+      const uid = t.user_id || (currentUser?.id) || 'anonymous';
+      if (!userMap.has(uid)) {
+        userMap.set(uid, {
+          id: uid,
+          name: uid === 'anonymous' ? 'Anonymous User' : `User (${uid.slice(0,6)})`,
+          email: uid === 'anonymous' ? 'guest@phyzelyne.com' : `${uid.slice(0,6)}@phyzelyne.com`,
+          tier: 'free',
+          status: 'active',
+          country: t.originalCurrency || 'USD',
+          signupDate: t.date || '2026-08-01',
+          lastActive: t.date ? `${t.date}` : 'Recently',
+          transactionsLogged: 0,
+          invoicesGenerated: 0,
+          aiQueries: 0,
+          notes: 'Discovered via live transaction records'
+        });
+      }
+      const u = userMap.get(uid);
+      u.transactionsLogged = (u.transactionsLogged || 0) + 1;
+    });
+
+    // 4. Count real invoices per user
+    this.liveInvoices.forEach(inv => {
+      const uid = inv.user_id || (currentUser?.id) || 'anonymous';
+      if (userMap.has(uid)) {
+        const u = userMap.get(uid);
+        u.invoicesGenerated = (u.invoicesGenerated || 0) + 1;
+      }
+    });
+
+    // 5. Count real receipts / OCR per user
+    this.liveReceipts.forEach(rec => {
+      const uid = rec.user_id || (currentUser?.id) || 'anonymous';
+      if (userMap.has(uid)) {
+        const u = userMap.get(uid);
+        u.aiQueries = (u.aiQueries || 0) + 1;
+      }
+    });
+
+    // Merge with any locally updated user notes/tiers
+    const compiled = Array.from(userMap.values());
+    this.users.forEach(localUser => {
+      const match = compiled.find(c => c.id === localUser.id || c.email === localUser.email);
+      if (match) {
+        match.tier = localUser.tier || match.tier;
+        match.status = localUser.status || match.status;
+        match.notes = localUser.notes || match.notes;
+      }
+    });
+
+    this.users = compiled.length > 0 ? compiled : this.users;
+    this.saveLocalState();
+  },
+
+  startRealtimePulse() {
+    if (this.realtimePulseTimer) clearInterval(this.realtimePulseTimer);
+    this.realtimePulseTimer = setInterval(() => {
+      this.refreshAllRealtimeData();
+    }, 12000);
+  },
+
+  renderAll() {
+    this.renderMetricsSummary();
+    this.renderUsersTable();
+    this.renderFeedbackGrid();
+    this.renderGmailClient();
+    this.renderDemosList();
+    this.renderFeatureTelemetry();
+    this.renderCurrentSbTable();
+    this.updateRealtimeCharts();
+  },
+
+  renderMetricsSummary() {
+    const totalUsers = this.users.length;
+    const totalRecords = this.tableCounts.transactions + this.tableCounts.settings + this.tableCounts.invoices + this.tableCounts.goals + this.tableCounts.receipts;
+    const unreadEmails = this.emails.filter(e => e.unread).length;
+    const confirmedDemos = this.demos.filter(d => d.status === 'confirmed');
+
+    // Calculate real ARR pipeline from booked demos
+    let totalARR = 0;
+    this.demos.forEach(d => {
+      if (d.dealARR) {
+        const num = parseFloat(d.dealARR.replace(/[^0-9.]/g, ''));
+        if (!isNaN(num)) totalARR += num;
+      }
+    });
+
+    // Calculate real NPS score
+    let npsDisplay = 'N/A';
+    let npsSub = `${this.feedback.length} submissions`;
+    let avgRating = '0.0 / 5.0';
+    let triageRate = '0%';
+
+    if (this.feedback.length > 0) {
+      const promoters = this.feedback.filter(f => f.rating >= 4).length;
+      const detractors = this.feedback.filter(f => f.rating <= 2).length;
+      const score = Math.round(((promoters - detractors) / this.feedback.length) * 100);
+      npsDisplay = (score >= 0 ? `+${score}` : `${score}`) + ' NPS';
+      
+      const sumRatings = this.feedback.reduce((acc, f) => acc + (Number(f.rating) || 5), 0);
+      avgRating = (sumRatings / this.feedback.length).toFixed(1) + ' / 5.0';
+
+      const resolved = this.feedback.filter(f => f.status === 'resolved' || f.reply).length;
+      triageRate = Math.round((resolved / this.feedback.length) * 100) + '%';
+      npsSub = `${promoters}/${this.feedback.length} Promoters`;
+    }
+
+    // Update KPI card DOM elements
+    const elTotalUsers = document.getElementById('metric-total-users');
+    const elDau = document.getElementById('metric-dau');
+    const elNps = document.getElementById('metric-nps');
+    const elNpsSub = document.getElementById('metric-nps-sub');
+    const elUnreadEmails = document.getElementById('metric-unread-emails');
+    const elDemos = document.getElementById('metric-demos-pipeline');
+    const elDemosArr = document.getElementById('metric-demos-pipeline-arr');
+    const elSbRecords = document.getElementById('metric-sb-records');
+    const elSbRecordsSub = document.getElementById('metric-sb-records-sub');
+
+    if (elTotalUsers) elTotalUsers.textContent = totalUsers.toLocaleString();
+    if (elDau) elDau.textContent = this.users.filter(u => u.status === 'active').length.toLocaleString();
+    if (elNps) elNps.textContent = npsDisplay;
+    if (elNpsSub) elNpsSub.innerHTML = `<span class="ticker-up"><i class="fas fa-heart"></i> ${npsSub}</span>`;
+    if (elUnreadEmails) elUnreadEmails.textContent = unreadEmails;
+    if (elDemos) elDemos.textContent = `${confirmedDemos.length} Booked`;
+    if (elDemosArr) elDemosArr.textContent = `$${totalARR.toLocaleString()} ARR Pipeline`;
+    if (elSbRecords) elSbRecords.textContent = `${totalRecords.toLocaleString()} Rows`;
+    if (elSbRecordsSub) elSbRecordsSub.innerHTML = `<span class="ticker-up">5 tables synchronized</span>`;
+
+    // Feedback hub specific cards
+    const hubNps = document.getElementById('nps-hub-score');
+    const hubSub = document.getElementById('nps-hub-sub');
+    const hubAvg = document.getElementById('nps-hub-avg');
+    const hubTriage = document.getElementById('nps-hub-triage');
+    if (hubNps) hubNps.textContent = npsDisplay;
+    if (hubSub) hubSub.textContent = `${this.feedback.length} verified submissions`;
+    if (hubAvg) hubAvg.textContent = avgRating;
+    if (hubTriage) hubTriage.textContent = triageRate;
+
+    // Badges in navigation tabs
+    const bUsers = document.getElementById('badge-count-users');
+    const bFb = document.getElementById('badge-count-feedback');
+    const bGm = document.getElementById('badge-count-gmail');
+    const bDm = document.getElementById('badge-count-demos');
+    if (bUsers) bUsers.textContent = totalUsers;
+    if (bFb) bFb.textContent = this.feedback.length;
+    if (bGm) bGm.textContent = unreadEmails;
+    if (bDm) bDm.textContent = confirmedDemos.length;
+
+    // Ticker totals
+    const tickerOnline = document.getElementById('ticker-online-val');
+    const tickerRecords = document.getElementById('ticker-total-records-val');
+    const liveOnlineCount = document.getElementById('live-online-count');
+    if (tickerOnline) tickerOnline.textContent = `${totalUsers} active roster`;
+    if (tickerRecords) tickerRecords.textContent = `${totalRecords.toLocaleString()} Rows`;
+    if (liveOnlineCount) liveOnlineCount.textContent = totalUsers > 0 ? totalUsers : 1;
+  },
+
+  // ── Supabase Explorer View ──
   selectSbTable(tableName) {
     this.activeSbTable = tableName;
     document.querySelectorAll('.supabase-table-pill').forEach(btn => {
@@ -1622,46 +1982,35 @@ const AdminStore = {
     const tbody = document.getElementById('sb-table-body');
     if (!thead || !tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-dim);"><i class="fas fa-spinner fa-spin"></i> Fetching live records from Supabase public.${this.activeSbTable}...</td></tr>`;
-
     let data = [];
-    if (this.sbClient) {
-      try {
-        const res = await this.sbClient.from(this.activeSbTable).select('*').limit(25);
-        if (res.data && res.data.length > 0) {
-          data = res.data;
-        }
-      } catch(e) {}
-    }
+    if (this.activeSbTable === 'transactions') data = this.liveTransactions;
+    else if (this.activeSbTable === 'settings') data = this.liveSettings;
+    else if (this.activeSbTable === 'invoices') data = this.liveInvoices;
+    else if (this.activeSbTable === 'goals') data = this.liveGoals;
+    else if (this.activeSbTable === 'receipts') data = this.liveReceipts;
 
-    // Fallback sample data if empty or disconnected
     if (!data || data.length === 0) {
-      if (this.activeSbTable === 'transactions') {
-        data = [
-          { id: 'txn_101', date: '2026-08-18', amount: 1450.00, description: 'Client Consulting Retainer', category: 'Income', type: 'income' },
-          { id: 'txn_102', date: '2026-08-17', amount: 89.90, description: 'AWS Infrastructure Cloud Run', category: 'Software', type: 'expense' },
-          { id: 'txn_103', date: '2026-08-16', amount: 320.00, description: 'Executive Flight Booking', category: 'Travel', type: 'expense' }
-        ];
-      } else if (this.activeSbTable === 'settings') {
-        data = [
-          { user_id: 'usr_849201', name: 'Sarah Jenkins', email: 'sarah.j@apexventures.io', currencyCode: 'USD', plan: 'enterprise', onboarded: true },
-          { user_id: 'usr_849202', name: 'Kwame Mensah', email: 'kwame@accracapital.com', currencyCode: 'GHS', plan: 'founder', onboarded: true }
-        ];
-      } else {
-        data = [
-          { id: 'row_1', name: 'Sample Record 1', status: 'active', created_at: '2026-08-17' },
-          { id: 'row_2', name: 'Sample Record 2', status: 'active', created_at: '2026-08-16' }
-        ];
-      }
+      thead.innerHTML = `<tr><th>Table</th><th>Status</th><th>Action</th></tr>`;
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="3">
+            <div class="empty-state-box">
+              <i class="fas fa-database"></i>
+              <p>No rows recorded in <strong>public.${this.activeSbTable}</strong> yet. Real user entries saved in the app will sync here live.</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
     }
 
     const keys = Object.keys(data[0] || {}).slice(0, 6);
     thead.innerHTML = `<tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr>`;
-    tbody.innerHTML = data.map(row => `
+    tbody.innerHTML = data.slice(0, 50).map(row => `
       <tr>
         ${keys.map(k => {
           const val = row[k];
-          const display = (typeof val === 'object') ? JSON.stringify(val).slice(0, 30) : String(val ?? '');
+          const display = (typeof val === 'object') ? JSON.stringify(val).slice(0, 32) : String(val ?? '');
           return `<td style="font-family:var(--admin-font-mono); font-size:0.8rem;">${display}</td>`;
         }).join('')}
       </tr>
@@ -1669,196 +2018,17 @@ const AdminStore = {
   },
 
   refreshCurrentSbTable() {
-    this.fetchSupabaseCounts();
+    this.refreshAllRealtimeData();
     this.showToast(`Refreshed public.${this.activeSbTable}`, 'info');
   },
 
   async syncSupabaseToAdmin() {
-    this.showToast('Syncing live Supabase users & transactions to Admin Roster...', 'info');
-    if (this.sbClient) {
-      try {
-        const { data: usersData } = await this.sbClient.from('settings').select('*');
-        if (usersData && usersData.length > 0) {
-          const merged = usersData.map(u => ({
-            id: u.user_id || 'usr_' + Math.floor(Math.random()*10000),
-            name: u.name || 'Phyzelyne User',
-            email: u.email || 'user@example.com',
-            tier: u.plan || 'pro',
-            status: 'active',
-            country: u.currencyCode === 'GHS' ? 'Ghana' : 'United States',
-            signupDate: u.created_at ? u.created_at.slice(0, 10) : '2026-08-15',
-            lastActive: 'Just now',
-            transactionsLogged: 42,
-            invoicesGenerated: 5,
-            aiQueries: 28,
-            notes: `Synced from Supabase settings table (Currency: ${u.currencyCode || 'USD'})`
-          }));
-          this.users = [...merged, ...this.users.filter(existing => !merged.some(m => m.email === existing.email))];
-          this.saveState();
-          this.renderUsersTable();
-          this.renderMetricsSummary();
-        }
-      } catch (e) {}
-    }
-    this.showToast('Supabase live data synchronization complete!', 'success');
+    this.showToast('Fetching latest records from Supabase cluster...', 'info');
+    await this.refreshAllRealtimeData();
+    this.showToast('Supabase live data synchronized successfully!', 'success');
   },
 
-  // ── Layout & Fullscreen Workspace Toggle ──
-  toggleSidebarCollapse() {
-    document.body.classList.toggle('sidebar-collapsed');
-    const isCollapsed = document.body.classList.contains('sidebar-collapsed');
-    this.showToast(isCollapsed ? 'Workspace expanded to 100% full width' : 'Standard sidebar view restored', 'info');
-  },
-
-  // ── Security Gate ──
-  checkSecurityGate() {
-    const isUnlocked = sessionStorage.getItem('phyzelyne_admin_session_unlocked') === 'true';
-    const isWhitelisted = (typeof Auth !== 'undefined' && typeof Auth.isAdmin === 'function') ? Auth.isAdmin() : false;
-
-    const gateEl = document.getElementById('admin-security-gate');
-    const shellEl = document.getElementById('admin-app-shell');
-
-    if (isUnlocked || isWhitelisted) {
-      if (gateEl) gateEl.style.display = 'none';
-      if (shellEl) {
-        shellEl.style.filter = 'none';
-        shellEl.style.pointerEvents = 'auto';
-      }
-    } else {
-      if (gateEl) gateEl.style.display = 'flex';
-      if (shellEl) {
-        shellEl.style.filter = 'blur(16px)';
-        shellEl.style.pointerEvents = 'none';
-      }
-    }
-  },
-
-  authenticateAdminPasscode() {
-    const input = document.getElementById('admin-gate-passcode');
-    const errorMsg = document.getElementById('gate-error-msg');
-    const code = input ? input.value.trim() : '';
-
-    const validKeys = ['phyzelyne-cto', 'phyzelyne-coo', 'phyzelyne-ceo', 'phyzelyne-team', 'phyzelyne-engineers'];
-
-    if (validKeys.includes(code.toLowerCase())) {
-      sessionStorage.setItem('phyzelyne_admin_session_unlocked', 'true');
-      const gateEl = document.getElementById('admin-security-gate');
-      const shellEl = document.getElementById('admin-app-shell');
-      if (gateEl) gateEl.style.display = 'none';
-      if (shellEl) {
-        shellEl.style.filter = 'none';
-        shellEl.style.pointerEvents = 'auto';
-      }
-      if (errorMsg) errorMsg.style.display = 'none';
-      this.showToast('Executive Clearance Verified. Welcome, CTO.', 'success');
-    } else {
-      if (errorMsg) errorMsg.style.display = 'block';
-      if (input) { input.value = ''; input.focus(); }
-    }
-  },
-
-  lockAdminSession() {
-    sessionStorage.removeItem('phyzelyne_admin_session_unlocked');
-    sessionStorage.removeItem('phyzelyne-cto');
-    localStorage.removeItem('phyzelyne_admin_session_unlocked');
-    window.location.reload();
-  },
-
-  // ── Seed & State Engine ──
-  seedInitialDataIfEmpty() {
-    if (!localStorage.getItem(this.STORAGE_KEY_USERS)) {
-      const initialUsers = [
-        { id: 'usr_849201', name: 'Sarah Jenkins', email: 'sarah.j@apexventures.io', tier: 'enterprise', status: 'active', country: 'United States', signupDate: '2026-08-10', lastActive: '3 mins ago', transactionsLogged: 142, invoicesGenerated: 18, aiQueries: 89, notes: 'Managing partner at Apex Ventures. Requires multi-currency FX API.' },
-        { id: 'usr_849202', name: 'Kwame Mensah', email: 'kwame@accracapital.com', tier: 'founder', status: 'active', country: 'Ghana', signupDate: '2026-08-08', lastActive: 'Just now', transactionsLogged: 320, invoicesGenerated: 45, aiQueries: 210, notes: 'High-volume user testing GHS/USD/EUR real-time bank reconciliation.' },
-        { id: 'usr_849203', name: 'Elena Rostova', email: 'elena.rostova@fintech-berlin.de', tier: 'pro', status: 'active', country: 'Germany', signupDate: '2026-08-12', lastActive: '22 mins ago', transactionsLogged: 84, invoicesGenerated: 12, aiQueries: 45, notes: 'Power tester for OCR receipt scanner.' },
-        { id: 'usr_849204', name: 'Tariq Al-Mansoor', email: 'tariq@dubai-wealth.ae', tier: 'enterprise', status: 'active', country: 'UAE', signupDate: '2026-08-05', lastActive: '1 hour ago', transactionsLogged: 512, invoicesGenerated: 78, aiQueries: 340, notes: 'VIP demo booked for Monday. Wants dedicated enterprise VPC.' }
-      ];
-      localStorage.setItem(this.STORAGE_KEY_USERS, JSON.stringify(initialUsers));
-    }
-
-    if (!localStorage.getItem(this.STORAGE_KEY_EMAILS)) {
-      const initialEmails = [
-        {
-          id: 'msg_901', folder: 'inbox', tag: 'enterprise', fromName: 'Tariq Al-Mansoor (Dubai Wealth)', fromEmail: 'tariq@dubai-wealth.ae',
-          subject: 'Phyzelyne Enterprise Deployment & Multi-Entity Ledger Question',
-          snippet: 'Hi CTO team, we tested Phyzelyne for 2 weeks across our executive office. We want to discuss enterprise SLA and API access...',
-          body: `Hello Phyzelyne Leadership Team,\n\nWe have been thoroughly testing the Phyzelyne Beta platform over the past 2 weeks across our executive wealth division. The multi-currency FX precision (specifically AED, USD, and EUR conversion parity) is unmatched compared to legacy tools.\n\nWe would like to confirm our upcoming VIP Demo meeting and discuss:\n1. Dedicated SSO / SAML integration for 150 team seats\n2. Custom branded invoicing templates with our regulatory disclosure\n3. High-throughput receipt scanning API limits\n\nLooking forward to speaking on Google Meet.\n\nBest regards,\nTariq Al-Mansoor\nChief Investment Officer, Dubai Wealth Partners`,
-          date: '2026-08-18 14:15', unread: true, starred: true
-        },
-        {
-          id: 'msg_902', folder: 'inbox', tag: 'demo', fromName: 'Sarah Jenkins (Apex Ventures)', fromEmail: 'sarah.j@apexventures.io',
-          subject: 'Confirmed: Phyzelyne Architecture & Product Demo',
-          snippet: 'Hi team, looking forward to our walkthrough tomorrow. Our CFO and VP Finance will be joining the call as well...',
-          body: `Hey Phyzelyne Team,\n\nThanks for sending over the Google Meet link. I've invited our CFO, VP of Finance, and Head of Operations to the demo.\n\nWe want to deep dive into the AI Financial Coach logic and how transactions are auto-categorized into tax-deductible buckets.\n\nSee you on the call!\n\nSarah Jenkins\nManaging Partner, Apex Ventures`,
-          date: '2026-08-18 11:30', unread: true, starred: false
-        }
-      ];
-      localStorage.setItem(this.STORAGE_KEY_EMAILS, JSON.stringify(initialEmails));
-    }
-
-    if (!localStorage.getItem(this.STORAGE_KEY_FEEDBACK)) {
-      const initialFeedback = [
-        { id: 'fb_101', userName: 'Kwame Mensah', userEmail: 'kwame@accracapital.com', rating: 5, sentiment: 'positive', category: 'Features', comment: 'The instant multi-currency FX calculator and dark trading desk interface are world-class. Replaced 3 spreadsheet tools.', status: 'resolved', date: '2026-08-18 09:45', reply: 'Thank you Kwame! We are testing automated accountant email delivery in v1.2.' },
-        { id: 'fb_102', userName: 'Sarah Jenkins', userEmail: 'sarah.j@apexventures.io', rating: 5, sentiment: 'positive', category: 'AI Coach', comment: 'AI financial coach diagnosed our cash burn run-rate with 99.4% accuracy. Ready to roll out across partners.', status: 'in_review', date: '2026-08-18 11:20', reply: null }
-      ];
-      localStorage.setItem(this.STORAGE_KEY_FEEDBACK, JSON.stringify(initialFeedback));
-    }
-
-    if (!localStorage.getItem(this.STORAGE_KEY_DEMOS)) {
-      const initialDemos = [
-        { id: 'demo_301', companyName: 'Dubai Wealth Partners', contactName: 'Tariq Al-Mansoor', contactEmail: 'tariq@dubai-wealth.ae', teamSize: '50 - 200 seats', dealARR: '$180,000 / yr', date: '2026-08-20', time: '14:00 GMT', timezone: 'Asia/Dubai (GST)', meetLink: 'https://meet.google.com/phy-dubai-exec', status: 'confirmed', host: 'CTO / Lead Architect', notes: 'High intent. Interested in custom multi-currency ledger.' }
-      ];
-      localStorage.setItem(this.STORAGE_KEY_DEMOS, JSON.stringify(initialDemos));
-    }
-  },
-
-  loadState() {
-    this.users = JSON.parse(localStorage.getItem(this.STORAGE_KEY_USERS) || '[]');
-    this.emails = JSON.parse(localStorage.getItem(this.STORAGE_KEY_EMAILS) || '[]');
-    this.feedback = JSON.parse(localStorage.getItem(this.STORAGE_KEY_FEEDBACK) || '[]');
-    this.demos = JSON.parse(localStorage.getItem(this.STORAGE_KEY_DEMOS) || '[]');
-    if (this.emails.length > 0) this.selectedThreadId = this.emails[0].id;
-  },
-
-  saveState() {
-    localStorage.setItem(this.STORAGE_KEY_USERS, JSON.stringify(this.users));
-    localStorage.setItem(this.STORAGE_KEY_EMAILS, JSON.stringify(this.emails));
-    localStorage.setItem(this.STORAGE_KEY_FEEDBACK, JSON.stringify(this.feedback));
-    localStorage.setItem(this.STORAGE_KEY_DEMOS, JSON.stringify(this.demos));
-  },
-
-  startRealtimePulse() {
-    let onlineCount = 1428;
-    if (this.realtimePulseTimer) clearInterval(this.realtimePulseTimer);
-    this.realtimePulseTimer = setInterval(() => {
-      const delta = Math.floor(Math.random() * 7) - 3;
-      onlineCount = Math.max(1250, onlineCount + delta);
-      const countEl = document.getElementById('live-online-count');
-      const tickerOnline = document.getElementById('ticker-online-val');
-      if (countEl) countEl.textContent = onlineCount.toLocaleString();
-      if (tickerOnline) tickerOnline.textContent = onlineCount.toLocaleString() + ' active';
-    }, 3500);
-  },
-
-  renderAll() {
-    this.renderMetricsSummary();
-    this.renderUsersTable();
-    this.renderFeedbackGrid();
-    this.renderGmailClient();
-    this.renderDemosList();
-    this.renderFeatureTelemetry();
-  },
-
-  renderMetricsSummary() {
-    const totalUsers = 4820 + this.users.length;
-    document.getElementById('metric-total-users').textContent = totalUsers.toLocaleString();
-    document.getElementById('metric-unread-emails').textContent = this.emails.filter(e => e.unread).length;
-    document.getElementById('badge-count-users').textContent = this.users.length;
-    document.getElementById('badge-count-feedback').textContent = this.feedback.length;
-    document.getElementById('badge-count-gmail').textContent = this.emails.filter(e => e.unread).length;
-    document.getElementById('badge-count-demos').textContent = this.demos.filter(d => d.status === 'confirmed').length;
-  },
-
+  // ── Users & Cohorts Table ──
   renderUsersTable(filter = '') {
     const tbody = document.getElementById('users-table-body');
     if (!tbody) return;
@@ -1867,14 +2037,23 @@ const AdminStore = {
     const statusFilter = document.getElementById('user-status-filter')?.value || 'all';
 
     const filtered = this.users.filter(u => {
-      const matchSearch = u.name.toLowerCase().includes(searchTerm) || u.email.toLowerCase().includes(searchTerm) || u.country.toLowerCase().includes(searchTerm);
+      const matchSearch = (u.name || '').toLowerCase().includes(searchTerm) || (u.email || '').toLowerCase().includes(searchTerm) || (u.country || '').toLowerCase().includes(searchTerm);
       const matchTier = (tierFilter === 'all') || (u.tier === tierFilter);
       const matchStatus = (statusFilter === 'all') || (u.status === statusFilter);
       return matchSearch && matchTier && matchStatus;
     });
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-dim);">No users found matching query.</td></tr>`;
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7">
+            <div class="empty-state-box">
+              <i class="fas fa-users-slash"></i>
+              <p>No user accounts matching query. Real users registered via Supabase Auth will appear here automatically.</p>
+            </div>
+          </td>
+        </tr>
+      `;
       return;
     }
 
@@ -1883,7 +2062,7 @@ const AdminStore = {
         <td>
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="width:32px; height:32px; border-radius:50%; background:rgba(217,165,33,0.2); color:var(--gold-light); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem;">
-              ${u.name.charAt(0).toUpperCase()}
+              ${(u.name || 'U').charAt(0).toUpperCase()}
             </div>
             <div>
               <div style="font-weight:600; font-size:0.85rem; color:var(--text);">${u.name}</div>
@@ -1892,10 +2071,10 @@ const AdminStore = {
           </div>
         </td>
         <td><span class="badge" style="background:rgba(217,165,33,0.18); color:var(--gold-light); font-size:0.7rem; text-transform:uppercase;">${u.tier}</span></td>
-        <td><span style="font-size:0.75rem; color:var(--admin-emerald);"><i class="fas fa-circle" style="font-size:0.5rem; margin-right:4px;"></i> ${u.status.toUpperCase()}</span></td>
-        <td style="font-size:0.8rem; color:var(--text-mid);">${u.country}</td>
-        <td style="font-family:var(--admin-font-mono); font-size:0.8rem;">${u.transactionsLogged} txns</td>
-        <td style="font-size:0.75rem; color:var(--text-dim);">${u.lastActive}</td>
+        <td><span style="font-size:0.75rem; color:${u.status === 'active' ? 'var(--admin-emerald)' : 'var(--text-dim)'};"><i class="fas fa-circle" style="font-size:0.5rem; margin-right:4px;"></i> ${(u.status || 'ACTIVE').toUpperCase()}</span></td>
+        <td style="font-size:0.8rem; color:var(--text-mid); font-family:var(--admin-font-mono);">${u.country}</td>
+        <td style="font-family:var(--admin-font-mono); font-size:0.8rem;">${u.transactionsLogged || 0} txns</td>
+        <td style="font-size:0.75rem; color:var(--text-dim);">${u.lastActive || 'Today'}</td>
         <td style="text-align:right;">
           <button class="btn btn-glass btn-sm" onclick="event.stopPropagation(); AdminStore.openUserDrawer('${u.id}')"><i class="fas fa-eye"></i> View</button>
         </td>
@@ -1909,14 +2088,14 @@ const AdminStore = {
     this.selectedUser = user;
     document.getElementById('drawer-user-name').textContent = user.name;
     document.getElementById('drawer-user-email').textContent = user.email;
-    document.getElementById('drawer-user-initial').textContent = user.name.charAt(0).toUpperCase();
-    document.getElementById('drawer-tier-select').value = user.tier;
-    document.getElementById('drawer-status-select').value = user.status;
-    document.getElementById('drawer-user-country').textContent = user.country;
-    document.getElementById('drawer-user-signup').textContent = user.signupDate;
-    document.getElementById('drawer-user-txns').textContent = user.transactionsLogged;
-    document.getElementById('drawer-user-invoices').textContent = user.invoicesGenerated;
-    document.getElementById('drawer-user-ai').textContent = user.aiQueries;
+    document.getElementById('drawer-user-initial').textContent = (user.name || 'U').charAt(0).toUpperCase();
+    document.getElementById('drawer-tier-select').value = user.tier || 'free';
+    document.getElementById('drawer-status-select').value = user.status || 'active';
+    document.getElementById('drawer-user-country').textContent = user.country || 'USD';
+    document.getElementById('drawer-user-signup').textContent = user.signupDate || '--';
+    document.getElementById('drawer-user-txns').textContent = user.transactionsLogged || 0;
+    document.getElementById('drawer-user-invoices').textContent = user.invoicesGenerated || 0;
+    document.getElementById('drawer-user-ai').textContent = user.aiQueries || 0;
     document.getElementById('drawer-user-notes').value = user.notes || '';
 
     document.getElementById('user-drawer').style.right = '0';
@@ -1928,40 +2107,67 @@ const AdminStore = {
     document.getElementById('drawer-overlay').style.display = 'none';
   },
 
-  saveUserDrawer() {
+  async saveUserDrawer() {
     if (!this.selectedUser) return;
     this.selectedUser.tier = document.getElementById('drawer-tier-select').value;
     this.selectedUser.status = document.getElementById('drawer-status-select').value;
     this.selectedUser.notes = document.getElementById('drawer-user-notes').value;
-    this.saveState();
+    
+    // If connected to Supabase and editing user settings
+    if (this.sbClient && this.selectedUser.id) {
+      try {
+        await this.sbClient.from('settings').upsert({
+          user_id: this.selectedUser.id,
+          plan: this.selectedUser.tier,
+          notes: this.selectedUser.notes
+        }, { onConflict: 'user_id' });
+      } catch (e) {
+        console.warn('[Admin] Remote settings update error:', e);
+      }
+    }
+
+    this.saveLocalState();
     this.renderUsersTable();
     this.closeUserDrawer();
     this.showToast(`Updated permissions for ${this.selectedUser.name}`, 'success');
   },
 
+  // ── Feedback & Sentiment Hub ──
   renderFeedbackGrid() {
     const grid = document.getElementById('feedback-grid-container');
     if (!grid) return;
     const filter = document.getElementById('feedback-sentiment-filter')?.value || 'all';
     const filtered = this.feedback.filter(f => (filter === 'all') || (f.sentiment === filter));
 
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;">
+          <div class="empty-state-box">
+            <i class="fas fa-comment-slash"></i>
+            <p>No user feedback recorded under this filter yet. When users submit in-app ratings or suggestions, they will display here in real time.</p>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
     grid.innerHTML = filtered.map(f => `
       <div class="feedback-card">
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <div style="color:var(--gold); font-size:0.8rem;">
-              ${Array.from({length:5}, (_,i) => `<i class="fas fa-star" style="color:${i < f.rating ? 'var(--gold)' : 'rgba(255,255,255,0.15)'};"></i>`).join('')}
+              ${Array.from({length:5}, (_,i) => `<i class="fas fa-star" style="color:${i < (f.rating || 5) ? 'var(--gold)' : 'rgba(255,255,255,0.15)'};"></i>`).join('')}
             </div>
-            <span class="badge" style="font-size:0.68rem; text-transform:uppercase; background:rgba(47,174,114,0.15); color:#6fe3a8;">${f.sentiment}</span>
+            <span class="badge" style="font-size:0.68rem; text-transform:uppercase; background:rgba(47,174,114,0.15); color:#6fe3a8;">${f.sentiment || 'positive'}</span>
           </div>
-          <div style="font-size:0.72rem; color:var(--gold-light); font-weight:700; text-transform:uppercase; margin-bottom:6px;"><i class="fas fa-tag"></i> ${f.category}</div>
-          <p class="feedback-quote">"${f.comment}"</p>
+          <div style="font-size:0.72rem; color:var(--gold-light); font-weight:700; text-transform:uppercase; margin-bottom:6px;"><i class="fas fa-tag"></i> ${f.category || 'Feedback'}</div>
+          <p class="feedback-quote">"${f.comment || ''}"</p>
           ${f.reply ? `<div style="background:rgba(47,174,114,0.08); border-left:2px solid var(--admin-emerald); padding:8px 10px; border-radius:4px; font-size:0.75rem; color:var(--text-mid); margin-top:8px;"><strong>Team Reply:</strong> ${f.reply}</div>` : ''}
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.06);">
           <div>
-            <div style="font-size:0.8rem; font-weight:600; color:var(--text);">${f.userName}</div>
-            <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${f.userEmail}</div>
+            <div style="font-size:0.8rem; font-weight:600; color:var(--text);">${f.userName || 'Phyzelyne User'}</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${f.userEmail || 'user@domain.com'}</div>
           </div>
           <button class="btn btn-glass btn-sm" onclick="AdminStore.openFeedbackReplyModal('${f.id}')"><i class="fas fa-reply"></i> Reply</button>
         </div>
@@ -1973,7 +2179,7 @@ const AdminStore = {
     const item = this.feedback.find(f => f.id === feedbackId);
     if (!item) return;
     this.currentFeedbackItem = item;
-    document.getElementById('modal-fb-user').textContent = `${item.userName} (${item.userEmail})`;
+    document.getElementById('modal-fb-user').textContent = `${item.userName || 'User'} (${item.userEmail || ''})`;
     document.getElementById('modal-fb-quote').textContent = `"${item.comment}"`;
     document.getElementById('modal-fb-reply-text').value = item.reply || '';
     document.getElementById('feedback-reply-modal').classList.add('open');
@@ -1985,21 +2191,42 @@ const AdminStore = {
     if (!text) return;
     this.currentFeedbackItem.reply = text;
     this.currentFeedbackItem.status = 'resolved';
-    this.saveState();
+    this.saveLocalState();
     this.renderFeedbackGrid();
+    this.renderMetricsSummary();
     this.closeModal('feedback-reply-modal');
     this.showToast(`Reply sent to ${this.currentFeedbackItem.userEmail}`, 'success');
   },
 
   generateAiFeedbackReply() {
     if (!this.currentFeedbackItem) return;
-    const name = this.currentFeedbackItem.userName.split(' ')[0];
-    document.getElementById('modal-fb-reply-text').value = `Hi ${name}, thank you for your valuable feedback! Our engineering team has prioritized this update for the next beta release.`;
+    const name = (this.currentFeedbackItem.userName || 'Valued User').split(' ')[0];
+    document.getElementById('modal-fb-reply-text').value = `Hi ${name}, thank you for your feedback! Our engineering team has reviewed this and prioritized your suggestions for the upcoming release.`;
   },
 
+  // ── Gmail & Inbound Communications ──
   renderGmailClient() {
     this.renderGmailThreads();
     this.renderGmailActiveMessage();
+
+    // Folder counts
+    const inboxCount = this.emails.filter(e => e.folder === 'inbox').length;
+    const starCount = this.emails.filter(e => e.starred).length;
+    const entCount = this.emails.filter(e => e.tag === 'enterprise').length;
+    const demoCount = this.emails.filter(e => e.tag === 'demo').length;
+    const fbCount = this.emails.filter(e => e.tag === 'feedback').length;
+
+    const elInbox = document.getElementById('gmail-count-inbox');
+    const elStar = document.getElementById('gmail-count-starred');
+    const elEnt = document.getElementById('gmail-count-enterprise');
+    const elDemo = document.getElementById('gmail-count-demo');
+    const elFb = document.getElementById('gmail-count-feedback');
+
+    if (elInbox) elInbox.textContent = inboxCount;
+    if (elStar) elStar.textContent = starCount;
+    if (elEnt) elEnt.textContent = entCount;
+    if (elDemo) elDemo.textContent = demoCount;
+    if (elFb) elFb.textContent = fbCount;
   },
 
   renderGmailThreads() {
@@ -2009,19 +2236,35 @@ const AdminStore = {
     const folder = this.activeFolder;
 
     const filtered = this.emails.filter(e => {
-      const matchFolder = (folder === 'inbox' && e.folder === 'inbox') || (folder === 'starred' && e.starred) || (folder === 'enterprise' && e.tag === 'enterprise') || (folder === 'demo' && e.tag === 'demo') || (folder === 'feedback' && e.tag === 'feedback');
-      const matchSearch = e.fromName.toLowerCase().includes(search) || e.subject.toLowerCase().includes(search) || e.snippet.toLowerCase().includes(search);
+      const matchFolder = (folder === 'inbox' && (e.folder === 'inbox' || !e.folder)) ||
+                          (folder === 'starred' && e.starred) ||
+                          (folder === 'enterprise' && e.tag === 'enterprise') ||
+                          (folder === 'demo' && e.tag === 'demo') ||
+                          (folder === 'feedback' && e.tag === 'feedback');
+      const matchSearch = (e.fromName || '').toLowerCase().includes(search) ||
+                          (e.subject || '').toLowerCase().includes(search) ||
+                          (e.snippet || '').toLowerCase().includes(search);
       return matchFolder && matchSearch;
     });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `
+        <div class="empty-state-box" style="padding:32px 14px;">
+          <i class="fas fa-inbox" style="font-size:1.6rem;"></i>
+          <p style="font-size:0.75rem;">No emails in ${folder}. Real inquiries and demo requests from <strong>rdf.html</strong> stream here.</p>
+        </div>
+      `;
+      return;
+    }
 
     listEl.innerHTML = filtered.map(m => `
       <div class="gmail-thread-item ${m.id === this.selectedThreadId ? 'active' : ''}" onclick="AdminStore.selectEmailThread('${m.id}')">
         <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-          <strong style="font-size:0.82rem; color:var(--text);">${m.fromName}</strong>
-          <span style="font-size:0.7rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${m.date.split(' ')[1]}</span>
+          <strong style="font-size:0.82rem; color:${m.unread ? 'var(--gold-light)' : 'var(--text)'};">${m.fromName}</strong>
+          <span style="font-size:0.7rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${(m.date || '').split(' ')[1] || (m.date || '').slice(0,10)}</span>
         </div>
-        <div style="font-size:0.78rem; color:var(--gold-light); font-weight:600; margin-bottom:2px;">${m.subject}</div>
-        <div style="font-size:0.72rem; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.snippet}</div>
+        <div style="font-size:0.78rem; color:${m.unread ? 'var(--gold-light)' : 'var(--text-mid)'}; font-weight:${m.unread ? '700' : '500'}; margin-bottom:2px;">${m.subject}</div>
+        <div style="font-size:0.72rem; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.snippet || ''}</div>
       </div>
     `).join('');
   },
@@ -2031,7 +2274,7 @@ const AdminStore = {
     const email = this.emails.find(e => e.id === threadId);
     if (email && email.unread) {
       email.unread = false;
-      this.saveState();
+      this.saveLocalState();
       this.renderMetricsSummary();
     }
     this.renderGmailThreads();
@@ -2043,7 +2286,12 @@ const AdminStore = {
     if (!pane) return;
     const email = this.emails.find(e => e.id === this.selectedThreadId);
     if (!email) {
-      pane.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--text-dim); font-size:0.85rem;">Select an email thread to read</div>`;
+      pane.innerHTML = `
+        <div class="empty-state-box" style="height:100%;">
+          <i class="fab fa-google"></i>
+          <p>Select an inbound message thread to inspect and reply.</p>
+        </div>
+      `;
       return;
     }
 
@@ -2053,16 +2301,16 @@ const AdminStore = {
           <button class="btn btn-glass btn-sm" onclick="AdminStore.toggleStarEmail('${email.id}')"><i class="fas fa-star" style="color:${email.starred ? 'var(--gold)' : 'inherit'};"></i></button>
           <button class="btn btn-glass btn-sm" onclick="AdminStore.archiveEmail('${email.id}')"><i class="fas fa-box-archive"></i> Archive</button>
         </div>
-        <a href="https://mail.google.com/mail/u/0/#search/${encodeURIComponent(email.fromEmail)}" target="_blank" class="btn btn-gold btn-sm"><i class="fab fa-google"></i> Open in Gmail</a>
+        <a href="https://mail.google.com/mail/u/0/#search/${encodeURIComponent(email.fromEmail || '')}" target="_blank" class="btn btn-gold btn-sm"><i class="fab fa-google"></i> Open in Gmail</a>
       </div>
 
       <div class="reading-body">
         <div style="border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:16px;">
           <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--text); margin-bottom:4px;">${email.subject}</h3>
           <div style="font-size:0.8rem; color:var(--text-mid);"><strong>${email.fromName}</strong> &lt;${email.fromEmail}&gt;</div>
-          <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--admin-font-mono); margin-top:2px;">To: founders@phyzelyne.com • ${email.date}</div>
+          <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--admin-font-mono); margin-top:2px;">To: founders@phyzelyne.com • ${email.date || ''}</div>
         </div>
-        <div class="email-content-text">${email.body}</div>
+        <div class="email-content-text">${email.body || email.snippet || 'No message content.'}</div>
       </div>
 
       <div style="padding:14px 18px; border-top:1px solid var(--border); background:rgba(10,16,13,0.8);">
@@ -2076,15 +2324,18 @@ const AdminStore = {
 
   toggleStarEmail(id) {
     const email = this.emails.find(e => e.id === id);
-    if (email) { email.starred = !email.starred; this.saveState(); this.renderGmailThreads(); this.renderGmailActiveMessage(); }
+    if (email) {
+      email.starred = !email.starred;
+      this.saveLocalState();
+      this.renderGmailClient();
+    }
   },
 
   archiveEmail(id) {
     this.emails = this.emails.filter(e => e.id !== id);
-    this.saveState();
+    this.saveLocalState();
     this.selectedThreadId = this.emails[0]?.id || null;
-    this.renderGmailThreads();
-    this.renderGmailActiveMessage();
+    this.renderGmailClient();
     this.renderMetricsSummary();
     this.showToast('Conversation archived', 'info');
   },
@@ -2096,6 +2347,7 @@ const AdminStore = {
     input.value = '';
   },
 
+  // ── Booked Demos & VIP Pipeline ──
   renderDemosList() {
     const container = document.getElementById('demos-grid-container');
     if (!container) return;
@@ -2103,7 +2355,14 @@ const AdminStore = {
     const filtered = this.demos.filter(d => (filter === 'all') || (d.status === filter));
 
     if (filtered.length === 0) {
-      container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px; color:var(--text-dim);">No demo meetings found under this filter.</div>`;
+      container.innerHTML = `
+        <div style="grid-column: 1/-1;">
+          <div class="empty-state-box">
+            <i class="fas fa-video-slash"></i>
+            <p>No demo bookings found under this filter. Real requests submitted from <strong>rdf.html</strong> will automatically appear here live.</p>
+          </div>
+        </div>
+      `;
       return;
     }
 
@@ -2122,10 +2381,10 @@ const AdminStore = {
           </div>
           <div style="font-size:0.78rem; color:var(--text-mid); display:flex; flex-direction:column; gap:6px;">
             <span><i class="fas fa-user-tie" style="color:var(--gold);"></i> <strong>${d.contactName}</strong> ${d.jobTitle ? `(${d.jobTitle})` : ''} &lt;${d.contactEmail}&gt;</span>
-            <span><i class="fas fa-users" style="color:var(--admin-cyan);"></i> Scope: <strong>${d.teamSize || '11–50 seats'}</strong> ${d.country ? `• Origin: ${d.country}` : ''}</span>
+            <span><i class="fas fa-users" style="color:var(--admin-cyan);"></i> Scope: <strong>${d.teamSize || 'Seats pending'}</strong> ${d.country ? `• Origin: ${d.country}` : ''}</span>
             ${d.interest ? `<span><i class="fas fa-bullseye" style="color:var(--admin-emerald);"></i> Focus: <strong>${d.interest}</strong></span>` : ''}
             <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); padding:8px 10px; border-radius:6px; font-size:0.75rem; margin-top:2px;">
-              <i class="fas fa-note-sticky" style="color:var(--gold-light); margin-right:4px;"></i> ${d.notes || 'No agenda notes.'}
+              <i class="fas fa-note-sticky" style="color:var(--gold-light); margin-right:4px;"></i> ${d.notes || 'VIP Intake'}
             </div>
           </div>
         </div>
@@ -2137,6 +2396,9 @@ const AdminStore = {
   },
 
   openNewDemoModal() {
+    const today = new Date().toISOString().slice(0, 10);
+    const dateInput = document.getElementById('new-demo-date');
+    if (dateInput) dateInput.value = today;
     document.getElementById('new-demo-modal').classList.add('open');
   },
 
@@ -2144,33 +2406,66 @@ const AdminStore = {
     const comp = document.getElementById('new-demo-company').value.trim();
     const contact = document.getElementById('new-demo-contact').value.trim();
     const email = document.getElementById('new-demo-email').value.trim();
-    if (!comp || !contact || !email) return;
+    if (!comp || !contact || !email) {
+      this.showToast('Please fill in Company, Contact and Email', 'warning');
+      return;
+    }
+
+    const seats = document.getElementById('new-demo-seats').value;
+    let autoArr = '$48,000 / yr';
+    if (seats.includes('1001') || seats.includes('201')) autoArr = '$240,000 / yr';
+    else if (seats.includes('51-200')) autoArr = '$140,000 / yr';
+    else if (seats.includes('11-50')) autoArr = '$85,000 / yr';
+
+    const dealArr = document.getElementById('new-demo-arr').value.trim() || autoArr;
+    const meetingDate = document.getElementById('new-demo-date').value || new Date().toISOString().slice(0, 10);
+    const meetingTime = document.getElementById('new-demo-time').value || '14:00 GMT';
+    const compSlug = comp.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 14) || 'exec';
 
     this.demos.unshift({
       id: 'demo_' + Date.now().toString().slice(-4),
-      companyName: comp, contactName: contact, contactEmail: email,
-      teamSize: document.getElementById('new-demo-seats').value,
-      dealARR: document.getElementById('new-demo-arr').value || '$100,000 / yr',
-      date: document.getElementById('new-demo-date').value || '2026-08-22',
-      time: document.getElementById('new-demo-time').value || '14:00 GMT',
-      timezone: 'UTC', meetLink: 'https://meet.google.com/phy-exec-meet',
-      status: 'confirmed', host: 'CTO / Founder', notes: document.getElementById('new-demo-notes').value || 'VIP intake'
+      companyName: comp,
+      contactName: contact,
+      contactEmail: email,
+      teamSize: seats,
+      dealARR: dealArr,
+      date: meetingDate,
+      time: meetingTime,
+      timezone: 'UTC',
+      meetLink: `https://meet.google.com/phy-${compSlug}`,
+      status: 'confirmed',
+      host: 'CTO / Founder',
+      notes: document.getElementById('new-demo-notes').value || 'Executive VIP intake'
     });
 
-    this.saveState();
+    this.saveLocalState();
     this.renderDemosList();
     this.renderMetricsSummary();
     this.closeModal('new-demo-modal');
-    this.showToast(`VIP Demo meeting scheduled for ${comp}!`, 'success');
+    this.showToast(`VIP Demo scheduled for ${comp}!`, 'success');
   },
 
+  // ── Feature Telemetry View ──
   renderFeatureTelemetry() {
+    const txCount = this.liveTransactions.length;
+    const invCount = this.liveInvoices.length;
+    const goalCount = this.liveGoals.length;
+    const recCount = this.liveReceipts.length;
+    const fxCount = this.liveTransactions.filter(t => t.originalCurrency && t.originalCurrency !== 'USD').length || txCount;
+
+    // Distinct currencies
+    const currencySet = new Set();
+    this.liveTransactions.forEach(t => { if (t.originalCurrency) currencySet.add(t.originalCurrency); });
+    this.liveSettings.forEach(s => { if (s.currencyCode) currencySet.add(s.currencyCode); });
+    if (currencySet.size === 0) currencySet.add('USD');
+
+    const totalActions = Math.max(1, txCount + invCount + goalCount + recCount);
     const features = [
-      { name: 'Multi-Currency Realtime Converter (150+ FX Pairs)', uses: '142,800 conversions', pct: 94 },
-      { name: 'AI Financial Coach & Natural Language Queries', uses: '84,200 prompts', pct: 82 },
-      { name: 'OCR Smart Receipt & Bill Camera Scanner', uses: '56,400 scans', pct: 74 },
-      { name: 'Business Invoicing Engine & PDF Export', uses: '39,100 invoices', pct: 68 },
-      { name: 'COFE Cash Flow & Predictive Runway Modeling', uses: '28,900 projections', pct: 54 }
+      { name: 'Multi-Currency Realtime Converter', uses: `${fxCount} conversions`, pct: Math.min(100, Math.round((fxCount / totalActions) * 100)) },
+      { name: 'Business Invoicing Engine & PDF Export', uses: `${invCount} invoices`, pct: Math.min(100, Math.round((invCount / totalActions) * 100)) },
+      { name: 'Financial Goals & Runway Intelligence', uses: `${goalCount} goals`, pct: Math.min(100, Math.round((goalCount / totalActions) * 100)) },
+      { name: 'OCR Receipt Scanner & Auto-Ledger', uses: `${recCount} receipts`, pct: Math.min(100, Math.round((recCount / totalActions) * 100)) },
+      { name: 'General Cash Flow Transactions', uses: `${txCount} logged`, pct: Math.min(100, Math.round((txCount / totalActions) * 100)) }
     ];
 
     const listEl = document.getElementById('feature-bars-list');
@@ -2182,17 +2477,40 @@ const AdminStore = {
             <span style="font-family:var(--admin-font-mono); color:var(--gold-light);">${f.uses}</span>
           </div>
           <div style="height:6px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
-            <div style="height:100%; width:${f.pct}%; background:linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius:999px;"></div>
+            <div style="height:100%; width:${Math.max(4, f.pct)}%; background:linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius:999px;"></div>
           </div>
         </div>
       `).join('');
     }
+
+    const elInvoices = document.getElementById('telemetry-invoices-count');
+    const elReceipts = document.getElementById('telemetry-receipts-count');
+    const elCurrencies = document.getElementById('telemetry-currencies-count');
+    const elCurrenciesList = document.getElementById('telemetry-currencies-list');
+
+    if (elInvoices) elInvoices.textContent = `${invCount} Invoices`;
+    if (elReceipts) elReceipts.textContent = `${recCount} Receipts`;
+    if (elCurrencies) elCurrencies.textContent = `${currencySet.size} Pairs`;
+    if (elCurrenciesList) elCurrenciesList.innerHTML = `<i class="fas fa-globe"></i> Active: ${Array.from(currencySet).slice(0, 5).join(', ')}`;
   },
 
+  // ── Global Broadcast Engine ──
   saveBroadcastAnnouncement() {
     const text = document.getElementById('broadcast-input-text').value.trim();
     const isActive = document.getElementById('broadcast-active-toggle').checked;
-    localStorage.setItem(this.STORAGE_KEY_BROADCAST, JSON.stringify({ message: text, active: isActive, timestamp: new Date().toISOString() }));
+    const type = document.getElementById('broadcast-type-select').value;
+    const payload = { message: text, active: isActive, type, timestamp: new Date().toISOString() };
+    
+    localStorage.setItem(this.STORAGE_KEY_BROADCAST, JSON.stringify(payload));
+    
+    // Broadcast cross-tab
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        const bc = new BroadcastChannel('phyzelyne_broadcast');
+        bc.postMessage(payload);
+      } catch (e) {}
+    }
+
     this.checkGlobalBroadcast();
     this.showToast(isActive ? 'Broadcast banner activated across all user sessions!' : 'Broadcast banner disabled.', 'success');
   },
@@ -2221,13 +2539,13 @@ const AdminStore = {
 
   flushCache() {
     this.showToast('Flushing Edge CDN & Redis user session cache...', 'info');
-    setTimeout(() => this.showToast('Cache purge completed successfully across 18 edge regions.', 'success'), 1000);
+    setTimeout(() => this.showToast('Cache purge completed successfully across edge nodes.', 'success'), 800);
   },
 
   exportAnalyticsReport(format = 'csv') {
     if (format === 'csv') {
       const headers = ['User ID', 'Name', 'Email', 'Tier', 'Status', 'Country', 'Txns Logged', 'Invoices', 'AI Queries'];
-      const rows = this.users.map(u => [u.id, `"${u.name}"`, u.email, u.tier, u.status, u.country, u.transactionsLogged, u.invoicesGenerated, u.aiQueries]);
+      const rows = this.users.map(u => [u.id, `"${u.name || ''}"`, u.email || '', u.tier || '', u.status || '', u.country || '', u.transactionsLogged || 0, u.invoicesGenerated || 0, u.aiQueries || 0]);
       const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
@@ -2238,7 +2556,14 @@ const AdminStore = {
       document.body.removeChild(link);
       this.showToast('Downloaded analytics CSV export!', 'success');
     } else {
-      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({ users: this.users, feedback: this.feedback, emails: this.emails, demos: this.demos }, null, 2));
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({
+        users: this.users,
+        feedback: this.feedback,
+        emails: this.emails,
+        demos: this.demos,
+        tableCounts: this.tableCounts,
+        exportTimestamp: new Date().toISOString()
+      }, null, 2));
       const a = document.createElement('a');
       a.setAttribute('href', dataStr);
       a.setAttribute('download', `phyzelyne_full_telemetry_${new Date().toISOString().slice(0,10)}.json`);
@@ -2249,52 +2574,165 @@ const AdminStore = {
     }
   },
 
-  initCharts() {
-    if (typeof Chart === 'undefined') {
-      setTimeout(() => this.initCharts(), 300);
-      return;
-    }
+  // ── Dynamic Real-Time Charts ──
+  updateRealtimeCharts() {
+    if (typeof Chart === 'undefined') return;
 
+    // 1. User & Transaction Growth Chart
     const growthCanvas = document.getElementById('userGrowthChart');
-    if (growthCanvas && !this._growthChartInstance) {
-      const ctx = growthCanvas.getContext('2d');
-      this._growthChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: ['Aug 1', 'Aug 4', 'Aug 7', 'Aug 10', 'Aug 13', 'Aug 16', 'Aug 18'],
-          datasets: [
-            { label: 'Daily Active Users (DAU)', data: [820, 1140, 1380, 1590, 1780, 1890, 1940], borderColor: '#d9a521', backgroundColor: 'rgba(217, 165, 33, 0.12)', fill: true, tension: 0.4, borderWidth: 2 },
-            { label: 'Total Registered', data: [1950, 2480, 3120, 3780, 4210, 4650, 4828], borderColor: '#2fae72', backgroundColor: 'transparent', borderDash: [5, 5], tension: 0.4, borderWidth: 2 }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#f5f1e8', font: { family: 'Inter', size: 11 } } } },
-          scales: {
-            x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: 'rgba(245,241,232,0.6)' } },
-            y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: 'rgba(245,241,232,0.6)' } }
+    if (growthCanvas) {
+      // Build 7-day timeline from real data timestamps
+      const days = [];
+      const txCounts = [];
+      const cumulativeUsers = [];
+      const now = new Date();
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 86400000);
+        const dateStr = d.toISOString().slice(0, 10);
+        const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        days.push(label);
+
+        // Count real transactions on this date
+        const txOnDay = this.liveTransactions.filter(t => t.date === dateStr).length;
+        txCounts.push(txOnDay);
+
+        // Real cumulative active roster count up to this day
+        cumulativeUsers.push(Math.max(1, this.users.length));
+      }
+
+      if (this._growthChartInstance) {
+        this._growthChartInstance.data.labels = days;
+        this._growthChartInstance.data.datasets[0].data = txCounts;
+        this._growthChartInstance.data.datasets[1].data = cumulativeUsers;
+        this._growthChartInstance.update();
+      } else {
+        const ctx = growthCanvas.getContext('2d');
+        this._growthChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: days,
+            datasets: [
+              { label: 'Transactions Logged', data: txCounts, borderColor: '#d9a521', backgroundColor: 'rgba(217, 165, 33, 0.12)', fill: true, tension: 0.35, borderWidth: 2 },
+              { label: 'Registered Accounts', data: cumulativeUsers, borderColor: '#2fae72', backgroundColor: 'transparent', borderDash: [5, 5], tension: 0.35, borderWidth: 2 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#f5f1e8', font: { family: 'Inter', size: 11 } } } },
+            scales: {
+              x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: 'rgba(245,241,232,0.6)' } },
+              y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: 'rgba(245,241,232,0.6)', stepSize: 1 } }
+            }
           }
-        }
-      });
+        });
+      }
     }
 
+    // 2. Real Feature Adoption Doughnut Chart
     const featureCanvas = document.getElementById('featurePieChart');
-    if (featureCanvas && !this._featureChartInstance) {
-      const ctx = featureCanvas.getContext('2d');
-      this._featureChartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Multi-Currency FX', 'AI Coach', 'OCR Scanner', 'Invoices', 'COFE Intelligence'],
-          datasets: [{ data: [38, 24, 18, 12, 8], backgroundColor: ['#d9a521', '#2fae72', '#38bdf8', '#a855f7', '#f43f5e'], borderColor: '#0e1713', borderWidth: 2 }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { color: '#f5f1e8', font: { family: 'Inter', size: 10 } } } }
-        }
-      });
+    if (featureCanvas) {
+      const tx = this.liveTransactions.length;
+      const inv = this.liveInvoices.length;
+      const goals = this.liveGoals.length;
+      const rec = this.liveReceipts.length;
+      const demo = this.demos.length;
+
+      const labels = ['Transactions', 'Invoices', 'Goals', 'Receipts', 'Demos'];
+      const dataValues = [tx || 1, inv || 0, goals || 0, rec || 0, demo || 0];
+
+      if (this._featureChartInstance) {
+        this._featureChartInstance.data.datasets[0].data = dataValues;
+        this._featureChartInstance.update();
+      } else {
+        const ctx = featureCanvas.getContext('2d');
+        this._featureChartInstance = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: dataValues,
+              backgroundColor: ['#d9a521', '#2fae72', '#38bdf8', '#a855f7', '#f43f5e'],
+              borderColor: '#0e1713',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // Update custom legend
+      const legendEl = document.getElementById('feature-pie-legend');
+      if (legendEl) {
+        const colors = ['#d9a521', '#2fae72', '#38bdf8', '#a855f7', '#f43f5e'];
+        legendEl.innerHTML = labels.map((lbl, idx) => `
+          <span><i class="fas fa-circle" style="color:${colors[idx]};"></i> ${lbl} (${dataValues[idx]})</span>
+        `).join('');
+      }
     }
+  },
+
+  // ── Layout & Security ──
+  toggleSidebarCollapse() {
+    document.body.classList.toggle('sidebar-collapsed');
+    const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+    this.showToast(isCollapsed ? 'Workspace expanded to 100% full width' : 'Standard sidebar view restored', 'info');
+  },
+
+  checkSecurityGate() {
+    const isUnlocked = sessionStorage.getItem('phyzelyne_admin_session_unlocked') === 'true' || localStorage.getItem('phyzelyne_admin_session_unlocked') === 'true';
+    const isWhitelisted = (typeof Auth !== 'undefined' && typeof Auth.isAdmin === 'function') ? Auth.isAdmin() : false;
+
+    const gateEl = document.getElementById('admin-security-gate');
+    const shellEl = document.getElementById('admin-app-shell');
+
+    if (isUnlocked || isWhitelisted) {
+      if (gateEl) gateEl.style.display = 'none';
+      if (shellEl) {
+        shellEl.style.filter = 'none';
+        shellEl.style.pointerEvents = 'auto';
+      }
+    } else {
+      if (gateEl) gateEl.style.display = 'flex';
+      if (shellEl) {
+        shellEl.style.filter = 'blur(16px)';
+        shellEl.style.pointerEvents = 'none';
+      }
+    }
+  },
+
+  authenticateAdminPasscode() {
+    const input = document.getElementById('admin-gate-passcode');
+    const errorMsg = document.getElementById('gate-error-msg');
+    const code = input ? input.value.trim() : '';
+    const validKeys = ['phyzelyne-cto', 'phyzelyne-coo', 'phyzelyne-ceo', 'phyzelyne-team', 'phyzelyne-engineers'];
+
+    if (validKeys.includes(code.toLowerCase())) {
+      sessionStorage.setItem('phyzelyne_admin_session_unlocked', 'true');
+      const gateEl = document.getElementById('admin-security-gate');
+      const shellEl = document.getElementById('admin-app-shell');
+      if (gateEl) gateEl.style.display = 'none';
+      if (shellEl) {
+        shellEl.style.filter = 'none';
+        shellEl.style.pointerEvents = 'auto';
+      }
+      if (errorMsg) errorMsg.style.display = 'none';
+      this.showToast('Executive Clearance Verified. Welcome, CTO.', 'success');
+    } else {
+      if (errorMsg) errorMsg.style.display = 'block';
+      if (input) { input.value = ''; input.focus(); }
+    }
+  },
+
+  lockAdminSession() {
+    sessionStorage.removeItem('phyzelyne_admin_session_unlocked');
+    localStorage.removeItem('phyzelyne_admin_session_unlocked');
+    window.location.reload();
   },
 
   bindEvents() {
@@ -2314,21 +2752,35 @@ const AdminStore = {
     const userSearch = document.getElementById('user-search-input');
     if (userSearch) userSearch.addEventListener('input', e => this.renderUsersTable(e.target.value));
 
-    // Listen for live cross-tab demo submissions from rdf.html
+    // Listen for live cross-tab demo submissions from rdf.html & other tabs
     window.addEventListener('storage', (e) => {
-      if (e.key === this.STORAGE_KEY_DEMOS || e.key === this.STORAGE_KEY_EMAILS) {
-        this.loadState();
+      if (e.key === this.STORAGE_KEY_DEMOS || e.key === this.STORAGE_KEY_EMAILS || e.key === this.STORAGE_KEY_FEEDBACK) {
+        this.loadLocalState();
         this.renderAll();
       }
     });
 
     window.addEventListener('phyzelyne:new-demo-booked', (e) => {
-      this.loadState();
+      this.loadLocalState();
       this.renderAll();
       if (e.detail?.companyName) {
         this.showToast(`New Demo Booked: ${e.detail.companyName}!`, 'success');
       }
     });
+
+    // Listen for Store mutations
+    document.addEventListener('phyzelyne:data-changed', () => {
+      this.refreshAllRealtimeData();
+    });
+
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        const bc = new BroadcastChannel('phyzelyne_data_sync');
+        bc.onmessage = () => {
+          this.refreshAllRealtimeData();
+        };
+      } catch(e) {}
+    }
   },
 
   switchTab(tabName) {

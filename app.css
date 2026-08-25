@@ -10,90 +10,91 @@
    TOKENS & LIQUID GLASS VARIABLES
 ══════════════════════════════════════════ */
 :root {
-  --gold:        #d4a017;
-  --gold-light:  #f0c040;
-  --gold-dim:    rgba(212,160,23,0.18);
-  --gold-border: rgba(212,160,23,0.3);
-  --accent-rgb:  212,160,23;
+  --gold:        #a855f7;
+  --gold-light:  #6366f1;
+  --gold-dim:    rgba(168,85,247,0.16);
+  --gold-border: rgba(168,85,247,0.35);
+  --accent-rgb:  168,85,247;
 
   --white:       #ffffff;
-  --off-white:   #f7f4ee;
-  --bg:          #f0ece3;
-  --bg2:         #e8e2d5;
+  --off-white:   #ffffff;
+  --bg:          #09090b;
+  --bg2:         #0c0c0f;
+  --surface:     #18181b;
 
-  --text:        #1a1610;
-  --text-mid:    #5a5040;
-  --text-dim:    #9a8e78;
+  --text:        #ffffff;
+  --text-mid:    #a1a1aa;
+  --text-dim:    #71717a;
 
   /* ── Glass depth layers ── */
-  --glass:         rgba(255,255,255,0.55);
-  --glass-heavy:   rgba(255,255,255,0.78);
-  --glass-dim:     rgba(255,255,255,0.28);
-  --glass-border:  rgba(255,255,255,0.7);
-  --glass-edge:    rgba(255,255,255,0.55);
-  --glass-shine:   rgba(255,255,255,0.12);
-  --glass-liquid:  rgba(255,255,255,0.40);
+  --glass:         rgba(24,24,27,0.86);
+  --glass-heavy:   rgba(24,24,27,0.97);
+  --glass-dim:     rgba(255,255,255,0.04);
+  --glass-border:  rgba(255,255,255,0.10);
+  --glass-edge:    rgba(255,255,255,0.14);
+  --glass-shine:   rgba(255,255,255,0.04);
+  --glass-liquid:  rgba(255,255,255,0.08);
 
   /* ── Shimmer sweep for interactive glass ── */
   --glass-shimmer: linear-gradient(
     105deg,
     transparent 30%,
-    rgba(255,255,255,0.08) 45%,
-    rgba(255,255,255,0.18) 50%,
-    rgba(255,255,255,0.08) 55%,
+    rgba(255,255,255,0.03) 45%,
+    rgba(255,255,255,0.06) 50%,
+    rgba(255,255,255,0.03) 55%,
     transparent 70%
   );
 
   /* ── Inner rim highlight (grazing light) ── */
-  --glass-rim: inset 0 0.5px 2px rgba(255,255,255,0.6);
+  --glass-rim: inset 0 0.5px 0.5px rgba(255,255,255,0.08);
 
   /* ── Orbs (animated background) ── */
-  --orb-1: radial-gradient(ellipse 70% 55% at 15% 20%, rgba(var(--accent-rgb),0.14) 0%, transparent 60%);
-  --orb-2: radial-gradient(ellipse 55% 65% at 85% 80%, rgba(var(--accent-rgb),0.09) 0%, transparent 60%);
+  --orb-1: radial-gradient(ellipse 70% 55% at 15% 20%, rgba(var(--accent-rgb),0.07) 0%, transparent 60%);
+  --orb-2: radial-gradient(ellipse 55% 65% at 85% 80%, rgba(var(--accent-rgb),0.05) 0%, transparent 60%);
 
-  --red:         #c0392b;
-  --red-dim:     rgba(192,57,43,0.12);
-  --green:       #27ae60;
-  --green-dim:   rgba(39,174,96,0.12);
+  --red:         #ff978e;
+  --red-dim:     rgba(255,151,142,0.13);
+  --green:       #6fe3a8;
+  --green-dim:   rgba(111,227,168,0.13);
 
   --radius:      20px;
   --radius-sm:   12px;
   --radius-pill: 9999px;
   --blur:        blur(24px) saturate(180%);
-  --shadow:      0 8px 32px rgba(0,0,0,0.10);
-  --shadow-lg:   0 20px 48px rgba(0,0,0,0.14);
+  --shadow:      0 18px 50px rgba(0,0,0,0.36);
+  --shadow-lg:   0 30px 80px rgba(0,0,0,0.55);
   --transition:  0.3s cubic-bezier(0.16,1,0.3,1);
 
   --font-display: 'Fraunces', Georgia, serif;
-  --font-body:    'Inter Display', 'Inter', -apple-system, sans-serif;
+  --font-body:    'Inter', -apple-system, sans-serif;
 
-  /* Dark mode overrides */
-  --dm-bg:           #0d0d14;
-  --dm-bg2:          #13131f;
-  --dm-glass:        rgba(255,255,255,0.06);
-  --dm-glass-heavy:  rgba(255,255,255,0.10);
+  /* Dark mode overrides — now same as base (dark-first) */
+  --dm-bg:           #09090b;
+  --dm-bg2:          #0c0c0f;
+  --dm-glass:        rgba(24,24,27,0.86);
+  --dm-glass-heavy:  rgba(24,24,27,0.97);
   --dm-glass-border: rgba(255,255,255,0.10);
-  --dm-glass-edge:   rgba(255,255,255,0.08);
+  --dm-glass-edge:   rgba(255,255,255,0.14);
   --dm-glass-shine:  rgba(255,255,255,0.04);
   --dm-glass-liquid: rgba(255,255,255,0.08);
-  --dm-text:         #f0ece3;
-  --dm-text-mid:     rgba(240,236,227,0.65);
-  --dm-text-dim:     rgba(240,236,227,0.38);
+  --dm-text:         #ffffff;
+  --dm-text-mid:     rgba(255,255,255,0.65);
+  --dm-text-dim:     rgba(255,255,255,0.38);
 }
 
-/* ─── Dark Mode ─── */
+/* ─── Dark Mode (now default — kept for backward compat) ─── */
 html.dark-pre,
 html.dark-pre body,
 body.dark {
-  --bg:          var(--dm-bg);
-  --bg2:         var(--dm-bg2);
-  --off-white:   #1a1a2a;
-  --glass:       var(--dm-glass);
-  --glass-heavy: var(--dm-glass-heavy);
+  --bg:          #09090b;
+  --bg2:         #0c0c0f;
+  --off-white:   #ffffff;
+  --glass:       rgba(24,24,27,0.86);
+  --glass-heavy: rgba(24,24,27,0.97);
   --glass-dim:   rgba(255,255,255,0.04);
-  --glass-edge:  var(--dm-glass-edge);
-  --glass-shine: var(--dm-glass-shine);
-  --glass-liquid:var(--dm-glass-liquid);
+  --glass-edge:  rgba(255,255,255,0.14);
+  --glass-shine: rgba(255,255,255,0.04);
+  --glass-liquid:rgba(255,255,255,0.08);
   --glass-shimmer: linear-gradient(
     105deg,
     transparent 30%,
@@ -103,12 +104,12 @@ body.dark {
     transparent 70%
   );
   --glass-rim: inset 0 0.5px 0.5px rgba(255,255,255,0.08);
-  --glass-border: var(--dm-glass-border);
-  --text:        var(--dm-text);
-  --text-mid:    var(--dm-text-mid);
-  --text-dim:    var(--dm-text-dim);
-  --shadow:      0 8px 32px rgba(0,0,0,0.4);
-  --shadow-lg:   0 20px 48px rgba(0,0,0,0.55);
+  --glass-border: rgba(255,255,255,0.10);
+  --text:        #ffffff;
+  --text-mid:    #a1a1aa;
+  --text-dim:    #71717a;
+  --shadow:      0 18px 50px rgba(0,0,0,0.36);
+  --shadow-lg:   0 30px 80px rgba(0,0,0,0.55);
   --orb-1: radial-gradient(ellipse 70% 55% at 15% 20%, rgba(var(--accent-rgb),0.07) 0%, transparent 60%);
   --orb-2: radial-gradient(ellipse 55% 65% at 85% 80%, rgba(var(--accent-rgb),0.05) 0%, transparent 60%);
 }
@@ -211,7 +212,9 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: var(--orb-1), var(--orb-2);
+  background:
+    radial-gradient(ellipse 65% 45% at 3% 0%, rgba(168,85,247,0.10), transparent 70%),
+    radial-gradient(ellipse 45% 35% at 98% 90%, rgba(99,102,241,0.08), transparent 70%);
   pointer-events: none;
   z-index: 0;
   transition: background 0.4s ease;
@@ -224,8 +227,8 @@ body::after {
   position: fixed;
   inset: -50%;
   background:
-    radial-gradient(ellipse 40% 35% at 30% 70%, rgba(var(--accent-rgb),0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 30% 40% at 70% 30%, rgba(var(--accent-rgb),0.04) 0%, transparent 60%);
+    radial-gradient(ellipse 40% 35% at 30% 70%, rgba(168,85,247,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 40% at 70% 30%, rgba(99,102,241,0.03) 0%, transparent 60%);
   pointer-events: none;
   z-index: 0;
   animation: orb-drift 25s ease-in-out infinite reverse;
@@ -234,7 +237,9 @@ body::after {
 
 html.dark-pre body::before,
 body.dark::before {
-  background: var(--orb-1), var(--orb-2);
+  background:
+    radial-gradient(ellipse 65% 45% at 3% 0%, rgba(168,85,247,0.10), transparent 70%),
+    radial-gradient(ellipse 45% 35% at 98% 90%, rgba(99,102,241,0.08), transparent 70%);
 }
 
 /* ══════════════════════════════════════════

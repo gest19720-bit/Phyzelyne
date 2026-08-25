@@ -188,19 +188,34 @@ function _adoptAnonymousLocalData() {
 async function _syncCacheToSupabase() {
   if (!_cache.userId || !_sb) return;
   const uid = _cache.userId;
-  const ops = [
-    ...(_cache.transactions || []).map(row => ({ table: 'transactions', row })),
-    ...(_cache.goals || []).map(row => ({ table: 'goals', row })),
-    ...(_cache.invoices || []).map(row => ({ table: 'invoices', row })),
-    ...(_cache.receipts || []).map(row => ({ table: 'receipts', row })),
+
+  // Bulk upsert each table in parallel — one Supabase call per table
+  // instead of one call per record. This turns O(n) round-trips into O(1).
+  const tables = [
+    { name: 'transactions', rows: _cache.transactions || [] },
+    { name: 'goals',        rows: _cache.goals || [] },
+    { name: 'invoices',     rows: _cache.invoices || [] },
+    { name: 'receipts',     rows: _cache.receipts || [] },
   ];
+
+  const upserts = tables.map(({ name, rows }) => {
+    if (!rows.length) return Promise.resolve();
+    const payload = rows.map(r => ({ ...r, user_id: uid }));
+    return _sb.from(name).upsert(payload, { onConflict: 'id' })
+      .then(({ error }) => { if (error) console.warn('[Phyzelyne] bulk sync error:', name, error.message); })
+      .catch(e => console.warn('[Phyzelyne] bulk sync network error:', name, e.message));
+  });
+
+  // Settings is a single row with user_id as PK
   if (_cache.settings && Object.keys(_cache.settings).length) {
-    ops.push({ table: 'settings', row: _cache.settings });
+    upserts.push(
+      _sb.from('settings').upsert({ ..._cache.settings, user_id: uid }, { onConflict: 'user_id' })
+        .then(({ error }) => { if (error) console.warn('[Phyzelyne] bulk sync error: settings', error.message); })
+        .catch(e => console.warn('[Phyzelyne] bulk sync network error: settings', e.message))
+    );
   }
 
-  for (const op of ops) {
-    await _upsert(op.table, { ...op.row, user_id: uid });
-  }
+  await Promise.allSettled(upserts);
 }
 
 async function _loadRemoteData(uid) {
@@ -266,8 +281,13 @@ async function _refreshCacheFromSupabase({ notify = true, preserveLocal = true }
 function _startRemoteSync() {
   if (_remoteSyncTimer || !_cache.userId || !_sb) return;
   _remoteSyncTimer = setInterval(() => {
-    if (!document.hidden) _refreshCacheFromSupabase({ preserveLocal: true }).then(() => _flushWriteQueue()).catch(() => {});
-  }, 10000);
+    if (document.hidden) return;
+    // If Supabase Realtime is connected, it handles cross-device sync.
+    // Only poll as a fallback — less frequently to reduce load.
+    const realtimeActive = _realtimeChannel && _realtimeChannel.state === 'joined';
+    if (realtimeActive) return; // realtime handles it
+    _refreshCacheFromSupabase({ preserveLocal: true }).then(() => _flushWriteQueue()).catch(() => {});
+  }, 15000); // 15s fallback interval (was 10s)
 }
 
 function _upsertOptions(table) {
@@ -289,23 +309,50 @@ async function _flushWriteQueue() {
   const pending = _readPendingSync();
   _writePendingSync([]);
   _writeQueue.push(...pending);
+  const uid = _cache.userId;
   const failed = [];
+
+  // ── Phase 1: Batch upserts by table (one Supabase call per table) ──
+  const upsertBuckets = {};
+  const deleteOps = [];
+  const remaining = [];
 
   while (_writeQueue.length) {
     const op = _writeQueue.shift();
+    if (op.type === 'upsert') {
+      const bucket = upsertBuckets[op.table] || (upsertBuckets[op.table] = []);
+      bucket.push(op.row);
+    } else if (op.type === 'delete') {
+      deleteOps.push(op);
+    } else {
+      remaining.push(op);
+    }
+  }
+  _writeQueue.push(...remaining);
+
+  // Upsert each table's batch in parallel
+  const upsertPromises = Object.entries(upsertBuckets).map(([table, rows]) => {
+    const payload = rows.map(r => ({ ...r, user_id: uid }));
+    return _sb.from(table).upsert(payload, _upsertOptions(table))
+      .then(({ error }) => { if (error) throw error; })
+      .catch(e => {
+        console.error('[Phyzelyne] write-queue batch upsert:', table, e.message);
+        rows.forEach(row => failed.push({ type: 'upsert', table, row }));
+      });
+  });
+  await Promise.allSettled(upsertPromises);
+
+  // ── Phase 2: Deletes are per-record (Supabase delete needs .eq()) ──
+  for (const op of deleteOps) {
     try {
-	      if (op.type === 'upsert') {
-	        const { error } = await _sb.from(op.table).upsert({ ...op.row, user_id: _cache.userId }, _upsertOptions(op.table));
-	        if (error) throw error;
-	      } else if (op.type === 'delete') {
-	        const { error } = await _sb.from(op.table).delete().eq('id', op.id).eq('user_id', _cache.userId);
-	        if (error) throw error;
-	      }
+      const { error } = await _sb.from(op.table).delete().eq('id', op.id).eq('user_id', uid);
+      if (error) throw error;
     } catch (e) {
-      console.error('[Phyzelyne] write-queue replay', op.table, e.message);
+      console.error('[Phyzelyne] write-queue delete:', op.table, op.id, e.message);
       failed.push(op);
     }
   }
+
   if (failed.length) _writePendingSync(failed);
   _writeQueueFlushing = false;
 }
@@ -658,14 +705,18 @@ async function _initData() {
   _initDataSync();      // start listening for cross-tab data changes
   _initRealtimeSync();  // start listening for remote device data changes
   _startRemoteSync();   // keep multiple logged-in devices converged
-  await _flushWriteQueue();      // replay any writes that arrived before userId was set
-  await _syncCacheToSupabase();  // upload device-only records for same-account sync
-  migrateFromLocalStorage();     // one-shot: move any old localStorage data to Supabase
+
+  // Fire ready immediately so the UI boots without waiting for sync
   document.dispatchEvent(new Event('phyzelyne:ready'));
 
   // Boot notification center and subscription reminders after data is loaded
   try { PhyzelyneNotifications.start(); } catch (e) { /* PhyzelyneNotifications not available */ }
   try { SubReminder.start(); } catch (e) { /* SubReminder not available */ }
+
+  // These run in the background — non-blocking so the UI is never delayed
+  _flushWriteQueue().catch(() => {});
+  _syncCacheToSupabase().catch(() => {});
+  migrateFromLocalStorage().catch(() => {});
 }
 
 /* ══════════════════════════════════════
@@ -1869,6 +1920,125 @@ const Utils = {
 };
 
 /* ══════════════════════════════════════
+   SAFE TO SPEND — forward-looking daily budget calculator
+   Tells the user how much they can safely spend for the
+   rest of the current month without breaking their budget.
+
+   Formula:
+     incomeTarget  = settings.incomeTarget || actual income this month
+     savingsBuffer = incomeTarget × 0.20 (20% savings rule)
+     expensesSoFar = sum of all expenses this month
+     daysPassed    = today's day of month
+     daysInMonth   = total days in current month
+     dailyRunRate  = expensesSoFar / daysPassed
+     projectedRest = dailyRunRate × daysRemaining
+     safeToSpend   = incomeTarget - savingsBuffer - expensesSoFar - projectedRest
+
+   If safeToSpend < 0 → user is overspending
+   Color: green (> 20% remaining), yellow (0-20%), red (< 0)
+═══════════════════════════════════════ */
+const SafeToSpend = (() => {
+  const SAVINGS_RATE = 0.20; // 20% default savings buffer
+
+  function calculate() {
+    const txns   = Store.getTransactions();
+    const month  = Utils.filterByPeriod(txns, 'month');
+    const totals = Utils.calcTotals(month);
+    const cur    = getCurrency();
+    const s      = Store.getSettings();
+
+    // Income baseline: prefer the user's target, fall back to actual
+    const incomeTarget = (parseFloat(s.incomeTarget) || 0) > 0
+      ? parseFloat(s.incomeTarget)
+      : totals.income;
+
+    // Days math
+    const now       = new Date();
+    const dayOfMonth = now.getDate();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysRemaining = daysInMonth - dayOfMonth;
+    const daysPassed    = Math.max(1, dayOfMonth); // avoid /0
+
+    // Expenses: split into subscriptions (fixed) and variable
+    let subscriptionsPaid = 0;
+    let variableExpenses  = 0;
+    month.forEach(t => {
+      if (t.type !== 'expense') return;
+      const isSubscription = /\[(weekly|monthly|yearly)\]$/.test(t.description || '');
+      if (isSubscription) subscriptionsPaid += parseFloat(t.amount) || 0;
+      else variableExpenses += parseFloat(t.amount) || 0;
+    });
+
+    const expensesSoFar = totals.expense;
+
+    // Run rate projection: based on variable expenses only (subscriptions are fixed)
+    const dailyVariableRate = variableExpenses / daysPassed;
+    const projectedVariableRest = dailyVariableRate * daysRemaining;
+
+    // Upcoming subscription costs that haven't been paid yet this month
+    // Parse all subscription transactions and calculate remaining due
+    const allSubscriptions = txns.filter(t =>
+      t.type === 'expense' && /\[(weekly|monthly|yearly)\]$/.test(t.description || '')
+    );
+    let upcomingSubCost = 0;
+    allSubscriptions.forEach(t => {
+      const cycle = (t.description || '').match(/\[(weekly|monthly|yearly)\]$/)?.[1];
+      if (cycle === 'monthly') {
+        // If this sub wasn't paid this month, it's upcoming
+        const subAlreadyPaid = month.some(p =>
+          p.type === 'expense' && (p.description || '').replace(/\s*\[.*/, '') === (t.description || '').replace(/\s*\[.*/, '')
+        );
+        if (!subAlreadyPaid) upcomingSubCost += parseFloat(t.amount) || 0;
+      }
+    });
+
+    // Savings buffer
+    const savingsBuffer = incomeTarget * SAVINGS_RATE;
+
+    // ── Final calculation ──
+    const safeToSpend = incomeTarget
+      - savingsBuffer
+      - expensesSoFar
+      - projectedVariableRest
+      - upcomingSubCost;
+
+    // How much has been used (for progress bar)
+    const totalBudget   = incomeTarget - savingsBuffer;
+    const spentSoFar   = expensesSoFar + projectedVariableRest + upcomingSubCost;
+    const percentUsed   = totalBudget > 0 ? Math.min(100, Math.max(0, (spentSoFar / totalBudget) * 100)) : 0;
+    const percentSafe   = 100 - percentUsed;
+
+    // Status
+    let status, statusColor;
+    if (percentSafe > 20)       { status = 'healthy';  statusColor = 'income'; }
+    else if (percentSafe >= 0)  { status = 'caution';  statusColor = 'balance'; }
+    else                        { status = 'danger';   statusColor = 'expense'; }
+
+    return {
+      safeToSpend:    Math.round(safeToSpend * 100) / 100,
+      incomeTarget,
+      savingsBuffer:  Math.round(savingsBuffer * 100) / 100,
+      expensesSoFar:  Math.round(expensesSoFar * 100) / 100,
+      subscriptionsPaid,
+      variableExpenses: Math.round(variableExpenses * 100) / 100,
+      projectedVariableRest: Math.round(projectedVariableRest * 100) / 100,
+      upcomingSubCost: Math.round(upcomingSubCost * 100) / 100,
+      dailyVariableRate: Math.round(dailyVariableRate * 100) / 100,
+      daysRemaining,
+      daysInMonth,
+      dayOfMonth,
+      percentUsed:    Math.round(percentUsed * 10),
+      percentSafe:    Math.round(Math.max(0, percentSafe) * 10),
+      status,
+      statusColor,
+      currency: cur
+    };
+  }
+
+  return { calculate };
+})();
+
+/* ══════════════════════════════════════
    TOAST  (with sound)
 ══════════════════════════════════════ */
 function _playSound(type) {
@@ -2104,7 +2274,7 @@ const PhyzelyneNotifications = (() => {
     _renderDropdownList();
 
     // Also show a toast for important alerts
-    if (type === 'overspend' || type === 'goal') {
+    if (type === 'overspend' || type === 'goal' || type === 'safeToSpend') {
       if (typeof showToast === 'function') showToast(title + ' — ' + message);
     }
 
@@ -2344,10 +2514,62 @@ const PhyzelyneNotifications = (() => {
     });
   }
 
+  /* ── Safe to Spend Alert ── */
+  function checkSafeToSpend() {
+    const s = _cache.settings || {};
+    if (s.overspendAlerts === false) return; // reuses overspend toggle
+
+    if (typeof SafeToSpend === 'undefined') return;
+    const d = SafeToSpend.calculate();
+    const cur = d.currency;
+    const monthKey = `${new Date().getFullYear()}-${new Date().getMonth()}`;
+
+    // Exact daily safe-to-spend: total safe amount ÷ remaining days
+    const daysLeft = Math.max(1, d.daysRemaining);
+    const dailySafe = d.safeToSpend > 0
+      ? (d.safeToSpend / daysLeft).toFixed(2)
+      : '0.00';
+    const monthName = new Date().toLocaleDateString('en-GB', { month: 'long' });
+
+    // ── Danger: exceeded safe budget ──
+    if (d.safeToSpend < 0) {
+      // How much to cut per day to recover by month end
+      const cutPerDay = (Math.abs(d.safeToSpend) / daysLeft).toFixed(2);
+      add({
+        type: 'safeToSpend',
+        title: '🚨 Safe to Spend Exceeded',
+        message: `You're ${cur.symbol}${Math.abs(d.safeToSpend).toFixed(2)} over budget. You must cut ${cur.symbol}${cutPerDay}/day for the remaining ${d.daysRemaining} days to recover. Current burn rate: ${cur.symbol}${d.dailyVariableRate.toFixed(2)}/day.`,
+        dedupKey: `sts_danger_${monthKey}`,
+        dedupHours: 6
+      });
+    }
+    // ── Caution: >80% of safe budget used ──
+    else if (d.percentUsed >= 80 && d.safeToSpend > 0) {
+      add({
+        type: 'safeToSpend',
+        title: '🟡 Budget Watch — Daily Limit',
+        message: `You can spend ${cur.symbol}${dailySafe}/day for the remaining ${d.daysRemaining} days of ${monthName}. Total safe: ${cur.symbol}${d.safeToSpend.toFixed(2)}. Your current burn rate is ${cur.symbol}${d.dailyVariableRate.toFixed(2)}/day — ${d.dailyVariableRate > parseFloat(dailySafe) ? 'slow down!' : 'keep it up.'}`,
+        dedupKey: `sts_caution_${monthKey}`,
+        dedupHours: 12
+      });
+    }
+    // ── Healthy: spending well under budget ──
+    else if (d.safeToSpend > 0 && d.percentUsed < 50 && d.daysRemaining > 10) {
+      add({
+        type: 'safeToSpend',
+        title: '🛡️ Spending On Track',
+        message: `You can safely spend ${cur.symbol}${dailySafe}/day for the remaining ${d.daysRemaining} days of ${monthName}. Total safe to spend: ${cur.symbol}${d.safeToSpend.toFixed(2)}. Your current burn rate: ${cur.symbol}${d.dailyVariableRate.toFixed(2)}/day.`,
+        dedupKey: `sts_healthy_${monthKey}`,
+        dedupHours: 48
+      });
+    }
+  }
+
   /* ── Run all checks ── */
   function runAllChecks() {
     if (!_cache.ready || !_cache.userId) return;
     checkOverspend();
+    checkSafeToSpend();
     checkGoalMilestones();
     checkWeeklySummary();
   }
@@ -2408,7 +2630,7 @@ const PhyzelyneNotifications = (() => {
     add, getAll, getUnreadCount,
     markRead, markAllRead, clearAll,
     toggleDropdown, closeDropdown,
-    checkOverspend, checkGoalMilestones, checkWeeklySummary,
+    checkOverspend, checkSafeToSpend, checkGoalMilestones, checkWeeklySummary,
     runAllChecks, start
   };
 })();

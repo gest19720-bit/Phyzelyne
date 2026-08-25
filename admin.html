@@ -23,16 +23,16 @@
        PHYZELYNE ADMIN SUITE — FULL-VIEW & REAL-TIME TRADING DESK STYLES
        ══════════════════════════════════════════════════════════════════ */
     :root {
-      --admin-gold: #d9a521;
-      --admin-gold-glow: rgba(217, 165, 33, 0.25);
-      --admin-emerald: #2fae72;
-      --admin-emerald-dim: rgba(47, 174, 114, 0.15);
-      --admin-cyan: #38bdf8;
-      --admin-cyan-dim: rgba(56, 189, 248, 0.15);
+      --admin-gold: #a855f7;
+      --admin-gold-glow: rgba(168, 85, 247, 0.25);
+      --admin-emerald: #6fe3a8;
+      --admin-emerald-dim: rgba(111, 227, 168, 0.15);
+      --admin-cyan: #6366f1;
+      --admin-cyan-dim: rgba(99, 102, 241, 0.15);
       --admin-purple: #a855f7;
       --admin-purple-dim: rgba(168, 85, 247, 0.15);
-      --admin-rose: #f43f5e;
-      --admin-rose-dim: rgba(244, 63, 94, 0.15);
+      --admin-rose: #ff978e;
+      --admin-rose-dim: rgba(255, 151, 142, 0.15);
       --admin-font-mono: 'JetBrains Mono', monospace;
     }
 
@@ -74,7 +74,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 16px 28px;
-      background: rgba(7, 11, 9, 0.96);
+      background: rgba(9, 9, 11, 0.96);
       backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
       position: sticky;
@@ -94,8 +94,8 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: linear-gradient(135deg, rgba(217, 165, 33, 0.22), rgba(217, 165, 33, 0.06));
-      border: 1px solid rgba(217, 165, 33, 0.4);
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(168, 85, 247, 0.06));
+      border: 1px solid rgba(168, 85, 247, 0.4);
       color: var(--gold-light);
       padding: 4px 10px;
       border-radius: 999px;
@@ -166,7 +166,7 @@
       display: flex;
       align-items: center;
       gap: 24px;
-      background: rgba(14, 23, 19, 0.85);
+      background: rgba(9, 9, 11, 0.85);
       border-bottom: 1px solid var(--border);
       padding: 8px 28px;
       font-size: 0.76rem;
@@ -193,7 +193,7 @@
       gap: 6px;
       padding: 14px 28px 0 28px;
       border-bottom: 1px solid var(--border);
-      background: rgba(10, 16, 13, 0.6);
+      background: rgba(9, 9, 11, 0.6);
       overflow-x: auto;
       scrollbar-width: thin;
     }
@@ -222,8 +222,8 @@
 
     .admin-tab-btn.active {
       color: var(--gold-light);
-      background: linear-gradient(180deg, rgba(217, 165, 33, 0.14) 0%, rgba(14, 23, 19, 0.95) 100%);
-      border-color: rgba(217, 165, 33, 0.3);
+      background: linear-gradient(180deg, rgba(168, 85, 247, 0.14) 0%, rgba(9, 9, 11, 0.95) 100%);
+      border-color: rgba(168, 85, 247, 0.3);
       border-top: 2px solid var(--gold);
     }
 
@@ -237,7 +237,7 @@
     }
 
     .admin-tab-btn.active .admin-tab-count {
-      background: rgba(217, 165, 33, 0.25);
+      background: rgba(168, 85, 247, 0.25);
       color: var(--gold-light);
     }
 
@@ -266,7 +266,7 @@
     }
 
     .admin-metric-card {
-      background: linear-gradient(145deg, rgba(19, 32, 24, 0.95), rgba(13, 22, 17, 0.95));
+      background: linear-gradient(145deg, rgba(24, 24, 27, 0.95), rgba(15, 15, 17, 0.95));
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 18px 20px;
@@ -291,10 +291,10 @@
     }
 
     .admin-metric-card.gold::before { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
-    .admin-metric-card.emerald::before { background: linear-gradient(90deg, #10b981, #34d399); }
-    .admin-metric-card.cyan::before { background: linear-gradient(90deg, #0284c7, #38bdf8); }
-    .admin-metric-card.rose::before { background: linear-gradient(90deg, #e11d48, #fb7185); }
-    .admin-metric-card.purple::before { background: linear-gradient(90deg, #9333ea, #c084fc); }
+    .admin-metric-card.emerald::before { background: linear-gradient(90deg, #6fe3a8, #34d399); }
+    .admin-metric-card.cyan::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+    .admin-metric-card.rose::before { background: linear-gradient(90deg, #ff978e, #fb7185); }
+    .admin-metric-card.purple::before { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
 
     .metric-top {
       display: flex;
@@ -321,10 +321,10 @@
       font-size: 1rem;
     }
 
-    .metric-icon-wrap.gold { background: rgba(217, 165, 33, 0.14); color: var(--gold-light); }
-    .metric-icon-wrap.emerald { background: rgba(47, 174, 114, 0.14); color: var(--admin-emerald); }
-    .metric-icon-wrap.cyan { background: rgba(56, 189, 248, 0.14); color: var(--admin-cyan); }
-    .metric-icon-wrap.rose { background: rgba(244, 63, 94, 0.14); color: var(--admin-rose); }
+    .metric-icon-wrap.gold { background: rgba(168, 85, 247, 0.14); color: var(--gold-light); }
+    .metric-icon-wrap.emerald { background: rgba(111, 227, 168, 0.14); color: var(--admin-emerald); }
+    .metric-icon-wrap.cyan { background: rgba(99, 102, 241, 0.14); color: var(--admin-cyan); }
+    .metric-icon-wrap.rose { background: rgba(255, 151, 142, 0.14); color: var(--admin-rose); }
     .metric-icon-wrap.purple { background: rgba(168, 85, 247, 0.14); color: var(--admin-purple); }
 
     .metric-val {
@@ -373,7 +373,7 @@
     }
 
     .admin-table th {
-      background: rgba(20, 34, 26, 0.95);
+      background: rgba(24, 24, 27, 0.95);
       color: var(--text-mid);
       font-weight: 600;
       padding: 12px 16px;
@@ -401,7 +401,7 @@
       grid-template-columns: 200px 320px minmax(0, 1fr);
       min-height: 580px;
       height: calc(100vh - 270px);
-      background: rgba(14, 23, 19, 0.9);
+      background: rgba(9, 9, 11, 0.9);
       border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
@@ -415,7 +415,7 @@
     }
 
     .gmail-folders {
-      background: rgba(10, 16, 13, 0.95);
+      background: rgba(9, 9, 11, 0.95);
       padding: 14px 10px;
       border-right: 1px solid var(--border);
       display: flex;
@@ -445,7 +445,7 @@
     }
 
     .gmail-folder-btn.active {
-      background: rgba(217, 165, 33, 0.16);
+      background: rgba(168, 85, 247, 0.16);
       color: var(--gold-light);
       font-weight: 600;
     }
@@ -472,7 +472,7 @@
 
     .gmail-thread-item:hover { background: rgba(255, 255, 255, 0.04); }
     .gmail-thread-item.active {
-      background: rgba(217, 165, 33, 0.14);
+      background: rgba(168, 85, 247, 0.14);
       border-left: 3px solid var(--gold);
     }
 
@@ -499,7 +499,7 @@
 
     /* ── SUPABASE EXPLORER TAB STYLES ── */
     .supabase-config-card {
-      background: linear-gradient(145deg, rgba(20, 34, 26, 0.98), rgba(13, 22, 17, 0.98));
+      background: linear-gradient(145deg, rgba(24, 24, 27, 0.98), rgba(15, 15, 17, 0.98));
       border: 1px solid var(--border-2);
       border-radius: 14px;
       padding: 22px;
@@ -534,9 +534,9 @@
     }
 
     .supabase-table-pill.active {
-      background: rgba(47, 174, 114, 0.18);
-      border-color: rgba(47, 174, 114, 0.4);
-      color: #6fe3a8;
+      background: rgba(168, 85, 247, 0.18);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #c4b5fd;
     }
 
     /* ── FEEDBACK & DEMO GRIDS ── */
@@ -547,7 +547,7 @@
     }
 
     .feedback-card, .demo-booking-card {
-      background: linear-gradient(145deg, rgba(19, 32, 24, 0.95), rgba(13, 22, 17, 0.95));
+      background: linear-gradient(145deg, rgba(24, 24, 27, 0.95), rgba(15, 15, 17, 0.95));
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 20px;
@@ -581,7 +581,7 @@
     .admin-modal-overlay.open { display: flex; }
 
     .admin-modal {
-      background: linear-gradient(145deg, rgba(20, 34, 26, 0.98), rgba(14, 23, 19, 0.98));
+      background: linear-gradient(145deg, rgba(24, 24, 27, 0.98), rgba(15, 15, 17, 0.98));
       border: 1px solid var(--border-2);
       border-radius: 16px;
       width: 100%;
@@ -607,7 +607,7 @@
       gap: 10px;
       padding: 14px 22px;
       border-top: 1px solid var(--border);
-      background: rgba(10, 16, 13, 0.5);
+      background: rgba(9, 9, 11, 0.5);
     }
 
     /* Inputs */
@@ -652,7 +652,7 @@
       transform: translateY(20px);
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       pointer-events: none;
-      background: #13241b;
+      background: #18181b;
       color: #fff;
       border: 1px solid var(--admin-emerald);
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -691,7 +691,7 @@
 <div id="admin-global-broadcast-banner"></div>
 
 <!-- Executive Security Gate / Access Guard Overlay -->
-<div id="admin-security-gate" class="admin-modal-overlay" style="display:flex; z-index:999999; background:rgba(7,11,9,0.96); backdrop-filter:blur(24px);">
+<div id="admin-security-gate" class="admin-modal-overlay" style="display:flex; z-index:999999; background:rgba(9,9,11,0.96); backdrop-filter:blur(24px);">
   <div class="admin-modal" style="max-width:440px; text-align:center; border:1px solid rgba(217,165,33,0.35); box-shadow:0 30px 80px rgba(0,0,0,0.7);">
     <div style="padding:36px 28px 24px 28px;">
       <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, rgba(217,165,33,0.2), rgba(217,165,33,0.05)); border:1px solid var(--gold-border); display:flex; align-items:center; justify-content:center; margin:0 auto 20px auto; color:var(--gold-light); font-size:1.8rem;">

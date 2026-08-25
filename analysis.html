@@ -113,7 +113,7 @@
   let currentPeriod = 'week';
   let barChart, doughnutChart;
 
-  const CHART_COLORS = ['#d4a017','#f0c040','#c0392b','#27ae60','#2980b9','#8e44ad','#e67e22','#16a085','#d35400','#7f8c8d'];
+  const CHART_COLORS = ['#a855f7','#6366f1','#ff978e','#6fe3a8','#818cf8','#c084fc','#fb7185','#34d399','#818cf8','#a1a1aa'];
 
   function isDark() { return document.body.classList.contains('dark'); }
   function textColor() { return isDark() ? 'rgba(240,236,227,0.7)' : 'rgba(90,80,64,0.8)'; }
@@ -152,8 +152,8 @@
         labels: ['Income', 'Expenses', 'Net Savings'],
         datasets: [{
           data: [totals.income, totals.expense, Math.max(0, totals.balance)],
-          backgroundColor: ['rgba(39,174,96,0.6)','rgba(192,57,43,0.6)','rgba(212,160,23,0.6)'],
-          borderColor:      ['rgba(39,174,96,1)',  'rgba(192,57,43,1)',  'rgba(212,160,23,1)'],
+          backgroundColor: ['rgba(111,227,168,0.6)','rgba(255,151,142,0.6)','rgba(168,85,247,0.6)'],
+          borderColor:      ['rgba(111,227,168,1)',  'rgba(255,151,142,1)',  'rgba(168,85,247,1)'],
           borderWidth: 2,
           borderRadius: 10,
         }]
@@ -345,8 +345,8 @@
           {
             label: 'With Growth',
             data: values,
-            borderColor: 'rgba(212,160,23,1)',
-            backgroundColor: 'rgba(212,160,23,0.1)',
+            borderColor: 'rgba(168,85,247,1)',
+            backgroundColor: 'rgba(168,85,247,0.1)',
             borderWidth: 2.5,
             fill: true,
             tension: 0.4,

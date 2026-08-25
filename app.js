@@ -674,7 +674,7 @@ async function _initData() {
    --gold-border / --accent-rgb everywhere.
 ══════════════════════════════════════ */
 const THEMES = [
-  { id: 'gold',      name: 'Classic Gold', accent: '#d4a017', light: '#f0c040', rgb: '212,160,23' },
+  { id: 'gold',      name: 'Electric Violet', accent: '#a855f7', light: '#6366f1', rgb: '139,92,246' },
   { id: 'emerald',   name: 'Emerald',      accent: '#1f9d6e', light: '#34c98c', rgb: '31,157,110' },
   { id: 'sapphire',  name: 'Sapphire',     accent: '#2f6fed', light: '#5b93ff', rgb: '47,111,237' },
   { id: 'rose',      name: 'Rose',         accent: '#e0457b', light: '#f078a3', rgb: '224,69,123' },
@@ -1122,13 +1122,13 @@ const ResendEmail = (() => {
         <head>
           <meta charset="utf-8">
           <style>
-            body { font-family: 'Inter', Arial, sans-serif; background-color: #070b09; color: #f5f1e8; margin: 0; padding: 40px 20px; }
-            .container { max-width: 560px; margin: 0 auto; background: #0f1612; border: 1px solid rgba(212,160,23,0.3); border-radius: 16px; padding: 40px; }
-            .logo { font-size: 24px; font-weight: bold; color: #d4a017; margin-bottom: 24px; font-family: Georgia, serif; }
+            body { font-family: 'Inter', Arial, sans-serif; background-color: #09090b; color: #ffffff; margin: 0; padding: 40px 20px; }
+            .container { max-width: 560px; margin: 0 auto; background: #18181b; border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 40px; }
+            .logo { font-size: 24px; font-weight: bold; color: #a855f7; margin-bottom: 24px; font-family: Georgia, serif; }
             h1 { font-size: 22px; color: #ffffff; margin-bottom: 16px; }
-            p { font-size: 15px; color: rgba(245,241,232,0.8); line-height: 1.6; margin-bottom: 20px; }
-            .btn { display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #d4a017, #f3ca5a); color: #191204; font-weight: bold; text-decoration: none; border-radius: 999px; margin: 10px 0 20px; }
-            .footer { font-size: 12px; color: rgba(245,241,232,0.4); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; margin-top: 30px; }
+            p { font-size: 15px; color: rgba(161,161,170,0.9); line-height: 1.6; margin-bottom: 20px; }
+            .btn { display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #a855f7, #6366f1); color: #ffffff; font-weight: bold; text-decoration: none; border-radius: 999px; margin: 10px 0 20px; }
+            .footer { font-size: 12px; color: rgba(161,161,170,0.5); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; margin-top: 30px; }
           </style>
         </head>
         <body>

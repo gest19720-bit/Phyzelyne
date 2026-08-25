@@ -663,7 +663,8 @@ async function _initData() {
   migrateFromLocalStorage();     // one-shot: move any old localStorage data to Supabase
   document.dispatchEvent(new Event('phyzelyne:ready'));
 
-  // Boot subscription reminders after data is loaded
+  // Boot notification center and subscription reminders after data is loaded
+  try { PhyzelyneNotifications.start(); } catch (e) { /* PhyzelyneNotifications not available */ }
   try { SubReminder.start(); } catch (e) { /* SubReminder not available */ }
 }
 
@@ -1947,6 +1948,17 @@ function renderSidebar() {
     </a>` : ''}
     <span class="nav-section-label">Account</span>
     <a href="settings.html" class="nav-item" data-page="settings"><i class="fas fa-gear"></i> Settings</a>
+    <div style="display:flex;align-items:center;gap:8px;padding:0 20px;margin-bottom:8px;">
+      <div style="flex:1;">
+        <span class="nav-section-label" style="margin-bottom:0;">Alerts</span>
+      </div>
+      <div class="notify-bell-wrap">
+        <button class="notify-bell-btn" onclick="PhyzelyneNotifications.toggleDropdown()" title="Notifications">
+          <i class="fas fa-bell"></i>
+          <span class="notify-badge" data-count="0"></span>
+        </button>
+      </div>
+    </div>
     <div class="sidebar-bottom">
       <button class="nav-item logout-btn" onclick="handleLogout()">
         <i class="fas fa-right-from-bracket"></i> Logout
@@ -1996,6 +2008,410 @@ function handleLogout() {
     setTimeout(() => Auth.logout(), 900);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   PHYZELYNE NOTIFICATION CENTER
+   ───────────────────────────────────────────────────────────────────
+   Central notification system that:
+   • Stores notifications in localStorage (user-scoped, max 50)
+   • Renders a bell button with unread badge in the sidebar
+   • Shows a slide-in dropdown panel with notification history
+   • Fires alerts based on user settings:
+     – overspendAlerts: when expenses exceed income
+     – goalAlerts: when savings goals hit milestones (25/50/75/100%)
+     – weeklySummary: weekly financial digest
+   • Deduplicates notifications to prevent spam
+   • Hooks into data-change events for real-time alerting
+═══════════════════════════════════════════════════════════════════ */
+const PhyzelyneNotifications = (() => {
+  const STORAGE_KEY = 'phyzelyne_notifications';
+  const DEDUP_KEY = 'phyzelyne_notif_dedup';
+  const MAX_NOTIFICATIONS = 50;
+  const WEEKLY_INTERVAL = 7 * 24 * 60 * 60 * 1000; // 7 days
+  let _dropdownOpen = false;
+
+  /* ── Storage helpers ── */
+  function _getAll() {
+    try {
+      const uid = _cache.userId || 'anon';
+      const raw = localStorage.getItem(`${STORAGE_KEY}_${uid}`);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  }
+
+  function _save(list) {
+    try {
+      const uid = _cache.userId || 'anon';
+      // Trim to max
+      const trimmed = list.slice(0, MAX_NOTIFICATIONS);
+      localStorage.setItem(`${STORAGE_KEY}_${uid}`, JSON.stringify(trimmed));
+    } catch {}
+  }
+
+  function _getDedup() {
+    try {
+      const uid = _cache.userId || 'anon';
+      const raw = localStorage.getItem(`${DEDUP_KEY}_${uid}`);
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  }
+
+  function _saveDedup(d) {
+    try {
+      const uid = _cache.userId || 'anon';
+      localStorage.setItem(`${DEDUP_KEY}_${uid}`, JSON.stringify(d));
+    } catch {}
+  }
+
+  function _wasRecentlyNotified(key, hours = 24) {
+    const dedup = _getDedup();
+    if (!dedup[key]) return false;
+    const elapsed = Date.now() - dedup[key];
+    return elapsed < hours * 60 * 60 * 1000;
+  }
+
+  function _markNotified(key) {
+    const dedup = _getDedup();
+    dedup[key] = Date.now();
+    // Prune old entries (older than 30 days)
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    for (const k of Object.keys(dedup)) {
+      if (dedup[k] < cutoff) delete dedup[k];
+    }
+    _saveDedup(dedup);
+  }
+
+  /* ── Public: Add a notification ── */
+  function add({ type, title, message, dedupKey, dedupHours = 24 }) {
+    if (dedupKey && _wasRecentlyNotified(dedupKey, dedupHours)) return false;
+
+    const notif = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      type: type || 'general',
+      title: title || '',
+      message: message || '',
+      read: false,
+      timestamp: Date.now()
+    };
+
+    const list = _getAll();
+    list.unshift(notif);
+    _save(list);
+
+    if (dedupKey) _markNotified(dedupKey);
+
+    _updateBadge();
+    _renderDropdownList();
+
+    // Also show a toast for important alerts
+    if (type === 'overspend' || type === 'goal') {
+      if (typeof showToast === 'function') showToast(title + ' — ' + message);
+    }
+
+    return true;
+  }
+
+  /* ── Public: Get counts ── */
+  function getUnreadCount() {
+    return _getAll().filter(n => !n.read).length;
+  }
+
+  function getAll() {
+    return _getAll();
+  }
+
+  /* ── Public: Mark as read ── */
+  function markRead(id) {
+    const list = _getAll();
+    const notif = list.find(n => n.id === id);
+    if (notif) {
+      notif.read = true;
+      _save(list);
+      _updateBadge();
+      _renderDropdownList();
+    }
+  }
+
+  function markAllRead() {
+    const list = _getAll();
+    list.forEach(n => n.read = true);
+    _save(list);
+    _updateBadge();
+    _renderDropdownList();
+  }
+
+  /* ── Public: Clear all ── */
+  function clearAll() {
+    _save([]);
+    _updateBadge();
+    _renderDropdownList();
+  }
+
+  /* ── UI: Update badge count ── */
+  function _updateBadge() {
+    const count = getUnreadCount();
+    document.querySelectorAll('.notify-badge').forEach(el => {
+      el.textContent = count > 99 ? '99+' : (count || '');
+      el.dataset.count = count;
+      el.style.display = count > 0 ? 'flex' : 'none';
+    });
+  }
+
+  /* ── UI: Render dropdown list ── */
+  function _renderDropdownList() {
+    const listEl = document.querySelector('.notify-list');
+    if (!listEl) return;
+    const all = _getAll();
+    if (!all.length) {
+      listEl.innerHTML = `<div class="notify-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>`;
+      return;
+    }
+    listEl.innerHTML = all.map(n => {
+      const iconMap = {
+        overspend: 'fa-arrow-trend-up',
+        goal: 'fa-bullseye',
+        weekly: 'fa-chart-line',
+        subscription: 'fa-repeat',
+        general: 'fa-bell'
+      };
+      const icon = iconMap[n.type] || 'fa-bell';
+      const timeAgo = _timeAgo(n.timestamp);
+      return `
+        <div class="notify-item ${n.read ? '' : 'unread'}" data-notif-id="${n.id}" onclick="PhyzelyneNotifications.markRead('${n.id}')">
+          <div class="notify-icon ${n.type}"><i class="fas ${icon}"></i></div>
+          <div class="notify-body">
+            <div class="notify-title">${n.title}</div>
+            <div class="notify-msg">${n.message}</div>
+            <div class="notify-time">${timeAgo}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function _timeAgo(ts) {
+    const diff = Date.now() - ts;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(ts).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+  }
+
+  /* ── UI: Toggle dropdown ── */
+  function toggleDropdown() {
+    _dropdownOpen = !_dropdownOpen;
+    const dropdown = document.getElementById('notify-dropdown');
+    const backdrop = document.getElementById('notify-backdrop');
+    if (dropdown) dropdown.classList.toggle('open', _dropdownOpen);
+    if (backdrop) backdrop.classList.toggle('open', _dropdownOpen);
+    if (_dropdownOpen) {
+      _renderDropdownList();
+      // Mark visible items as read after 2s
+      setTimeout(() => {
+        const list = _getAll();
+        let changed = false;
+        list.forEach(n => { if (!n.read) { n.read = true; changed = true; } });
+        if (changed) { _save(list); _updateBadge(); _renderDropdownList(); }
+      }, 2000);
+    }
+  }
+
+  function closeDropdown() {
+    _dropdownOpen = false;
+    const dropdown = document.getElementById('notify-dropdown');
+    const backdrop = document.getElementById('notify-backdrop');
+    if (dropdown) dropdown.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+  }
+
+  /* ══════════════════════════════════════════
+     ALERT CHECKS — called on data changes
+  ══════════════════════════════════════════ */
+
+  /* ── Overspend Alert ── */
+  function checkOverspend() {
+    const s = _cache.settings || {};
+    if (s.overspendAlerts === false) return;
+
+    const txns = _cache.transactions || [];
+    if (!txns.length) return;
+
+    // Calculate current month totals
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const monthTxns = txns.filter(t => {
+      const d = new Date(t.date || t.created_at);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+
+    let income = 0, expense = 0;
+    monthTxns.forEach(t => {
+      if (t.type === 'income') income += parseFloat(t.amount) || 0;
+      else expense += parseFloat(t.amount) || 0;
+    });
+
+    if (expense > income && income > 0) {
+      const cur = typeof getCurrency === 'function' ? getCurrency() : { symbol: '$' };
+      const overage = (expense - income).toFixed(2);
+      const monthKey = `${currentYear}-${currentMonth}`;
+      add({
+        type: 'overspend',
+        title: '⚠️ Overspending Alert',
+        message: `You've spent ${cur.symbol}${overage} more than you earned this month. Review your expenses to get back on track.`,
+        dedupKey: `overspend_${monthKey}`,
+        dedupHours: 12
+      });
+    }
+  }
+
+  /* ── Goal Milestone Alerts ── */
+  function checkGoalMilestones() {
+    const s = _cache.settings || {};
+    if (s.goalAlerts === false) return;
+
+    const goals = _cache.goals || [];
+    if (!goals.length) return;
+
+    const milestones = [25, 50, 75, 100];
+    goals.forEach(goal => {
+      if (!goal.target || goal.target <= 0) return;
+      const pct = Math.round(((goal.saved || 0) / goal.target) * 100);
+      const emoji = goal.emoji || '🎯';
+      const cur = typeof getCurrency === 'function' ? getCurrency() : { symbol: '$' };
+
+      milestones.forEach(m => {
+        if (pct >= m) {
+          const dedupKey = `goal_${goal.id}_${m}`;
+          if (!_wasRecentlyNotified(dedupKey, 720)) { // 30 days dedup
+            let title, message;
+            if (m === 100) {
+              title = `${emoji} Goal Complete!`;
+              message = `Congratulations! You've reached your "${goal.name}" goal of ${cur.symbol}${parseFloat(goal.target).toFixed(2)}! 🎉`;
+            } else {
+              title = `${emoji} Goal Milestone — ${m}%`;
+              message = `"${goal.name}" is ${m}% complete — ${cur.symbol}${parseFloat(goal.saved || 0).toFixed(2)} of ${cur.symbol}${parseFloat(goal.target).toFixed(2)}. Keep going!`;
+            }
+            add({ type: 'goal', title, message, dedupKey, dedupHours: 720 });
+          }
+        }
+      });
+    });
+  }
+
+  /* ── Weekly Summary ── */
+  function checkWeeklySummary() {
+    const s = _cache.settings || {};
+    if (s.weeklySummary === false) return;
+
+    const dedupKey = 'weekly_summary';
+    if (_wasRecentlyNotified(dedupKey, 160)) return; // ~6.5 days to allow some slack
+
+    const txns = _cache.transactions || [];
+    if (!txns.length) return;
+
+    // Last 7 days
+    const now = new Date();
+    const weekAgo = new Date(now);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekTxns = txns.filter(t => {
+      const d = new Date(t.date || t.created_at);
+      return d >= weekAgo;
+    });
+
+    if (!weekTxns.length) return; // No activity, skip
+
+    let income = 0, expense = 0, count = weekTxns.length;
+    weekTxns.forEach(t => {
+      if (t.type === 'income') income += parseFloat(t.amount) || 0;
+      else expense += parseFloat(t.amount) || 0;
+    });
+
+    const cur = typeof getCurrency === 'function' ? getCurrency() : { symbol: '$' };
+    const balance = income - expense;
+    const emoji = balance >= 0 ? '📈' : '📉';
+    const status = balance >= 0 ? 'positive' : 'deficit';
+
+    add({
+      type: 'weekly',
+      title: `${emoji} Weekly Financial Summary`,
+      message: `${count} transactions this week — Income: ${cur.symbol}${income.toFixed(2)}, Expenses: ${cur.symbol}${expense.toFixed(2)}, Net: ${cur.symbol}${Math.abs(balance).toFixed(2)} (${status}).`,
+      dedupKey,
+      dedupHours: 160
+    });
+  }
+
+  /* ── Run all checks ── */
+  function runAllChecks() {
+    if (!_cache.ready || !_cache.userId) return;
+    checkOverspend();
+    checkGoalMilestones();
+    checkWeeklySummary();
+  }
+
+  /* ── Start: set up event listeners and periodic checks ── */
+  function start() {
+    if (typeof document === 'undefined') return;
+
+    // Run checks once data is ready
+    if (_cache.ready) {
+      setTimeout(runAllChecks, 1000);
+    } else {
+      document.addEventListener('phyzelyne:ready', () => setTimeout(runAllChecks, 1000), { once: true });
+    }
+
+    // Re-check on every data change
+    document.addEventListener('phyzelyne:data-changed', () => {
+      setTimeout(runAllChecks, 500);
+    });
+
+    // Re-check when user returns to tab
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) runAllChecks();
+    });
+
+    // Periodic check every 30 minutes (for weekly summary timing)
+    setInterval(runAllChecks, 30 * 60 * 1000);
+
+    // Inject dropdown + backdrop into DOM if not already present
+    if (!document.getElementById('notify-dropdown')) {
+      const dropdown = document.createElement('div');
+      dropdown.id = 'notify-dropdown';
+      dropdown.className = 'notify-dropdown';
+      dropdown.innerHTML = `
+        <div class="notify-dropdown-header">
+          <h3><i class="fas fa-bell" style="color:var(--gold);margin-right:8px;"></i>Notifications</h3>
+          <div class="notify-dropdown-actions">
+            <button onclick="PhyzelyneNotifications.markAllRead()" title="Mark all read"><i class="fas fa-check-double"></i> Read All</button>
+            <button onclick="PhyzelyneNotifications.clearAll()" title="Clear all"><i class="fas fa-trash"></i> Clear</button>
+            <button class="notify-dropdown-close" onclick="PhyzelyneNotifications.closeDropdown()"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+        <div class="notify-list"></div>`;
+      document.body.appendChild(dropdown);
+
+      const backdrop = document.createElement('div');
+      backdrop.id = 'notify-backdrop';
+      backdrop.className = 'notify-backdrop';
+      backdrop.addEventListener('click', closeDropdown);
+      document.body.appendChild(backdrop);
+    }
+
+    // Update badge on load
+    _updateBadge();
+  }
+
+  return {
+    add, getAll, getUnreadCount,
+    markRead, markAllRead, clearAll,
+    toggleDropdown, closeDropdown,
+    checkOverspend, checkGoalMilestones, checkWeeklySummary,
+    runAllChecks, start
+  };
+})();
 
 /* ═══════════════════════════════════════════════════════════════════
    SUBSCRIPTION REMINDER SYSTEM
@@ -2194,8 +2610,19 @@ const SubReminder = (() => {
       // 1) Two-day-before reminder
       if (daysTill === 2 && !_wasSeenToday(sub.id, 'reminder_2d')) {
         const cur = typeof getCurrency === 'function' ? getCurrency() : { symbol: '$' };
+        const amt = cur.symbol + parseFloat(sub.amount).toFixed(2);
         if (typeof showToast === 'function') {
-          showToast('🔔 ' + sub.name + ' due in 2 days — ' + cur.symbol + parseFloat(sub.amount).toFixed(2));
+          showToast('🔔 ' + sub.name + ' due in 2 days — ' + amt);
+        }
+        // Also add to notification center
+        if (typeof PhyzelyneNotifications !== 'undefined') {
+          PhyzelyneNotifications.add({
+            type: 'subscription',
+            title: '🔔 Subscription Due Soon',
+            message: sub.name + ' is due in 2 days — ' + amt,
+            dedupKey: 'sub_remind_' + sub.id + '_2d',
+            dedupHours: 48
+          });
         }
         _markSeen(sub.id, 'reminder_2d');
       }
@@ -2203,8 +2630,19 @@ const SubReminder = (() => {
       // 2) Day-of reminder (before 10 AM)
       if (daysTill === 0 && hour < 10 && !_wasSeenToday(sub.id, 'reminder_today')) {
         const cur = typeof getCurrency === 'function' ? getCurrency() : { symbol: '$' };
+        const amt = cur.symbol + parseFloat(sub.amount).toFixed(2);
         if (typeof showToast === 'function') {
-          showToast('📌 ' + sub.name + ' is due today — ' + cur.symbol + parseFloat(sub.amount).toFixed(2));
+          showToast('📌 ' + sub.name + ' is due today — ' + amt);
+        }
+        // Also add to notification center
+        if (typeof PhyzelyneNotifications !== 'undefined') {
+          PhyzelyneNotifications.add({
+            type: 'subscription',
+            title: '📌 Subscription Due Today',
+            message: sub.name + ' is due today — ' + amt,
+            dedupKey: 'sub_remind_' + sub.id + '_today',
+            dedupHours: 12
+          });
         }
         _markSeen(sub.id, 'reminder_today');
       }

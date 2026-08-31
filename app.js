@@ -49,6 +49,8 @@ const _cache = {
   invoices:     null,
   receipts:     null,
   ready:        false,
+  remoteLoaded: false,
+  remoteLoadFailed: false,
   userId:       null,
 };
 
@@ -296,7 +298,9 @@ function _adoptAnonymousLocalData() {
 }
 
 async function _syncCacheToSupabase() {
-  if (!_cache.userId || !_sb) return;
+  // Never push an empty/unverified cache over a user's remote data. A
+  // transient auth, network, or RLS failure must not look like an empty DB.
+  if (!_cache.userId || !_sb || !_cache.remoteLoaded || _cache.remoteLoadFailed) return;
   const uid = _cache.userId;
 
   // Bulk upsert each table in parallel — one Supabase call per table
@@ -341,6 +345,9 @@ async function _loadRemoteData(uid) {
     _sb.from('receipts').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
   ]);
 
+  const failed = [txRes, stRes, goRes, invRes, recRes].find(result => result.error);
+  if (failed?.error) throw failed.error;
+
   return {
     transactions: _stripUserIds(txRes.data || []),
     settings: _stripUserId(stRes.data || {}) || {},
@@ -371,6 +378,8 @@ async function _refreshCacheFromSupabase({ notify = true, preserveLocal = true }
     _cache.invoices     = mergeRows(remote.invoices, _readLocal('invoices', _cache.invoices || []), 'invoices');
     _cache.receipts     = mergeRows(remote.receipts, _readLocal('receipts', _cache.receipts || []), 'receipts');
     _cache.settings     = _mergeSettings(remote.settings, _readLocal('settings', _cache.settings || {}));
+    _cache.remoteLoaded = true;
+    _cache.remoteLoadFailed = false;
 
     const changed = 
       oldTxns !== JSON.stringify(_cache.transactions) ||
@@ -385,6 +394,8 @@ async function _refreshCacheFromSupabase({ notify = true, preserveLocal = true }
     }
     return true;
   } catch (e) {
+    _cache.remoteLoaded = false;
+    _cache.remoteLoadFailed = true;
     
 _warn('[Phyzelyne] remote sync failed', e.message);
     return false;
@@ -400,7 +411,7 @@ function _startRemoteSync() {
     // If Supabase Realtime is connected, it handles cross-device sync.
     // Only poll as a fallback — less frequently to reduce load.
     const realtimeActive = _realtimeChannel && _realtimeChannel.state === 'joined';
-    if (realtimeActive) return; // realtime handles it
+    if (realtimeActive && !_cache.remoteLoadFailed) return; // realtime handles it
     _refreshCacheFromSupabase({ preserveLocal: true }).then(() => _flushWriteQueue()).catch(() => {});
   }, 15000); // 15s fallback interval (was 10s)
 }
@@ -419,7 +430,7 @@ function _afterRemoteWrite(table, promise) {
 }
 
 async function _flushWriteQueue() {
-  if (_writeQueueFlushing || !_cache.userId || !_sb) return;
+  if (_writeQueueFlushing || !_cache.userId || !_sb || !_cache.remoteLoaded || _cache.remoteLoadFailed) return;
   _writeQueueFlushing = true;
   const pending = _readPendingSync();
   _writePendingSync([]);
@@ -704,8 +715,23 @@ if (_sb) {
     if (session) { _sessionCache = session.user; _cache.userId = session.user.id; }
   });
 	  _sb.auth.onAuthStateChange((event, session) => {
+	    const nextUserId = session?.user?.id || null;
+	    if (nextUserId && _cache.userId && nextUserId !== _cache.userId) {
+	      // A session can change without a full page reload. Never show the
+	      // previous user's cache while the new user's remote data loads.
+	      _cache.transactions = null;
+	      _cache.settings = null;
+	      _cache.goals = null;
+	      _cache.invoices = null;
+	      _cache.receipts = null;
+	      _cache.ready = false;
+	      _cache.remoteLoaded = false;
+	      _cache.remoteLoadFailed = false;
+	      _remoteSyncTimer && clearInterval(_remoteSyncTimer);
+	      _remoteSyncTimer = null;
+	    }
 	    _sessionCache = session?.user || null;
-	    _cache.userId = session?.user?.id || null;
+	    _cache.userId = nextUserId;
 	    if (!session?.user && _remoteSyncTimer) {
 	      clearInterval(_remoteSyncTimer);
 	      _remoteSyncTimer = null;
@@ -743,6 +769,22 @@ async function _upsert(table, rowOrRows) {
   }
   if (!_cache.userId) {
     // Auth hasn't resolved yet — queue for replay once userId is set
+    if (Array.isArray(rowOrRows)) {
+      rowOrRows.forEach(row => {
+        _writeQueue.push({ type: 'upsert', table, row: { ...row } });
+        _queuePendingSync({ type: 'upsert', table, row: { ...row } });
+      });
+    } else {
+      _writeQueue.push({ type: 'upsert', table, row: { ...rowOrRows } });
+      _queuePendingSync({ type: 'upsert', table, row: { ...rowOrRows } });
+    }
+    return;
+  }
+
+  // The user may be authenticated before the first remote read completes.
+  // Queue writes until that read succeeds so a failed read cannot race with
+  // an optimistic write or turn into an empty remote replacement.
+  if (!_cache.ready || !_cache.remoteLoaded || _cache.remoteLoadFailed) {
     if (Array.isArray(rowOrRows)) {
       rowOrRows.forEach(row => {
         _writeQueue.push({ type: 'upsert', table, row: { ...row } });
@@ -806,6 +848,11 @@ async function _sbDelete(table, id) {
     _queuePendingSync({ type: 'delete', table, id });
     return;
   }
+  if (!_cache.ready || !_cache.remoteLoaded || _cache.remoteLoadFailed) {
+    _writeQueue.push({ type: 'delete', table, id });
+    _queuePendingSync({ type: 'delete', table, id });
+    return;
+  }
   try {
     const { error } = await _sb.from(table).delete().eq('id', id).eq('user_id', _cache.userId);
     if (error) {
@@ -847,8 +894,12 @@ async function _initData() {
   try { SubReminder.start(); } catch (e) { /* SubReminder not available */ }
 
   // These run in the background — non-blocking so the UI is never delayed
-  _flushWriteQueue().catch(() => {});
-  _syncCacheToSupabase().catch(() => {});
+  if (_cache.remoteLoaded) {
+    _flushWriteQueue().catch(() => {});
+    _syncCacheToSupabase().catch(() => {});
+  } else if (typeof showToast === 'function') {
+    showToast('We could not verify your cloud data yet. Retrying safely…', 'error');
+  }
   migrateFromLocalStorage().catch(() => {});
 }
 
@@ -3195,4 +3246,3 @@ if (typeof window !== 'undefined') {
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
    <script src="app.js"></script>
 ══════════════════════════════════════ */
-

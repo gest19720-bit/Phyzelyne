@@ -1809,6 +1809,122 @@ _err('[Phyzelyne] delete-account request failed:', err);
    Identical public API — reads hit the in-memory
    cache instantly; writes are optimistic + async.
 ══════════════════════════════════════ */
+/* ── Public feedback board API ───────────────────────────────────────────
+   Feedback is intentionally separate from the financial cache. Board reads
+   are public; mutations require the current Supabase user and are protected
+   again by RLS in the migration shipped with this app. */
+function _feedbackIdentity() {
+  const user = _sessionCache;
+  if (!user?.id) return null;
+  return {
+    id: user.id,
+    name: user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Phyzelyne user',
+    email: user.email || '',
+  };
+}
+
+function _feedbackRequireUser() {
+  const user = _feedbackIdentity();
+  if (!user) throw new Error('Please sign in to use the feedback board.');
+  return user;
+}
+
+const PhFeedback = {
+  async init() {
+    if (!_sb) return null;
+    const { data } = await _sb.auth.getSession();
+    if (data?.session?.user) {
+      _sessionCache = data.session.user;
+      _cache.userId = data.session.user.id;
+    }
+    return _feedbackIdentity();
+  },
+
+  async list() {
+    if (!_sb) throw new Error('Supabase is not configured.');
+    const [postsRes, commentsRes, votesRes] = await Promise.all([
+      _sb.from('feedback_posts').select('*').order('created_at', { ascending: false }),
+      _sb.from('feedback_comments').select('*').order('created_at', { ascending: true }),
+      _sb.from('feedback_votes').select('post_id,user_id'),
+    ]);
+    const failed = [postsRes, commentsRes, votesRes].find(r => r.error);
+    if (failed?.error) throw failed.error;
+    const posts = postsRes.data || [];
+    const comments = commentsRes.data || [];
+    const votes = votesRes.data || [];
+    return posts.map(post => ({
+      ...post,
+      votes: votes.filter(v => v.post_id === post.id).length,
+      voted: !!_cache.userId && votes.some(v => v.post_id === post.id && v.user_id === _cache.userId),
+      comments: comments.filter(c => c.post_id === post.id),
+    }));
+  },
+
+  async create({ title, body, category = 'idea' }) {
+    const user = _feedbackRequireUser();
+    const cleanTitle = String(title || '').trim();
+    const cleanBody = String(body || '').trim();
+    if (cleanTitle.length < 4 || cleanBody.length < 8) throw new Error('Add a title and a little more detail.');
+    const { data, error } = await _sb.from('feedback_posts').insert({
+      user_id: user.id, author_name: user.name, title: cleanTitle.slice(0, 140),
+      body: cleanBody.slice(0, 5000), category: ['idea', 'bug', 'improvement', 'question'].includes(category) ? category : 'idea',
+    }).select('*').single();
+    if (error) throw error;
+    return data;
+  },
+
+  async update(id, { title, body, category }) {
+    _feedbackRequireUser();
+    const patch = { title: String(title || '').trim().slice(0, 140), body: String(body || '').trim().slice(0, 5000), category };
+    if (patch.title.length < 4 || patch.body.length < 8) throw new Error('Add a title and a little more detail.');
+    const { data, error } = await _sb.from('feedback_posts').update(patch).eq('id', id).select('*').single();
+    if (error) throw error;
+    return data;
+  },
+
+  async remove(id) {
+    _feedbackRequireUser();
+    const { error } = await _sb.from('feedback_posts').delete().eq('id', id);
+    if (error) throw error;
+  },
+
+  async toggleVote(postId, currentlyVoted) {
+    const user = _feedbackRequireUser();
+    const result = currentlyVoted
+      ? await _sb.from('feedback_votes').delete().eq('post_id', postId).eq('user_id', user.id)
+      : await _sb.from('feedback_votes').upsert({ post_id: postId, user_id: user.id }, { onConflict: 'post_id,user_id' });
+    if (result.error) throw result.error;
+  },
+
+  async comment({ postId, body, parentId = null }) {
+    const user = _feedbackRequireUser();
+    const cleanBody = String(body || '').trim();
+    if (cleanBody.length < 2) throw new Error('Write a comment first.');
+    const { data, error } = await _sb.from('feedback_comments').insert({
+      post_id: postId, parent_id: parentId || null, user_id: user.id,
+      author_name: user.name, body: cleanBody.slice(0, 3000),
+    }).select('*').single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateComment(id, body) {
+    _feedbackRequireUser();
+    const cleanBody = String(body || '').trim();
+    if (cleanBody.length < 2) throw new Error('Write a comment first.');
+    const { data, error } = await _sb.from('feedback_comments').update({ body: cleanBody.slice(0, 3000) }).eq('id', id).select('*').single();
+    if (error) throw error;
+    return data;
+  },
+
+  async removeComment(id) {
+    _feedbackRequireUser();
+    const { error } = await _sb.from('feedback_comments').delete().eq('id', id);
+    if (error) throw error;
+  },
+};
+window.PhFeedback = PhFeedback;
+
 const Store = {
 
   /* ── Transactions ─────────────────────────────────────────────────── */

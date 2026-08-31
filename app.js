@@ -243,7 +243,7 @@ function _mergeRows(remoteRows, localRows, table) {
   });
 
   local.forEach(row => {
-    if (row?.id && !pendingDeletes.has(row.id)) byId.set(row.id, row);
+    if (row?.id && !pendingDeletes.has(row.id) && !pendingUpserts.has(row.id)) byId.set(row.id, row);
   });
   remote.forEach(row => {
     if (!row?.id || pendingDeletes.has(row.id)) return;
@@ -1971,7 +1971,7 @@ const Store = {
     const list = _cache.invoices || [];
     const idx  = list.findIndex(i => i.id === id);
 	    if (idx === -1) return null;
-		    list[idx] = { ...list[idx], ...fields };
+    list[idx] = { ...list[idx], ...fields, updatedAt: new Date().toISOString() };
 		    _cache.invoices = list;
 		    _persistCache('invoices');
 		    _afterRemoteWrite('invoices', _upsert('invoices', { ...list[idx], user_id: _cache.userId }));
@@ -1998,8 +1998,19 @@ const Store = {
 		    _broadcastChange('receipts');
 		  },
 
-	  addReceipt(receipt) {
-	    receipt.id        = 'REC-' + _genId();
+  addReceipt(receipt) {
+    // One invoice can only have one canonical receipt. Re-opening the paid
+    // invoice or tapping the action twice updates the existing receipt rather
+    // than creating duplicate financial documents.
+    const existing = (_cache.receipts || []).find(r => r.invoiceId && r.invoiceId === receipt.invoiceId);
+    if (existing) {
+      Object.assign(existing, receipt, { updatedAt: new Date().toISOString() });
+      _persistCache('receipts');
+      _afterRemoteWrite('receipts', _upsert('receipts', { ...existing, user_id: _cache.userId }));
+      _broadcastChange('receipts', { eventType: 'UPDATE', new: existing });
+      return existing;
+    }
+    receipt.id        = 'REC-' + _genId();
 	    receipt.createdAt = new Date().toISOString();
 		    if (_cache.receipts === null) _cache.receipts = [];
 		    _cache.receipts.unshift(receipt);

@@ -435,6 +435,20 @@
     .inv-status-badge.receipt  { background: rgba(39,174,96,0.15); color: #27ae60; }
 
     /* ── Print / PDF styles ── */
+    @media (max-width: 760px) {
+      .inv-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+      .inv-tabs .inv-tab { flex: 0 0 auto; white-space: nowrap; }
+      .inv-tabs .inv-tab[style*="margin-left"] { margin-left: 0 !important; }
+      .inv-list-item { align-items: flex-start; flex-wrap: wrap; padding: 14px; gap: 9px; }
+      .inv-list-item > div:first-child { flex-basis: calc(100% - 12px); }
+      .inv-list-item > div:nth-child(2) { margin-right: auto; }
+      .inv-list-item > div:last-child { width: 100%; justify-content: flex-end; }
+      .items-header { display: none; }
+      .line-item { grid-template-columns: minmax(0, 1fr) 64px 88px 76px 30px; gap: 5px; }
+      #invoice-search { width: 100% !important; }
+      #view-list > div:first-child { align-items: stretch; }
+    }
+
     @media print {
       body * { visibility: hidden !important; }
       #invoice-doc, #invoice-doc * { visibility: visible !important; }
@@ -699,6 +713,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
         <div style="font-size:0.85rem;color:var(--text-dim);" id="inv-list-count">0 invoices</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input class="form-input" id="invoice-search" type="search" placeholder="Search invoices…" aria-label="Search invoices" style="width:min(220px, 100%);padding:7px 14px;font-size:0.82rem;border-radius:999px;" oninput="renderList()">
           <select class="form-input" id="filter-status" style="width:auto;padding:7px 14px;font-size:0.82rem;border-radius:999px;" onchange="renderList()">
             <option value="all">All Status</option>
             <option value="draft">Draft</option>
@@ -902,6 +917,23 @@
     })).filter(i => i.desc || i.price);
   }
 
+  function invoiceStatus(inv) {
+    if (inv.status === 'paid') return 'paid';
+    if (inv.status === 'sent' && inv.due && inv.due < new Date().toISOString().slice(0, 10)) return 'overdue';
+    return inv.status || 'draft';
+  }
+
+  function validateInvoice(data, requireClient = false) {
+    if (!data.fromName.trim()) return 'Add your business name first.';
+    if (requireClient && !data.toName.trim()) return 'Add a client name first.';
+    if (!data.items.length) return 'Add at least one line item.';
+    if (data.items.some(item => item.qty <= 0 || item.price < 0)) return 'Check item quantities and prices.';
+    if (data.due && data.date && data.due < data.date) return 'Due date cannot be before the issue date.';
+    const duplicate = Store.getInvoices().some(inv => inv.id !== editingId && inv.number && inv.number.trim() === data.number.trim());
+    if (data.number.trim() && duplicate) return 'That invoice number is already in use.';
+    return '';
+  }
+
   // ── Totals ────────────────────────────────────────────────────────────────
   function calcTotals() {
     const items    = getLineItems();
@@ -937,6 +969,7 @@
   }
 
   function renderInvoiceDoc(t) {
+    const h           = value => escapeHtml(value || '');
     const fromName    = document.getElementById('from-name').value    || 'Your Company';
     const fromTagline = document.getElementById('from-tagline').value || '';
     const fromEmail   = document.getElementById('from-email').value   || '';
@@ -960,8 +993,8 @@
     const itemRows = t.items.length
       ? t.items.map(i => `
           <div class="inv-doc-item-row">
-            <span class="inv-doc-item-desc">${i.desc}</span>
-            <span>${i.qty}</span>
+            <span class="inv-doc-item-desc">${h(i.desc)}</span>
+            <span>${h(i.qty)}</span>
             <span>${s}${fmt(i.price)}</span>
             <span>${s}${fmt(i.qty * i.price)}</span>
           </div>`).join('')
@@ -972,18 +1005,18 @@
     document.getElementById('invoice-doc').innerHTML = `
       <div class="inv-doc-header">
         <div class="inv-doc-brand">
-          ${logoDataUrl ? `<img class="inv-doc-logo" src="${logoDataUrl}" alt="Logo">` : ''}
-          <div class="inv-doc-company-name">${fromName}</div>
-          ${fromTagline ? `<div class="inv-doc-company-sub">${fromTagline}</div>` : ''}
+          ${logoDataUrl ? `<img class="inv-doc-logo" src="${h(logoDataUrl)}" alt="Logo">` : ''}
+          <div class="inv-doc-company-name">${h(fromName)}</div>
+          ${fromTagline ? `<div class="inv-doc-company-sub">${h(fromTagline)}</div>` : ''}
           ${(fromEmail||fromPhone||fromAddr) ? `<div class="inv-doc-company-sub">
-            ${fromEmail ? fromEmail + '<br>' : ''}
-            ${fromPhone ? fromPhone + '<br>' : ''}
-            ${fromAddr  ? fromAddr          : ''}
+            ${fromEmail ? h(fromEmail) + '<br>' : ''}
+            ${fromPhone ? h(fromPhone) + '<br>' : ''}
+            ${fromAddr  ? h(fromAddr)          : ''}
           </div>` : ''}
         </div>
         <div class="inv-doc-meta">
           <div class="inv-doc-title" style="color:${accentColor};">Invoice</div>
-          <div class="inv-doc-number" style="color:${accentColor};">${invNum}${invPO ? ' · PO: '+invPO : ''}</div>
+          <div class="inv-doc-number" style="color:${accentColor};">${h(invNum)}${invPO ? ' · PO: '+h(invPO) : ''}</div>
           <div class="inv-doc-dates">
             ${invDate ? `<div>Issued: ${fmtDate(invDate)}</div>` : ''}
             ${invDue  ? `<div style="font-weight:700;color:#333;">Due: ${fmtDate(invDue)}</div>` : ''}
@@ -996,15 +1029,15 @@
       <div class="inv-doc-parties">
         <div>
           <div class="inv-doc-party-label" style="color:${accentColor};">From</div>
-          <div class="inv-doc-party-name">${fromName}</div>
-          <div class="inv-doc-party-sub">${[fromAddr,fromEmail,fromPhone].filter(Boolean).join('<br>')}</div>
+          <div class="inv-doc-party-name">${h(fromName)}</div>
+          <div class="inv-doc-party-sub">${[fromAddr,fromEmail,fromPhone].filter(Boolean).map(h).join('<br>')}</div>
         </div>
         <div>
           <div class="inv-doc-party-label" style="color:${accentColor};">Bill To</div>
-          <div class="inv-doc-party-name">${toName}</div>
+          <div class="inv-doc-party-name">${h(toName)}</div>
           <div class="inv-doc-party-sub">
-            ${toContact ? toContact+'<br>' : ''}
-            ${[toAddr,toEmail,toPhone].filter(Boolean).join('<br>')}
+            ${toContact ? h(toContact)+'<br>' : ''}
+            ${[toAddr,toEmail,toPhone].filter(Boolean).map(h).join('<br>')}
           </div>
         </div>
       </div>
@@ -1032,12 +1065,12 @@
       </div>
 
       ${(notes||terms) ? `<div class="inv-doc-notes">
-        ${notes ? `<div><strong>Payment Notes</strong>${notes}</div>` : ''}
-        ${terms ? `<div style="margin-top:10px;"><strong>Terms &amp; Conditions</strong>${terms}</div>` : ''}
+        ${notes ? `<div><strong>Payment Notes</strong>${h(notes)}</div>` : ''}
+        ${terms ? `<div style="margin-top:10px;"><strong>Terms &amp; Conditions</strong>${h(terms)}</div>` : ''}
       </div>` : ''}
 
       <div class="inv-doc-footer" style="background:${accentColor};">
-        Generated by Phyzelyne · ${fromName}${fromEmail ? ' · '+fromEmail : ''}
+        Generated by Phyzelyne · ${h(fromName)}${fromEmail ? ' · '+h(fromEmail) : ''}
       </div>`;
   }
 
@@ -1079,6 +1112,8 @@
   // ── Save actions ──────────────────────────────────────────────────────────
   function saveAsDraft() {
     const data = collectData('draft');
+    const error = validateInvoice(data);
+    if (error) { showToast(error, 'error'); return; }
     if (editingId) {
       Store.updateInvoice(editingId, data);
       showToast('Draft updated ✓');
@@ -1090,13 +1125,9 @@
   }
 
   function saveAndSend() {
-    if (!document.getElementById('to-name').value.trim()) {
-      showToast('Add a client name first.', 'error'); return;
-    }
-    if (!document.getElementById('from-name').value.trim()) {
-      showToast('Add your company name first.', 'error'); return;
-    }
     const data = collectData('sent');
+    const error = validateInvoice(data, true);
+    if (error) { showToast(error, 'error'); return; }
     if (editingId) {
       Store.updateInvoice(editingId, data);
     } else {
@@ -1211,8 +1242,10 @@
   // ── Invoice list ──────────────────────────────────────────────────────────
   function renderList() {
     const filter   = document.getElementById('filter-status')?.value || 'all';
-    let   invoices = Store.getInvoices();
-    if (filter !== 'all') invoices = invoices.filter(i => i.status === filter);
+    const query = (document.getElementById('invoice-search')?.value || '').trim().toLowerCase();
+    let invoices = Store.getInvoices().map(inv => ({ ...inv, displayStatus: invoiceStatus(inv) }));
+    if (filter !== 'all') invoices = invoices.filter(i => i.displayStatus === filter);
+    if (query) invoices = invoices.filter(i => [i.number, i.toName, i.toEmail, i.po].some(v => String(v || '').toLowerCase().includes(query)));
 
     document.getElementById('inv-list-count').textContent = invoices.length + ' invoice' + (invoices.length !== 1 ? 's' : '');
 
@@ -1226,21 +1259,21 @@
     document.getElementById('inv-list-container').innerHTML = invoices.map(inv => `
       <div class="inv-list-item">
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:0.9rem;color:var(--text);">${inv.number || 'Draft'}</div>
+          <div style="font-weight:600;font-size:0.9rem;color:var(--text);">${escapeHtml(inv.number || 'Draft')}</div>
           <div style="font-size:0.78rem;color:var(--text-dim);margin-top:2px;">
-            ${inv.toName || 'No client'} · ${inv.date || '—'}
-            ${inv.due ? ' · Due: '+inv.due : ''}
+            ${escapeHtml(inv.toName || 'No client')} · ${escapeHtml(inv.date || '—')}
+            ${inv.due ? ' · Due: '+escapeHtml(inv.due) : ''}
           </div>
         </div>
         <div style="font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);white-space:nowrap;">
           ${(CURRENCIES.find(c=>c.code===inv.currency)||{symbol:'$'}).symbol}${parseFloat(inv.total||0).toFixed(2)}
         </div>
-        <span class="inv-status-badge ${inv.status}">${inv.status}</span>
+        <span class="inv-status-badge ${inv.displayStatus}">${inv.displayStatus}</span>
         <div style="display:flex;gap:6px;">
           <button class="btn btn-glass btn-sm" onclick="loadInvoice('${inv.id}')" title="Edit">
             <i class="fas fa-pen"></i>
           </button>
-          ${inv.status !== 'paid' ? `
+          ${inv.displayStatus !== 'paid' ? `
             <button class="btn btn-glass btn-sm" style="color:var(--green);" onclick="markPaid('${inv.id}')" title="Mark as paid">
               <i class="fas fa-check"></i>
             </button>` : `
@@ -1259,15 +1292,20 @@
     if (!inv) return;
     Store.updateInvoice(id, { status: 'paid', paidAt: new Date().toISOString() });
 
-    // Add income transaction
-    Store.addTransaction({
-      type:        'income',
-      amount:      parseFloat(inv.total || 0),
-      description: `Invoice ${inv.number || id} — ${inv.toName || 'Client'}`,
-      category:    'freelance',
-      date:        new Date().toISOString().split('T')[0],
-      invoiceId:   id,
-    });
+    // Idempotent payment posting: repeated taps or reopening the page must
+    // never create a second income transaction for the same invoice.
+    const alreadyPosted = Store.getTransactions().some(t => t.invoiceId === id && t.type === 'income');
+    if (!alreadyPosted) {
+      Store.addTransaction({
+        type:        'income',
+        amount:      parseFloat(inv.total || 0),
+        description: `Invoice ${inv.number || id} — ${inv.toName || 'Client'}`,
+        category:    'freelance',
+        date:        new Date().toISOString().split('T')[0],
+        invoiceId:   id,
+        currency:    inv.currency || getCurrency().code,
+      });
+    }
 
     generateReceipt(id);
     showToast('Invoice paid — income + receipt recorded ✓');
@@ -1288,13 +1326,19 @@
       invoiceId:  invId,
       invoiceNum: inv.number,
       fromName:   inv.fromName,
+      fromEmail:  inv.fromEmail,
+      fromPhone:  inv.fromPhone,
+      fromAddress: inv.fromAddress,
       toName:     inv.toName,
       toEmail:    inv.toEmail,
+      toPhone:    inv.toPhone,
+      toAddress:  inv.toAddress,
       total:      inv.total,
       currency:   inv.currency,
       paidAt:     inv.paidAt || new Date().toISOString(),
       accentColor: inv.accentColor || '#d4a017',
       items:      inv.items,
+      notes:      inv.notes,
     };
     Store.addReceipt(receipt);
     showToast('Receipt generated ✓');
@@ -1341,6 +1385,8 @@
     const sym = (CURRENCIES.find(c => c.code === r.currency) || { symbol: '$' }).symbol;
     const dt  = new Date(r.paidAt).toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' });
     const win = window.open('', '_blank');
+    if (!win) { showToast('Allow pop-ups to print this receipt.', 'error'); return; }
+    const h = value => escapeHtml(value || '—');
     win.document.write(`<!DOCTYPE html><html><head><title>Receipt ${r.invoiceNum}</title>
       <style>
         body{font-family:'Inter Display','Inter',sans-serif;color:#1a1a1a;margin:0;padding:40px;background:#fff;}
@@ -1363,23 +1409,23 @@
       </style></head><body>
       <div class="bar"></div>
       <h1>Receipt</h1>
-      <div class="meta">Receipt ID: ${r.id} · Invoice: ${r.invoiceNum||'—'} · ${dt}</div>
+      <div class="meta">Receipt ID: ${h(r.id)} · Invoice: ${h(r.invoiceNum)} · ${dt}</div>
       <div class="paid-stamp">PAID ✓</div>
       <div class="parties">
-        <div><div class="label">From</div><div class="name">${r.fromName||'—'}</div></div>
-        <div><div class="label">Paid By</div><div class="name">${r.toName||'—'}</div>${r.toEmail?`<div style="font-size:0.78rem;color:#666;">${r.toEmail}</div>`:''}</div>
+        <div><div class="label">From</div><div class="name">${h(r.fromName)}</div><div style="font-size:0.78rem;color:#666;">${[r.fromAddress,r.fromEmail,r.fromPhone].filter(Boolean).map(h).join('<br>')}</div></div>
+        <div><div class="label">Paid By</div><div class="name">${h(r.toName)}</div><div style="font-size:0.78rem;color:#666;">${[r.toAddress,r.toEmail,r.toPhone].filter(Boolean).map(h).join('<br>')}</div></div>
       </div>
       <table>
         <thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Amount</th></tr></thead>
         <tbody>
-          ${(r.items||[]).map(i=>`<tr><td>${i.desc}</td><td style="text-align:right;">${i.qty}</td><td style="text-align:right;">${sym}${parseFloat(i.price).toFixed(2)}</td><td style="text-align:right;">${sym}${(i.qty*i.price).toFixed(2)}</td></tr>`).join('')}
+          ${(r.items||[]).map(i=>`<tr><td>${h(i.desc)}</td><td style="text-align:right;">${i.qty}</td><td style="text-align:right;">${sym}${parseFloat(i.price || 0).toFixed(2)}</td><td style="text-align:right;">${sym}${(i.qty*i.price).toFixed(2)}</td></tr>`).join('')}
         </tbody>
       </table>
       <div class="total-row"><div class="total-box">
         <div class="tr grand"><span>Total Paid</span><span>${sym}${parseFloat(r.total||0).toFixed(2)}</span></div>
       </div></div>
+      ${r.notes ? `<div style="font-size:0.8rem;color:#666;margin-top:24px;"><strong>Note</strong><br>${h(r.notes)}</div>` : ''}
       <div class="footer">Generated by Phyzelyne · Payment confirmed ${dt}</div>
-      <script src="phyzelyne-polish.js"></script>
 </body></html>`);
     win.document.close();
     win.print();

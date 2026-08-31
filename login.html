@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://ecxjttbbesbjpisealrp.supabase.co wss://ecxjttbbesbjpisealrp.supabase.co https://hook.us2.make.com https://api.resend.com; frame-src 'none'; object-src 'none';">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phyzelyne — Sign In</title>
   <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
   <link rel="stylesheet" href="app.css">
   <style>
     .auth-root {
@@ -323,7 +324,7 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js" integrity="sha384-rwykjmWNwVxboyFmvK9OXN0wj9hnMHA2aAHtits54DuACyCq0M2PrSNxhRb+hvXT" crossorigin="anonymous"></script>
 <script src="app.js"></script>
 <script>
   let lockoutInterval = null;
@@ -452,9 +453,15 @@
     document.getElementById('oauth-modal-sub').textContent   = 'Redirecting to secure login…';
     document.getElementById('oauth-overlay').classList.add('open');
 
+    // New users (no user_metadata.onboarded flag) need to land on
+    // onboarding.html directly — sending them to dashboard.html first
+    // causes a confusing double redirect and can drop them mid-flow.
+    // Returning users (onboarded=true) also start at onboarding; the
+    // page itself will redirect them onward to dashboard.html once
+    // _initData confirms they have an account.
     const redirectUrl = (typeof _getOAuthRedirectUrl === 'function')
-      ? _getOAuthRedirectUrl('dashboard.html')
-      : new URL('dashboard.html', window.location.href).href;
+      ? _getOAuthRedirectUrl('onboarding.html')
+      : new URL('onboarding.html', window.location.href).href;
 
     try {
       if (!_sb) throw new Error('Supabase client not initialised');
@@ -464,11 +471,18 @@
       });
       if (error) throw error;
     } catch (err) {
+      // Most common cause here is a misconfigured allowlist — the
+      // browser will show "redirect_uri_mismatch" from Google, or
+      // Supabase returns "redirect_to not allowed". Either way, log
+      // the raw error so it's visible in DevTools.
       console.error('[Phyzelyne OAuth Error]', err);
       closeOAuthModal();
       btn.disabled = false;
       btn.innerHTML = originalText;
-      showError('Could not connect to ' + (provider === 'google' ? 'Google' : 'Apple') + '. ' + (err.message || 'Please try again.'));
+      const hint = (err && /redirect/i.test(err.message || ''))
+        ? ' Check Supabase → Authentication → URL Configuration and Google Cloud → Authorized redirect URIs.'
+        : '';
+      showError('Could not connect to ' + (provider === 'google' ? 'Google' : 'Apple') + '. ' + (err.message || 'Please try again.') + hint);
     }
   }
 

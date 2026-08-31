@@ -23,13 +23,25 @@ const THINK_BUDGET = 10000;
 
 const WEB_SEARCH_TOOL = [{ type: 'web_search_20250305', name: 'web_search' }];
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // tighten to your domain in production
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+const ALLOWED_ORIGINS = [
+  'https://phyzelyne.com',
+  'https://www.phyzelyne.com',
+  'http://localhost:3000',  // local dev
+  'http://localhost:5500',  // Live Server
+];
+
+function getCorsHeaders(origin: string | null) {
+  const allowed = ALLOWED_ORIGINS.includes(origin || '') ? (origin || ALLOWED_ORIGINS[0]) : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('Origin'));
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

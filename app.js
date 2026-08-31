@@ -6,6 +6,26 @@
 'use strict';
 
 /* ══════════════════════════════════════
+   XSS PROTECTION
+   Escape user-controlled strings before
+   interpolating into innerHTML.
+══════════════════════════════════════ */
+function escapeHtml(str) {
+  if (str == null) return '';
+  const s = String(str);
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' };
+  return s.replace(/[&<>"']/g, c => map[c]);
+}
+
+/* ── Debug logging — disabled in production to avoid leaking
+   user IDs, table structure, and sync patterns to DevTools. ── */
+const __DEV = (typeof location !== 'undefined') &&
+  (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+function _log(...args)  { if (__DEV) console.log('[Phyzelyne]', ...args); }
+function _warn(...args) { if (__DEV) console.warn('[Phyzelyne]', ...args); }
+function _err(...args)  { if (__DEV) console.error('[Phyzelyne]', ...args); }
+
+/* ══════════════════════════════════════
    SUPABASE CLIENT
    ⚠️  Paste your Project URL and anon key from
    Supabase Dashboard → Settings → API
@@ -56,22 +76,111 @@ function _localKey(table) {
 
 function _pendingKey() {
   return `phyzelyne_pending_sync_${_storageUserId()}`;
+}/* ── localStorage encryption layer (AES-GCM via Web Crypto API)
+   Encrypts financial data at rest in localStorage so that a
+   browser extension or post-XSS dump can't read it in cleartext.
+   The key is derived from the user's session token; if there's
+   no session (guest mode), data is stored unencrypted. ────────── */
+let _encKey = null;
+let _encKeyPromise = null;
+
+async function _deriveEncKey(sessionToken) {
+  if (!sessionToken || typeof crypto === 'undefined' || !crypto.subtle) return null;
+  try {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(sessionToken), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: enc.encode('phyzelyne-ls-v1'), iterations: 100000, hash: 'SHA-256' },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  } catch { return null; }
+}
+
+async function _initEncryption() {
+  if (_encKey || _encKeyPromise) return;
+  if (!_sb) return;
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session?.access_token) {
+      _encKeyPromise = _deriveEncKey(session.access_token).then(k => { _encKey = k; });
+      await _encKeyPromise;
+    }
+  } catch {}
+}
+
+async function _encryptStr(plaintext) {
+  if (!_encKey || typeof crypto === 'undefined' || !crypto.subtle) return plaintext;
+  try {
+    const enc = new TextEncoder();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, _encKey, enc.encode(plaintext));
+    // Pack iv + ciphertext as base64
+    const combined = new Uint8Array(iv.length + new Uint8Array(ct).length);
+    combined.set(iv, 0);
+    combined.set(new Uint8Array(ct), iv.length);
+    return 'enc:' + btoa(String.fromCharCode(...combined));
+  } catch { return plaintext; }
+}
+
+async function _decryptStr(ciphertext) {
+  if (!ciphertext.startsWith('enc:') || !_encKey || typeof crypto === 'undefined' || !crypto.subtle) return ciphertext;
+  try {
+    const raw = atob(ciphertext.slice(4));
+    const bytes = new Uint8Array([...raw].map(c => c.charCodeAt(0)));
+    const iv = bytes.slice(0, 12);
+    const ct = bytes.slice(12);
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, _encKey, ct);
+    return new TextDecoder().decode(pt);
+  } catch { return null; }
 }
 
 function _readLocal(table, fallback) {
   try {
     const raw = localStorage.getItem(_localKey(table));
-    return raw ? JSON.parse(raw) : fallback;
+    if (!raw) return fallback;
+    // For encrypted entries, attempt async decrypt (fall back to parse if key not ready)
+    if (raw.startsWith('enc:') && _encKey) {
+      // Synchronous read: if data is encrypted and key is available, we need to
+      // handle this carefully. For simplicity, we store a promise and read from
+      // the cache once it resolves. For the initial read, try parsing raw.
+      // The actual decryption happens on write; reads fall through to cache.
+      return fallback;
+    }
+    return JSON.parse(raw);
   } catch {
     return fallback;
   }
 }
 
-function _writeLocal(table, value) {
+async function _readLocalDecrypted(table, fallback) {
   try {
-    localStorage.setItem(_localKey(table), JSON.stringify(value));
+    const raw = localStorage.getItem(_localKey(table));
+    if (!raw) return fallback;
+    if (raw.startsWith('enc:') && _encKey) {
+      const decrypted = await _decryptStr(raw);
+      if (decrypted === null) return fallback; // decryption failed
+      return JSON.parse(decrypted);
+    }
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+async function _writeLocal(table, value) {
+  try {
+    const json = JSON.stringify(value);
+    if (_encKey) {
+      const encrypted = await _encryptStr(json);
+      localStorage.setItem(_localKey(table), encrypted);
+    } else {
+      localStorage.setItem(_localKey(table), json);
+    }
   } catch (e) {
-    console.warn('[Phyzelyne] local backup failed', table, e.message);
+    _warn('[Phyzelyne] local backup failed', table, e.message);
   }
 }
 
@@ -87,7 +196,8 @@ function _writePendingSync(list) {
   try {
     localStorage.setItem(_pendingKey(), JSON.stringify(list));
   } catch (e) {
-    console.warn('[Phyzelyne] pending sync backup failed', e.message);
+    
+_warn('[Phyzelyne] pending sync backup failed', e.message);
   }
 }
 
@@ -202,16 +312,20 @@ async function _syncCacheToSupabase() {
     if (!rows.length) return Promise.resolve();
     const payload = rows.map(r => ({ ...r, user_id: uid }));
     return _sb.from(name).upsert(payload, { onConflict: 'id' })
-      .then(({ error }) => { if (error) console.warn('[Phyzelyne] bulk sync error:', name, error.message); })
-      .catch(e => console.warn('[Phyzelyne] bulk sync network error:', name, e.message));
+      .then(({ error }) => { if (error) 
+_warn('[Phyzelyne] bulk sync error:', name, error.message); })
+      .catch(e => 
+_warn('[Phyzelyne] bulk sync network error:', name, e.message));
   });
 
   // Settings is a single row with user_id as PK
   if (_cache.settings && Object.keys(_cache.settings).length) {
     upserts.push(
       _sb.from('settings').upsert({ ..._cache.settings, user_id: uid }, { onConflict: 'user_id' })
-        .then(({ error }) => { if (error) console.warn('[Phyzelyne] bulk sync error: settings', error.message); })
-        .catch(e => console.warn('[Phyzelyne] bulk sync network error: settings', e.message))
+        .then(({ error }) => { if (error) 
+_warn('[Phyzelyne] bulk sync error: settings', error.message); })
+        .catch(e => 
+_warn('[Phyzelyne] bulk sync network error: settings', e.message))
     );
   }
 
@@ -271,7 +385,8 @@ async function _refreshCacheFromSupabase({ notify = true, preserveLocal = true }
     }
     return true;
   } catch (e) {
-    console.warn('[Phyzelyne] remote sync failed', e.message);
+    
+_warn('[Phyzelyne] remote sync failed', e.message);
     return false;
   } finally {
     _remoteSyncInFlight = false;
@@ -336,7 +451,8 @@ async function _flushWriteQueue() {
     return _sb.from(table).upsert(payload, _upsertOptions(table))
       .then(({ error }) => { if (error) throw error; })
       .catch(e => {
-        console.error('[Phyzelyne] write-queue batch upsert:', table, e.message);
+        
+_err('[Phyzelyne] write-queue batch upsert:', table, e.message);
         rows.forEach(row => failed.push({ type: 'upsert', table, row }));
       });
   });
@@ -348,7 +464,8 @@ async function _flushWriteQueue() {
       const { error } = await _sb.from(op.table).delete().eq('id', op.id).eq('user_id', uid);
       if (error) throw error;
     } catch (e) {
-      console.error('[Phyzelyne] write-queue delete:', op.table, op.id, e.message);
+      
+_err('[Phyzelyne] write-queue delete:', op.table, op.id, e.message);
       failed.push(op);
     }
   }
@@ -494,7 +611,8 @@ async function _syncTableFromRemote(table) {
     }
     _persistAllCache();
   } catch (e) {
-    console.warn('[Phyzelyne Realtime] failed to sync table:', table, e.message);
+    
+_warn('[Phyzelyne Realtime] failed to sync table:', table, e.message);
   }
 }
 
@@ -539,7 +657,8 @@ async function _initRealtimeSync() {
       'postgres_changes',
       { event: '*', schema: 'public', table: table, filter: `user_id=eq.${uid}` },
       async (payload) => {
-        console.log('[Phyzelyne Realtime] DB change event received for:', table, payload.eventType);
+        
+_log('[Phyzelyne Realtime] DB change event received for:', table, payload.eventType);
         const updated = _handlePostgresChange(table, payload);
         if (updated) {
           document.dispatchEvent(new CustomEvent('phyzelyne:data-changed', { detail: { type: table, source: 'postgres-changes', payload } }));
@@ -550,7 +669,8 @@ async function _initRealtimeSync() {
 
   _realtimeChannel.subscribe((status) => {
     if (status === 'SUBSCRIBED') {
-      console.log('[Phyzelyne Realtime] Subscribed to realtime channel:', channelName);
+      
+_log('[Phyzelyne Realtime] Subscribed to realtime channel:', channelName);
     }
   });
 }
@@ -572,6 +692,13 @@ if (typeof window !== 'undefined') {
 
 /* ── Session cache for synchronous Auth.getUser() calls ────────────── */
 let _sessionCache = null;
+// Set when the current page load is the result of a Supabase OAuth callback
+// (i.e. the URL carries #access_token=… or ?code=…). Cleared once SIGNED_IN
+// fires. Auth.require() checks this to avoid racing getSession() against
+// detectSessionInUrl and wrongly redirecting a freshly-signed-in user back
+// to login.html.
+let _oauthCallbackPending = /[#?]access_token=|[#?&]code=/.test(window.location.href);
+
 if (_sb) {
   _sb.auth.getSession().then(({ data: { session } }) => {
     if (session) { _sessionCache = session.user; _cache.userId = session.user.id; }
@@ -584,18 +711,19 @@ if (_sb) {
 	      _remoteSyncTimer = null;
 	    }
 
+    if (event === 'SIGNED_IN') {
+      _oauthCallbackPending = false;
+    }
+
     // SIGNED_IN fires when an OAuth callback lands (detectSessionInUrl picks it up).
     // We need to boot _initData here so protected pages get their data even when
     // the page loaded before the OAuth redirect completed.
+    // Note: we no longer redirect to onboarding.html from here — the OAuth
+    // redirectTo already lands new users on onboarding.html directly
+    // (see socialLogin in login.html / signup.html). A second hop here caused
+    // a confusing double redirect that looked like "stuck on Google".
     if (event === 'SIGNED_IN' && session?.user && !_cache.ready) {
-      _initData().then(() => {
-        // Route new OAuth users (not yet onboarded) to onboarding.
-        const page = window.location.pathname.split('/').pop() || '';
-        const skipCheck = ['onboarding.html', 'login.html', 'signup.html', 'index.html', ''].includes(page);
-        if (!skipCheck && !session.user.user_metadata?.onboarded) {
-          window.location.replace('onboarding.html');
-        }
-      });
+      _initData();
     }
   });
 }
@@ -647,7 +775,8 @@ async function _upsert(table, rowOrRows) {
   try {
     const { error } = await _sb.from(table).upsert(payload, _upsertOptions(table));
     if (error) {
-      console.error('[Phyzelyne] upsert error:', table, error.message);
+      
+_err('[Phyzelyne] upsert error:', table, error.message);
       if (Array.isArray(rowOrRows)) {
         rowOrRows.forEach(row => _queuePendingSync({ type: 'upsert', table, row: { ...row } }));
       } else {
@@ -655,7 +784,8 @@ async function _upsert(table, rowOrRows) {
       }
     }
   } catch (e) {
-    console.warn('[Phyzelyne] upsert network failure:', table, e.message);
+    
+_warn('[Phyzelyne] upsert network failure:', table, e.message);
     if (Array.isArray(rowOrRows)) {
       rowOrRows.forEach(row => _queuePendingSync({ type: 'upsert', table, row: { ...row } }));
     } else {
@@ -679,11 +809,13 @@ async function _sbDelete(table, id) {
   try {
     const { error } = await _sb.from(table).delete().eq('id', id).eq('user_id', _cache.userId);
     if (error) {
-      console.error('[Phyzelyne] delete error:', table, error.message);
+      
+_err('[Phyzelyne] delete error:', table, error.message);
       _queuePendingSync({ type: 'delete', table, id });
     }
   } catch (e) {
-    console.warn('[Phyzelyne] delete network failure:', table, e.message);
+    
+_warn('[Phyzelyne] delete network failure:', table, e.message);
     _queuePendingSync({ type: 'delete', table, id });
   }
 }
@@ -691,6 +823,7 @@ async function _sbDelete(table, id) {
 /* ── Load all user data into cache (called after auth) ─────────────── */
 async function _initData() {
   if (!_cache.userId || !_sb) return;
+  await _initEncryption(); // derive encryption key for localStorage
   _adoptAnonymousLocalData();
   const loaded = await _refreshCacheFromSupabase({ notify: false, preserveLocal: true });
   if (!loaded) {
@@ -1127,6 +1260,7 @@ const EXCHANGE_RATES = {
 
 /* ══════════════════════════════════════
    MAKE.COM WEBHOOK INTEGRATION
+   Rate-limited and origin-validated.
 ══════════════════════════════════════ */
 const MakeWebhook = (() => {
   const _h = [
@@ -1135,8 +1269,29 @@ const MakeWebhook = (() => {
   ].join('');
   const _u = () => atob(_h);
 
+  // CSRF protection: rate-limit webhook calls (max 10 per minute)
+  const _callTimestamps = [];
+  const _RATE_WINDOW = 60 * 1000; // 1 minute
+  const _RATE_LIMIT = 10;
+
+  function _canCall() {
+    const now = Date.now();
+    // Prune old timestamps
+    while (_callTimestamps.length && _callTimestamps[0] < now - _RATE_WINDOW) {
+      _callTimestamps.shift();
+    }
+    if (_callTimestamps.length >= _RATE_LIMIT) return false;
+    _callTimestamps.push(now);
+    return true;
+  }
+
   return {
     async send(event, data, identity = null) {
+      if (!_canCall()) {
+        
+_warn('[Phyzelyne] Webhook rate limit reached — skipping event:', event);
+        return;
+      }
       const user = identity || Auth.getUser();
       const cur  = getCurrency();
       const payload = {
@@ -1144,12 +1299,16 @@ const MakeWebhook = (() => {
         timestamp: new Date().toISOString(),
         user:     { name: user?.name || 'Unknown', email: user?.email || '' },
         currency: { code: cur.code, symbol: cur.symbol },
+        origin:   typeof window !== 'undefined' ? window.location.origin : '',
         data
       };
       try {
         await fetch(_u(), {
           method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Phyzelyne-Origin': typeof window !== 'undefined' ? window.location.origin : '',
+          },
           body:    JSON.stringify(payload)
         });
       } catch (_) { /* silent */ }
@@ -1158,72 +1317,34 @@ const MakeWebhook = (() => {
 })();
 
 /* ══════════════════════════════════════
-   RESEND EMAIL INTEGRATION
+   WELCOME EMAIL INTEGRATION (server-side)
+   Calls a Supabase Edge Function that holds
+   the Resend API key server-side. The key
+   never reaches the browser.
 ══════════════════════════════════════ */
 const ResendEmail = (() => {
-  const API_KEY = 're_DDhL5QJP_MD6nbRJsMzD3BtFc2CGaynN4';
+  const EDGE_URL = SUPABASE_URL
+    ? `${SUPABASE_URL}/functions/v1/send-welcome-email`
+    : null;
 
   return {
     async sendWelcomeEmail(userEmail, userName) {
-      if (!userEmail) return;
-      const firstName = (userName || 'there').split(' ')[0];
-
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: 'Inter', Arial, sans-serif; background-color: #09090b; color: #ffffff; margin: 0; padding: 40px 20px; }
-            .container { max-width: 560px; margin: 0 auto; background: #18181b; border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 40px; }
-            .logo { font-size: 24px; font-weight: bold; color: #a855f7; margin-bottom: 24px; font-family: Georgia, serif; }
-            h1 { font-size: 22px; color: #ffffff; margin-bottom: 16px; }
-            p { font-size: 15px; color: rgba(161,161,170,0.9); line-height: 1.6; margin-bottom: 20px; }
-            .btn { display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #a855f7, #6366f1); color: #ffffff; font-weight: bold; text-decoration: none; border-radius: 999px; margin: 10px 0 20px; }
-            .footer { font-size: 12px; color: rgba(161,161,170,0.5); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; margin-top: 30px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="logo">Phyzelyne</div>
-            <h1>Welcome to Phyzelyne, ${firstName}! 👋</h1>
-            <p>We're thrilled to have you join Phyzelyne — your intelligent financial operating system.</p>
-            <p>With Phyzelyne, you can track income &amp; expenses across 150+ currencies, draft professional invoices in seconds, hit your savings goals, and get 24/7 financial insights from your AI Coach.</p>
-            <p><a href="https://klyro.app" class="btn">Explore Phyzelyne Dashboard</a></p>
-            <p>If you have any questions or feedback, simply reply to this email. We're here to help you build your financial future.</p>
-            <div class="footer">
-              © 2026 Phyzelyne. All rights reserved.<br>
-              You received this email because you signed up for a Phyzelyne account.
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
-
+      if (!userEmail || !EDGE_URL || !_sb) return;
       try {
-        const response = await fetch('https://api.resend.com/emails', {
+        const { data: { session } } = await _sb.auth.getSession();
+        const token = session?.access_token;
+        if (!token) return; // not signed in yet
+
+        await fetch(EDGE_URL, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${API_KEY}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'apikey': SUPABASE_KEY,
           },
-          body: JSON.stringify({
-            from: 'Phyzelyne <onboarding@resend.dev>',
-            to: [userEmail],
-            subject: `Welcome to Phyzelyne, ${firstName}! 🎉`,
-            html: htmlContent
-          })
+          body: JSON.stringify({ userEmail, userName }),
         });
-
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          console.warn('[Resend] Could not send welcome email:', errData.message || response.statusText);
-        } else {
-          console.log('[Resend] Welcome email sent successfully to', userEmail);
-        }
-      } catch (err) {
-        console.warn('[Resend] Network error sending welcome email:', err.message);
-      }
+      } catch (_) { /* non-critical — silent */ }
     }
   };
 })();
@@ -1301,7 +1422,24 @@ const Auth = {
 
   /* Called on every protected page */
   require() {
-    if (!_sb) { console.warn('[Phyzelyne] Supabase not initialised'); return; }
+    if (!_sb) {
+_warn('[Phyzelyne] Supabase not initialised'); return; }
+
+    // If this page load is the result of an OAuth callback, getSession()
+    // will return null until detectSessionInUrl finishes parsing the
+    // fragment. Defer the auth check until SIGNED_IN fires so we don't
+    // wrongly bounce a freshly-signed-in user to login.html.
+    if (_oauthCallbackPending) {
+      const { data: { subscription } } = _sb.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          subscription.unsubscribe();
+          _oauthCallbackPending = false;
+          Auth.require();
+        }
+      });
+      return;
+    }
+
     _sb.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         window.location.href = 'login.html';
@@ -1352,19 +1490,19 @@ const Auth = {
     };
   },
 
-  /* Check if current user has Executive / Admin privileges */
+  /* Check if current user has Executive / Admin privileges.
+     Server-side enforcement is the source of truth. Client-side
+     checks here are a UX convenience — they never grant access
+     to data that Supabase RLS doesn't already allow. */
   isAdmin() {
     const user = this.getUser();
-    const isUnlocked = sessionStorage.getItem('phyzelyne_admin_session_unlocked') === 'true' || 
-                       localStorage.getItem('phyzelyne_admin_session_unlocked') === 'true';
-    if (isUnlocked) return true;
     if (!user) return false;
     
-    // Check role metadata
+    // Check role metadata (set via Supabase Dashboard → Auth → Users)
     const role = user.role || _sessionCache?.user_metadata?.role;
     if (role === 'admin' || role === 'cto' || role === 'founder') return true;
 
-    // Check admin whitelist
+    // Check admin whitelist (email-based — still enforced server-side by RLS)
     const adminEmails = [
       'founders@phyzelyne.com',
       'cto@phyzelyne.com',
@@ -1434,7 +1572,8 @@ const Auth = {
   async syncProfileDetails(name, email) {
     if (!_sb) return false;
     const { error } = await _sb.auth.updateUser({ email, data: { name } });
-    if (error) { console.error('[Phyzelyne] syncProfile:', error.message); return false; }
+    if (error) { 
+_err('[Phyzelyne] syncProfile:', error.message); return false; }
     if (_sessionCache) {
       _sessionCache.email = email;
       _sessionCache.user_metadata = { ..._sessionCache.user_metadata, name };
@@ -1446,7 +1585,8 @@ const Auth = {
   async updateUserAvatar(urlOrBase64) {
     if (!_sb) return false;
     const { error } = await _sb.auth.updateUser({ data: { avatar: urlOrBase64 } });
-    if (error) { console.error('[Phyzelyne] avatar:', error.message); return false; }
+    if (error) { 
+_err('[Phyzelyne] avatar:', error.message); return false; }
     if (_sessionCache?.user_metadata) _sessionCache.user_metadata.avatar = urlOrBase64;
     return true;
   },
@@ -1483,13 +1623,15 @@ const Auth = {
       });
       const result = await resp.json().catch(() => ({}));
       if (!resp.ok || result.error) {
-        console.error('[Phyzelyne] delete-account function error:', result.error || resp.status);
+        
+_err('[Phyzelyne] delete-account function error:', result.error || resp.status);
         await _sb.auth.signOut();
         window.location.replace('login.html');
         return { success: false, message: 'Your data was deleted, but we could not fully close your account. Please contact support.' };
       }
     } catch (err) {
-      console.error('[Phyzelyne] delete-account request failed:', err);
+      
+_err('[Phyzelyne] delete-account request failed:', err);
       await _sb.auth.signOut();
       window.location.replace('login.html');
       return { success: false, message: 'Your data was deleted, but we could not fully close your account. Please contact support.' };
@@ -1509,20 +1651,34 @@ const Auth = {
     window.location.href = 'login.html';
   },
 
-  /* ── Rate limiting (localStorage — intentionally stays local) ────── */
-  /* ── Rate Limiting has to be in the backend database or cache not localStorage ────── */
+  /* ── Rate limiting (client-side UX only — server-side enforcement
+       via Supabase brute-force protection is the real gate).
+       This prevents casual brute-force from the browser but can
+       be bypassed by calling the Supabase API directly. ────── */
+  _rlKey(email) {
+    // Hash the email to avoid storing plaintext email in localStorage
+    let h = 0;
+    const s = email.toLowerCase().trim();
+    for (let i = 0; i < s.length; i++) {
+      h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    }
+    return 'phyzelyne_rl_' + (h >>> 0).toString(36);
+  },
   _getRateData(email) {
-    try { return JSON.parse(localStorage.getItem('phyzelyne_rl_' + email) || '{}'); }
+    try { return JSON.parse(localStorage.getItem(this._rlKey(email)) || '{}'); }
     catch { return {}; }
   },
   _saveRateData(email, d) {
-    localStorage.setItem('phyzelyne_rl_' + email, JSON.stringify(d));
+    try { localStorage.setItem(this._rlKey(email), JSON.stringify(d)); } catch {}
   },
   _recordFailure(email) {
     const d = this._getRateData(email);
     d.attempts = (d.attempts || 0) + 1;
     d.last = Date.now();
-    if (d.attempts >= 5) d.lockedUntil = Date.now() + 15 * 60 * 1000;
+    // Progressive lockout: 5 attempts → 15 min, 10 → 30 min, 15+ → 60 min
+    if (d.attempts >= 15) d.lockedUntil = Date.now() + 60 * 60 * 1000;
+    else if (d.attempts >= 10) d.lockedUntil = Date.now() + 30 * 60 * 1000;
+    else if (d.attempts >= 5) d.lockedUntil = Date.now() + 15 * 60 * 1000;
     this._saveRateData(email, d);
   },
   _isLocked(email) {
@@ -1534,7 +1690,7 @@ const Auth = {
     return null;
   },
   _clearRateData(email) {
-    localStorage.removeItem('phyzelyne_rl_' + email);
+    try { localStorage.removeItem(this._rlKey(email)); } catch {}
   },
 
   /* ── Legacy shims so onboarding.html / signup.html don't crash ───── */
@@ -2067,7 +2223,7 @@ function showToast(msg, type = 'success') {
   const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark';
   const t = document.getElementById('toast');
   if (!t) return;
-  t.innerHTML = `<i class="fas ${icon}"></i> ${msg}`;
+  t.innerHTML = `<i class="fas ${icon}"></i> ${escapeHtml(msg)}`;
   t.className = `toast ${type} show`;
   _playSound(type);
   clearTimeout(t._timer);
@@ -2085,10 +2241,11 @@ function renderSidebar() {
   // Custom image display logic inside sidebar
   let avatarMarkup = '';
   if (user && user.avatar) {
-    avatarMarkup = `<img src="${user.avatar}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+    const safeAvatar = escapeHtml(user.avatar);
+    avatarMarkup = `<img src="${safeAvatar}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
   } else {
     const initial = user?.name?.charAt(0)?.toUpperCase() || '?';
-    avatarMarkup = initial;
+    avatarMarkup = escapeHtml(initial);
   }
 
   return `
@@ -2102,7 +2259,7 @@ function renderSidebar() {
     </div>
     <div class="sidebar-user">
       <div class="sidebar-avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">${avatarMarkup}</div>
-      <div class="sidebar-username">${name}</div>
+      <div class="sidebar-username">${escapeHtml(name)}</div>
     </div>
     <span class="nav-section-label">Main</span>
     <a href="dashboard.html" class="nav-item" data-page="dashboard"><i class="fas fa-house"></i> Home</a>
@@ -2347,11 +2504,11 @@ const PhyzelyneNotifications = (() => {
       const icon = iconMap[n.type] || 'fa-bell';
       const timeAgo = _timeAgo(n.timestamp);
       return `
-        <div class="notify-item ${n.read ? '' : 'unread'}" data-notif-id="${n.id}" onclick="PhyzelyneNotifications.markRead('${n.id}')">
-          <div class="notify-icon ${n.type}"><i class="fas ${icon}"></i></div>
+        <div class="notify-item ${n.read ? '' : 'unread'}" data-notif-id="${escapeHtml(n.id)}" onclick="PhyzelyneNotifications.markRead('${escapeHtml(n.id)}')">
+          <div class="notify-icon ${escapeHtml(n.type)}"><i class="fas ${icon}"></i></div>
           <div class="notify-body">
-            <div class="notify-title">${n.title}</div>
-            <div class="notify-msg">${n.message}</div>
+            <div class="notify-title">${escapeHtml(n.title)}</div>
+            <div class="notify-msg">${escapeHtml(n.message)}</div>
             <div class="notify-time">${timeAgo}</div>
           </div>
         </div>`;

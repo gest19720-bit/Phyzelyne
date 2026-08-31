@@ -211,6 +211,15 @@ function _queuePendingSync(op) {
   _writePendingSync(deduped);
 }
 
+function _removePendingSync(table, ids) {
+  const remove = new Set((Array.isArray(ids) ? ids : [ids]).map(id => id || 'settings'));
+  const remaining = _readPendingSync().filter(op => {
+    const id = op.row?.id || op.id || 'settings';
+    return !(op.table === table && remove.has(id));
+  });
+  _writePendingSync(remaining);
+}
+
 function _pendingIds(table, type) {
   return new Set(_readPendingSync()
     .filter(op => op.table === table && op.type === type)
@@ -220,9 +229,18 @@ function _pendingIds(table, type) {
 function _mergeRows(remoteRows, localRows, table) {
   const remote = Array.isArray(remoteRows) ? remoteRows : [];
   const local = Array.isArray(localRows) ? localRows : [];
-  const pendingUpserts = _pendingIds(table, 'upsert');
+  const pendingOps = _readPendingSync().filter(op => op.table === table);
+  const pendingUpsertOps = pendingOps.filter(op => op.type === 'upsert' && op.row);
+  const pendingUpserts = new Set(pendingUpsertOps.map(op => op.row.id));
   const pendingDeletes = _pendingIds(table, 'delete');
   const byId = new Map();
+
+  // Pending writes are a synchronous crash-safe backup. Include their full
+  // rows during startup so a page change cannot make a just-added record
+  // disappear while the encrypted local write or Supabase retry is pending.
+  pendingUpsertOps.forEach(op => {
+    if (op.row?.id && !pendingDeletes.has(op.row.id)) byId.set(op.row.id, op.row);
+  });
 
   local.forEach(row => {
     if (row?.id && !pendingDeletes.has(row.id)) byId.set(row.id, row);
@@ -373,11 +391,21 @@ async function _refreshCacheFromSupabase({ notify = true, preserveLocal = true }
     const oldReceipts = JSON.stringify(_cache.receipts);
     const oldSettings = JSON.stringify(_cache.settings);
 
-    _cache.transactions = mergeRows(remote.transactions, _readLocal('transactions', _cache.transactions || []), 'transactions');
-    _cache.goals        = mergeRows(remote.goals, _readLocal('goals', _cache.goals || []), 'goals');
-    _cache.invoices     = mergeRows(remote.invoices, _readLocal('invoices', _cache.invoices || []), 'invoices');
-    _cache.receipts     = mergeRows(remote.receipts, _readLocal('receipts', _cache.receipts || []), 'receipts');
-    _cache.settings     = _mergeSettings(remote.settings, _readLocal('settings', _cache.settings || {}));
+    // Local backups are encrypted after authentication. Use the async reader;
+    // the synchronous reader intentionally cannot decrypt `enc:` values and
+    // would otherwise turn a valid local backup into an empty array.
+    const [localTransactions, localSettings, localGoals, localInvoices, localReceipts] = await Promise.all([
+      _readLocalDecrypted('transactions', _cache.transactions || []),
+      _readLocalDecrypted('settings', _cache.settings || {}),
+      _readLocalDecrypted('goals', _cache.goals || []),
+      _readLocalDecrypted('invoices', _cache.invoices || []),
+      _readLocalDecrypted('receipts', _cache.receipts || []),
+    ]);
+    _cache.transactions = mergeRows(remote.transactions, localTransactions, 'transactions');
+    _cache.goals        = mergeRows(remote.goals, localGoals, 'goals');
+    _cache.invoices     = mergeRows(remote.invoices, localInvoices, 'invoices');
+    _cache.receipts     = mergeRows(remote.receipts, localReceipts, 'receipts');
+    _cache.settings     = _mergeSettings(remote.settings, localSettings);
     _cache.remoteLoaded = true;
     _cache.remoteLoadFailed = false;
 
@@ -483,6 +511,13 @@ _err('[Phyzelyne] write-queue delete:', op.table, op.id, e.message);
 
   if (failed.length) _writePendingSync(failed);
   _writeQueueFlushing = false;
+
+  // The queue may have been the only copy of a new transaction on this
+  // device. Re-read the authoritative remote state after successful writes
+  // so the next render/page navigation sees the committed rows immediately.
+  if (!failed.length) {
+    await _refreshCacheFromSupabase({ notify: true, preserveLocal: true });
+  }
 }
 
 /* ── Cross-tab data sync (BroadcastChannel) ─────────────────────────────────
@@ -797,6 +832,12 @@ async function _upsert(table, rowOrRows) {
     return;
   }
 
+  // Keep a synchronous pending copy until Supabase confirms the write. This
+  // closes the navigation/unload race while the encrypted local backup is
+  // still being written.
+  const pendingRows = Array.isArray(rowOrRows) ? rowOrRows : [rowOrRows];
+  pendingRows.forEach(row => _queuePendingSync({ type: 'upsert', table, row: { ...row } }));
+
   // Track in-flight writes to prevent disappearing from UI during active sync
   let idsToTrack = [];
   if (Array.isArray(rowOrRows)) {
@@ -824,6 +865,8 @@ _err('[Phyzelyne] upsert error:', table, error.message);
       } else {
         _queuePendingSync({ type: 'upsert', table, row: { ...rowOrRows } });
       }
+    } else {
+      _removePendingSync(table, idsToTrack);
     }
   } catch (e) {
     
@@ -874,11 +917,13 @@ async function _initData() {
   _adoptAnonymousLocalData();
   const loaded = await _refreshCacheFromSupabase({ notify: false, preserveLocal: true });
   if (!loaded) {
-    _cache.transactions = _readLocal('transactions', []);
-    _cache.settings     = _readLocal('settings', {});
-    _cache.goals        = _readLocal('goals', []);
-    _cache.invoices     = _readLocal('invoices', []);
-    _cache.receipts     = _readLocal('receipts', []);
+    [_cache.transactions, _cache.settings, _cache.goals, _cache.invoices, _cache.receipts] = await Promise.all([
+      _readLocalDecrypted('transactions', []),
+      _readLocalDecrypted('settings', {}),
+      _readLocalDecrypted('goals', []),
+      _readLocalDecrypted('invoices', []),
+      _readLocalDecrypted('receipts', []),
+    ]);
   }
   _persistAllCache();
   _cache.ready = true;

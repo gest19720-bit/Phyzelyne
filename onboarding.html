@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://ecxjttbbesbjpisealrp.supabase.co wss://ecxjttbbesbjpisealrp.supabase.co https://hook.us2.make.com https://api.resend.com; frame-src 'none'; object-src 'none';">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phyzelyne — Welcome</title>
   <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
   <link rel="stylesheet" href="app.css">
   <style>
     /* ── Layout ── */
@@ -453,6 +454,75 @@
       .ob-options.two-col { grid-template-columns: 1fr; }
       .ob-slider-display { font-size: 2.3rem; }
     }
+
+    /* Beta onboarding refresh: calmer hierarchy, clearer progress, and a
+       stronger value preview before we ask for personal financial context. */
+    .ob-card { max-width: 680px; padding: 42px 48px; }
+    .ob-dots { align-items: center; position: relative; padding-right: 88px; }
+    .ob-dots::after {
+      content: 'About 1 minute';
+      margin-left: auto;
+      color: var(--text-dim);
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+    .ob-step[data-step-label]::before {
+      content: attr(data-step-label);
+      display: block;
+      color: var(--text-dim);
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      margin: -8px 0 12px;
+    }
+    .ob-value-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 4px 0 30px;
+    }
+    .ob-value-item {
+      padding: 14px 12px;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,.035);
+      color: var(--text-mid);
+      font-size: .76rem;
+      line-height: 1.45;
+    }
+    .ob-value-item i { display: block; color: var(--gold); font-size: 1rem; margin-bottom: 9px; }
+    .ob-optional {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-dim);
+      font-size: .76rem;
+      margin-top: -16px;
+      margin-bottom: 24px;
+    }
+    .ob-skip {
+      background: none;
+      border: 0;
+      color: var(--gold);
+      cursor: pointer;
+      font: inherit;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .ob-error {
+      color: #e58b8b;
+      font-size: .78rem;
+      margin: -16px 0 18px;
+      min-height: 1.1em;
+    }
+    @media (max-width: 560px) {
+      .ob-card { padding: 30px 22px; }
+      .ob-value-grid { grid-template-columns: 1fr; }
+      .ob-dots { padding-right: 0; }
+      .ob-dots::after { display: none; }
+    }
   </style>
   <link rel="stylesheet" href="phyzelyne-theme.css">
   <link rel="stylesheet" href="phyzelyne-polish.css">
@@ -474,7 +544,12 @@
       <span class="ob-emoji" id="ob-wave">👋</span>
       <div class="ob-eyebrow">Let's get started</div>
       <div class="ob-title" id="welcome-name">Welcome to Phyzelyne!</div>
-      <div class="ob-sub">It'll take about 60 seconds to personalise your experience. Phyzelyne AI uses these answers to give you advice that actually fits your life — not generic tips.</div>
+      <div class="ob-sub">A few quick answers will turn Phyzelyne into a money companion that fits your real life. You can change everything later.</div>
+      <div class="ob-value-grid" aria-label="What you will get">
+        <div class="ob-value-item"><i class="fas fa-compass"></i><strong>Clear direction</strong><br>Focus your dashboard on one goal.</div>
+        <div class="ob-value-item"><i class="fas fa-lightbulb"></i><strong>Better insights</strong><br>Get advice that feels relevant.</div>
+        <div class="ob-value-item"><i class="fas fa-lock"></i><strong>Private by design</strong><br>Your answers stay yours.</div>
+      </div>
       <div class="ob-nav">
         <span></span>
         <button class="btn btn-gold" onclick="goNext()">
@@ -484,7 +559,7 @@
     </div>
 
     <!-- ══ Step 2: Primary goal ══ -->
-    <div class="ob-step" id="ob-step-2">
+    <div class="ob-step" id="ob-step-2" data-step-label="01  /  04">
       <span class="ob-emoji">🎯</span>
       <div class="ob-eyebrow">Step 1 of 4 — Your Goal</div>
       <div class="ob-title">What's your #1 financial goal?</div>
@@ -528,7 +603,7 @@
     </div>
 
     <!-- ══ Step 3: Monthly income ══ -->
-    <div class="ob-step" id="ob-step-3">
+    <div class="ob-step" id="ob-step-3" data-step-label="02  /  04">
       <span class="ob-emoji">💰</span>
       <div class="ob-eyebrow">Step 2 of 4 — Income</div>
       <div class="ob-title">What's your monthly income?</div>
@@ -542,6 +617,8 @@
           <span>₵ 0</span><span>₵ 25,000</span><span>₵ 50,000+</span>
         </div>
       </div>
+      <div class="ob-optional"><i class="fas fa-circle-info"></i> This is optional. <button class="ob-skip" type="button" onclick="skipIncome()">Prefer not to say</button></div>
+      <div class="ob-error" id="income-error" role="status"></div>
       <div class="ob-nav">
         <button class="ob-back" onclick="goPrev()"><i class="fas fa-arrow-left"></i> Back</button>
         <button class="btn btn-gold" onclick="goNext()">Continue <i class="fas fa-arrow-right"></i></button>
@@ -549,7 +626,7 @@
     </div>
 
     <!-- ══ Step 4: Spending habit ══ -->
-    <div class="ob-step" id="ob-step-4">
+    <div class="ob-step" id="ob-step-4" data-step-label="03  /  04">
       <span class="ob-emoji">🧠</span>
       <div class="ob-eyebrow">Step 3 of 4 — Spending Style</div>
       <div class="ob-title">How would you describe your spending?</div>
@@ -583,7 +660,7 @@
     </div>
 
     <!-- ══ Step 5: Currency ══ -->
-    <div class="ob-step" id="ob-step-5">
+    <div class="ob-step" id="ob-step-5" data-step-label="04  /  04">
       <span class="ob-emoji">🌍</span>
       <div class="ob-eyebrow">Step 4 of 4 — Currency</div>
       <div class="ob-title">Pick your currency</div>
@@ -620,7 +697,7 @@
 
 <div id="toast" class="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js" integrity="sha384-rwykjmWNwVxboyFmvK9OXN0wj9hnMHA2aAHtits54DuACyCq0M2PrSNxhRb+hvXT" crossorigin="anonymous"></script>
 <script src="app.js"></script>
 <script>
 // ─── DO NOT call Auth.require() here — it redirects unboarded users to
@@ -632,6 +709,29 @@ const TOTAL_STEPS = 6;          // welcome + 4 real steps + finish
 let currentStep = 1;
 let goingBack   = false;
 const answers   = { currencyCode: 'GHS' };   // default to Ghana Cedi
+const DRAFT_KEY = 'phyzelyne_onboarding_draft';
+
+function saveDraft() {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ step: currentStep, answers })); } catch (e) {}
+}
+
+function restoreDraft() {
+  try {
+    const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+    if (!draft?.answers) return;
+    Object.assign(answers, draft.answers);
+    const slider = document.getElementById('income-slider');
+    if (answers.monthlyIncome === null) {
+      slider.value = 0;
+    } else if (Number.isFinite(Number(answers.monthlyIncome))) {
+      slider.value = Math.min(50000, Math.max(0, Number(answers.monthlyIncome)));
+    }
+    document.querySelectorAll('.ob-opt').forEach(el => {
+      const key = el.closest('#goal-options') ? 'primaryGoal' : 'spendingHabit';
+      el.classList.toggle('selected', el.dataset.val === answers[key]);
+    });
+  } catch (e) {}
+}
 
 // ── Dots ────────────────────────────────────────────────────────────────────
 function renderDots() {
@@ -651,14 +751,29 @@ function renderDots() {
 // ── Navigation ───────────────────────────────────────────────────────────────
 function goNext() {
   if (currentStep >= TOTAL_STEPS) return;
+  if (!validateStep(currentStep)) return;
   if (currentStep === TOTAL_STEPS - 1) buildSummary(); // before showing finish
   goingBack = false;
   animateTransition(currentStep, currentStep + 1);
+  saveDraft();
 }
 function goPrev() {
   if (currentStep <= 1) return;
   goingBack = true;
   animateTransition(currentStep, currentStep - 1);
+  saveDraft();
+}
+
+function validateStep(step) {
+  if (step === 2 && !answers.primaryGoal) {
+    showToast('Choose the goal you want to focus on first.', 'error');
+    return false;
+  }
+  if (step === 4 && !answers.spendingHabit) {
+    showToast('Choose the option that feels most like you.', 'error');
+    return false;
+  }
+  return true;
 }
 
 function animateTransition(from, to) {
@@ -684,6 +799,7 @@ function pickOption(el, key) {
   el.closest('.ob-options').querySelectorAll('.ob-opt').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
   answers[key] = el.dataset.val;
+  saveDraft();
 }
 
 // ── Income slider ────────────────────────────────────────────────────────────
@@ -695,6 +811,15 @@ function onSliderMove(val) {
     ? `${cur.symbol} 50,000+`
     : `${cur.symbol} ${n.toLocaleString()}`;
   document.getElementById('income-display').textContent = display;
+  saveDraft();
+}
+
+function skipIncome() {
+  answers.monthlyIncome = null;
+  document.getElementById('income-slider').value = 0;
+  document.getElementById('income-display').textContent = 'Prefer not to say';
+  document.getElementById('income-error').textContent = '';
+  saveDraft();
 }
 
 // ── Currency list ────────────────────────────────────────────────────────────
@@ -733,6 +858,7 @@ function selectCurrency(code) {
   });
   // Update slider display to use new currency symbol
   onSliderMove(document.getElementById('income-slider').value);
+  saveDraft();
 }
 
 // ── Summary card ─────────────────────────────────────────────────────────────
@@ -753,7 +879,9 @@ const HABIT_LABELS = {
 
 function buildSummary() {
   const cur = CURRENCIES.find(c => c.code === answers.currencyCode) || { symbol: '₵', code: 'GHS', name: 'Ghana Cedi' };
-  const income = answers.monthlyIncome >= 50000
+  const income = answers.monthlyIncome === null
+    ? 'Prefer not to say'
+    : answers.monthlyIncome >= 50000
     ? `${cur.symbol} 50,000+`
     : `${cur.symbol} ${(answers.monthlyIncome || 0).toLocaleString()}`;
 
@@ -764,7 +892,7 @@ function buildSummary() {
     </div>
     <div class="ob-summary-row">
       <i class="fas fa-wallet"></i> Monthly Income
-      <span class="ob-summary-val">${income} / mo</span>
+    <span class="ob-summary-val">${answers.monthlyIncome === null ? income : `${income} / mo`}</span>
     </div>
     <div class="ob-summary-row">
       <i class="fas fa-brain"></i> Spending Style
@@ -846,6 +974,7 @@ async function finishOnboarding() {
     }
 
     showToast('All set! Welcome to Phyzelyne 🎉');
+    localStorage.removeItem(DRAFT_KEY);
     setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
   } catch (error) {
     console.error('[Phyzelyne] onboarding completion failed:', error);
@@ -886,9 +1015,14 @@ async function finishOnboarding() {
 
   // 2. Render initial dots + currency list
   renderDots();
+  restoreDraft();
   buildCurrencyList();
   // Initialise slider display with default GHS
-  onSliderMove(document.getElementById('income-slider').value);
+  if (answers.monthlyIncome === null) {
+    document.getElementById('income-display').textContent = 'Prefer not to say';
+  } else {
+    onSliderMove(document.getElementById('income-slider').value);
+  }
 })();
 </script>
   <script src="phyzelyne-polish.js"></script>

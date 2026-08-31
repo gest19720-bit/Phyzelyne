@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://ecxjttbbesbjpisealrp.supabase.co wss://ecxjttbbesbjpisealrp.supabase.co https://hook.us2.make.com https://api.resend.com; frame-src 'none'; object-src 'none';">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phyzelyne — Create Account</title>
   <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
   <link rel="stylesheet" href="app.css">
   <style>
     .auth-root { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; position: relative; z-index: 1; }
@@ -186,7 +187,7 @@
 </div>
 
 <div id="toast" class="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js" integrity="sha384-rwykjmWNwVxboyFmvK9OXN0wj9hnMHA2aAHtits54DuACyCq0M2PrSNxhRb+hvXT" crossorigin="anonymous"></script>
 <script src="app.js"></script>
 <script>
   // Redirect if already logged in
@@ -283,14 +284,16 @@
     } else {
       // Surface a human-friendly version of Supabase error messages
       const msg = result.message || 'Could not create account.';
+      // SECURITY: Use generic messages to prevent email enumeration.
+      // Don't reveal whether an account already exists.
       if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists')) {
-        showError('An account with this email already exists. Try signing in instead.');
+        showError('If this email is not already registered, check your inbox for a confirmation link.');
       } else if (msg.toLowerCase().includes('password')) {
-        showError('Password is too weak. Use at least 8 characters with a mix of letters and numbers.');
+        showError('Password must be at least 8 characters with a mix of letters and numbers.');
       } else if (msg.toLowerCase().includes('email')) {
         showError('Please enter a valid email address.');
       } else {
-        showError(msg);
+        showError('Something went wrong. Please try again.');
       }
     }
   }

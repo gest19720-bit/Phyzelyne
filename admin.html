@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://ecxjttbbesbjpisealrp.supabase.co wss://ecxjttbbesbjpisealrp.supabase.co https://hook.us2.make.com https://api.resend.com; frame-src 'none'; object-src 'none';">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phyzelyne — Executive Admin & Telemetry Suite</title>
@@ -11,10 +12,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
 
   <!-- Charts & Core Styling -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="app.css">
   <link rel="stylesheet" href="phyzelyne-theme.css">
 
@@ -1503,12 +1504,20 @@
 <div id="admin-toast"></div>
 
 <!-- Core Supabase & App Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js" integrity="sha384-rwykjmWNwVxboyFmvK9OXN0wj9hnMHA2aAHtits54DuACyCq0M2PrSNxhRb+hvXT" crossorigin="anonymous"></script>
 <script src="app.js"></script>
 
 <!-- Master Admin JavaScript Real-Time Engine -->
 <script>
 'use strict';
+
+/* XSS protection — escape user-controlled strings before innerHTML */
+function _esc(str) {
+  if (str == null) return '';
+  const s = String(str);
+  const m = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' };
+  return s.replace(/[&<>"']/g, c => m[c]);
+}
 
 const AdminStore = {
   activeTab: 'overview',
@@ -1564,8 +1573,11 @@ const AdminStore = {
 
   // ── Supabase Live Bridge ──
   initSupabaseClient() {
-    const savedUrl = localStorage.getItem(this.STORAGE_KEY_SB_URL) || window.__PHYZELYNE_SUPABASE_URL__ || 'https://ecxjttbbesbjpisealrp.supabase.co';
-    const savedKey = localStorage.getItem(this.STORAGE_KEY_SB_KEY) || window.__PHYZELYNE_SUPABASE_KEY__ || 'sb_publishable__qiqb1L9zW6Q4guscaGvbA_4r0daTME';
+    // SECURITY: Only read from build-time injection or hardcoded defaults.
+    // NEVER read Supabase credentials from localStorage — that allows
+    // any user to inject a malicious URL/key.
+    const savedUrl = window.__PHYZELYNE_SUPABASE_URL__ || 'https://ecxjttbbesbjpisealrp.supabase.co';
+    const savedKey = window.__PHYZELYNE_SUPABASE_KEY__ || 'sb_publishable__qiqb1L9zW6Q4guscaGvbA_4r0daTME';
 
     const urlInput = document.getElementById('sb-config-url');
     const keyInput = document.getElementById('sb-config-key');
@@ -1625,14 +1637,14 @@ const AdminStore = {
       const tickerSb = document.getElementById('ticker-sb-status');
 
       if (error && error.code !== 'PGRST116') {
-        if (statusText) statusText.innerHTML = `<i class="fas fa-circle-exclamation" style="color:var(--admin-rose);"></i> Warning: ${error.message}`;
+        if (statusText) statusText.innerHTML = `<i class="fas fa-circle-exclamation" style="color:var(--admin-rose);"></i> Warning: ${_esc(error.message)}`;
         if (pillText) pillText.textContent = `Supabase: Warning (${duration}ms)`;
         if (lastPing) lastPing.textContent = `Latency: ${duration}ms`;
         if (tickerLatency) tickerLatency.textContent = `${duration}ms`;
         if (sysLatency) sysLatency.textContent = `${duration}ms`;
         this.showToast(`Supabase reachable in ${duration}ms (${error.message})`, 'warning');
       } else {
-        if (statusText) statusText.innerHTML = `<i class="fas fa-circle-check" style="color:var(--admin-emerald);"></i> Status: Connected to Supabase Cluster (${duration}ms latency)`;
+        if (statusText) statusText.innerHTML = `<i class="fas fa-circle-check" style="color:var(--admin-emerald);"></i> Status: Connected to Supabase Cluster (${parseInt(duration)}ms latency)`;
         if (lastPing) lastPing.textContent = `Latency: ${duration}ms`;
         if (pillText) pillText.textContent = `Supabase: Connected (${duration}ms)`;
         if (pill) pill.classList.remove('disconnected');
@@ -1647,7 +1659,7 @@ const AdminStore = {
       const pill = document.getElementById('supabase-header-pill');
       const pillText = document.getElementById('supabase-pill-text');
       const tickerSb = document.getElementById('ticker-sb-status');
-      if (statusText) statusText.innerHTML = `<i class="fas fa-circle-xmark" style="color:var(--admin-rose);"></i> Connection Failed: ${err.message}`;
+      if (statusText) statusText.innerHTML = `<i class="fas fa-circle-xmark" style="color:var(--admin-rose);"></i> Connection Failed: ${_esc(err.message)}`;
       if (pillText) pillText.textContent = `Supabase: Disconnected`;
       if (pill) pill.classList.add('disconnected');
       if (tickerSb) tickerSb.textContent = `Disconnected`;
@@ -1656,14 +1668,9 @@ const AdminStore = {
   },
 
   saveSupabaseConfig() {
-    const url = document.getElementById('sb-config-url').value.trim();
-    const key = document.getElementById('sb-config-key').value.trim();
-    if (!url || !key) {
-      this.showToast('Please enter both Supabase URL and Key', 'warning');
-      return;
-    }
-    localStorage.setItem(this.STORAGE_KEY_SB_URL, url);
-    localStorage.setItem(this.STORAGE_KEY_SB_KEY, key);
+    // SECURITY: Supabase credentials are NOT persisted to localStorage.
+    // They are session-only and reset on page reload.
+    this.showToast('Supabase config is session-only (not persisted). Use build-time injection for permanent config.', 'info');
     this.initSupabaseClient();
     this.testSupabaseConnection();
   },
@@ -2058,23 +2065,23 @@ const AdminStore = {
     }
 
     tbody.innerHTML = filtered.map(u => `
-      <tr style="cursor:pointer;" onclick="AdminStore.openUserDrawer('${u.id}')">
+      <tr style="cursor:pointer;" onclick="AdminStore.openUserDrawer('${_esc(u.id)}')">
         <td>
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="width:32px; height:32px; border-radius:50%; background:rgba(217,165,33,0.2); color:var(--gold-light); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem;">
-              ${(u.name || 'U').charAt(0).toUpperCase()}
+              ${_esc((u.name || 'U').charAt(0).toUpperCase())}
             </div>
             <div>
-              <div style="font-weight:600; font-size:0.85rem; color:var(--text);">${u.name}</div>
-              <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${u.email}</div>
+              <div style="font-weight:600; font-size:0.85rem; color:var(--text);">${_esc(u.name)}</div>
+              <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${_esc(u.email)}</div>
             </div>
           </div>
         </td>
-        <td><span class="badge" style="background:rgba(217,165,33,0.18); color:var(--gold-light); font-size:0.7rem; text-transform:uppercase;">${u.tier}</span></td>
-        <td><span style="font-size:0.75rem; color:${u.status === 'active' ? 'var(--admin-emerald)' : 'var(--text-dim)'};"><i class="fas fa-circle" style="font-size:0.5rem; margin-right:4px;"></i> ${(u.status || 'ACTIVE').toUpperCase()}</span></td>
-        <td style="font-size:0.8rem; color:var(--text-mid); font-family:var(--admin-font-mono);">${u.country}</td>
-        <td style="font-family:var(--admin-font-mono); font-size:0.8rem;">${u.transactionsLogged || 0} txns</td>
-        <td style="font-size:0.75rem; color:var(--text-dim);">${u.lastActive || 'Today'}</td>
+        <td><span class="badge" style="background:rgba(217,165,33,0.18); color:var(--gold-light); font-size:0.7rem; text-transform:uppercase;">${_esc(u.tier)}</span></td>
+        <td><span style="font-size:0.75rem; color:${u.status === 'active' ? 'var(--admin-emerald)' : 'var(--text-dim)'};"><i class="fas fa-circle" style="font-size:0.5rem; margin-right:4px;"></i> ${_esc((u.status || 'ACTIVE').toUpperCase())}</span></td>
+        <td style="font-size:0.8rem; color:var(--text-mid); font-family:var(--admin-font-mono);">${_esc(u.country)}</td>
+        <td style="font-family:var(--admin-font-mono); font-size:0.8rem;">${parseInt(u.transactionsLogged) || 0} txns</td>
+        <td style="font-size:0.75rem; color:var(--text-dim);">${_esc(u.lastActive || 'Today')}</td>
         <td style="text-align:right;">
           <button class="btn btn-glass btn-sm" onclick="event.stopPropagation(); AdminStore.openUserDrawer('${u.id}')"><i class="fas fa-eye"></i> View</button>
         </td>
@@ -2156,20 +2163,20 @@ const AdminStore = {
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <div style="color:var(--gold); font-size:0.8rem;">
-              ${Array.from({length:5}, (_,i) => `<i class="fas fa-star" style="color:${i < (f.rating || 5) ? 'var(--gold)' : 'rgba(255,255,255,0.15)'};"></i>`).join('')}
+              ${Array.from({length:5}, (_,i) => `<i class="fas fa-star" style="color:${i < (parseInt(f.rating) || 5) ? 'var(--gold)' : 'rgba(255,255,255,0.15)'};"></i>`).join('')}
             </div>
-            <span class="badge" style="font-size:0.68rem; text-transform:uppercase; background:rgba(47,174,114,0.15); color:#6fe3a8;">${f.sentiment || 'positive'}</span>
+            <span class="badge" style="font-size:0.68rem; text-transform:uppercase; background:rgba(47,174,114,0.15); color:#6fe3a8;">${_esc(f.sentiment || 'positive')}</span>
           </div>
-          <div style="font-size:0.72rem; color:var(--gold-light); font-weight:700; text-transform:uppercase; margin-bottom:6px;"><i class="fas fa-tag"></i> ${f.category || 'Feedback'}</div>
-          <p class="feedback-quote">"${f.comment || ''}"</p>
-          ${f.reply ? `<div style="background:rgba(47,174,114,0.08); border-left:2px solid var(--admin-emerald); padding:8px 10px; border-radius:4px; font-size:0.75rem; color:var(--text-mid); margin-top:8px;"><strong>Team Reply:</strong> ${f.reply}</div>` : ''}
+          <div style="font-size:0.72rem; color:var(--gold-light); font-weight:700; text-transform:uppercase; margin-bottom:6px;"><i class="fas fa-tag"></i> ${_esc(f.category || 'Feedback')}</div>
+          <p class="feedback-quote">"${_esc(f.comment || '')}"</p>
+          ${f.reply ? `<div style="background:rgba(47,174,114,0.08); border-left:2px solid var(--admin-emerald); padding:8px 10px; border-radius:4px; font-size:0.75rem; color:var(--text-mid); margin-top:8px;"><strong>Team Reply:</strong> ${_esc(f.reply)}</div>` : ''}
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.06);">
           <div>
-            <div style="font-size:0.8rem; font-weight:600; color:var(--text);">${f.userName || 'Phyzelyne User'}</div>
-            <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${f.userEmail || 'user@domain.com'}</div>
+            <div style="font-size:0.8rem; font-weight:600; color:var(--text);">${_esc(f.userName || 'Phyzelyne User')}</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${_esc(f.userEmail || 'user@domain.com')}</div>
           </div>
-          <button class="btn btn-glass btn-sm" onclick="AdminStore.openFeedbackReplyModal('${f.id}')"><i class="fas fa-reply"></i> Reply</button>
+          <button class="btn btn-glass btn-sm" onclick="AdminStore.openFeedbackReplyModal('${_esc(f.id)}')"><i class="fas fa-reply"></i> Reply</button>
         </div>
       </div>
     `).join('');
@@ -2258,13 +2265,13 @@ const AdminStore = {
     }
 
     listEl.innerHTML = filtered.map(m => `
-      <div class="gmail-thread-item ${m.id === this.selectedThreadId ? 'active' : ''}" onclick="AdminStore.selectEmailThread('${m.id}')">
+      <div class="gmail-thread-item ${m.id === this.selectedThreadId ? 'active' : ''}" onclick="AdminStore.selectEmailThread('${_esc(m.id)}')">
         <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-          <strong style="font-size:0.82rem; color:${m.unread ? 'var(--gold-light)' : 'var(--text)'};">${m.fromName}</strong>
-          <span style="font-size:0.7rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${(m.date || '').split(' ')[1] || (m.date || '').slice(0,10)}</span>
+          <strong style="font-size:0.82rem; color:${m.unread ? 'var(--gold-light)' : 'var(--text)'};">${_esc(m.fromName)}</strong>
+          <span style="font-size:0.7rem; color:var(--text-dim); font-family:var(--admin-font-mono);">${_esc((m.date || '').split(' ')[1] || (m.date || '').slice(0,10))}</span>
         </div>
-        <div style="font-size:0.78rem; color:${m.unread ? 'var(--gold-light)' : 'var(--text-mid)'}; font-weight:${m.unread ? '700' : '500'}; margin-bottom:2px;">${m.subject}</div>
-        <div style="font-size:0.72rem; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.snippet || ''}</div>
+        <div style="font-size:0.78rem; color:${m.unread ? 'var(--gold-light)' : 'var(--text-mid)'}; font-weight:${m.unread ? '700' : '500'}; margin-bottom:2px;">${_esc(m.subject)}</div>
+        <div style="font-size:0.72rem; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${_esc(m.snippet || '')}</div>
       </div>
     `).join('');
   },
@@ -2306,8 +2313,8 @@ const AdminStore = {
 
       <div class="reading-body">
         <div style="border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:16px;">
-          <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--text); margin-bottom:4px;">${email.subject}</h3>
-          <div style="font-size:0.8rem; color:var(--text-mid);"><strong>${email.fromName}</strong> &lt;${email.fromEmail}&gt;</div>
+          <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--text); margin-bottom:4px;">${_esc(email.subject)}</h3>
+          <div style="font-size:0.8rem; color:var(--text-mid);"><strong>${_esc(email.fromName)}</strong> &lt;${_esc(email.fromEmail)}&gt;</div>
           <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--admin-font-mono); margin-top:2px;">To: founders@phyzelyne.com • ${email.date || ''}</div>
         </div>
         <div class="email-content-text">${email.body || email.snippet || 'No message content.'}</div>
@@ -2371,25 +2378,25 @@ const AdminStore = {
         <div>
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <div>
-              <div style="font-family:var(--font-display); font-size:1.15rem; font-weight:700; color:var(--text);">${d.companyName}</div>
-              <div style="font-size:0.8rem; color:var(--gold-light); font-weight:700;"><i class="fas fa-coins"></i> ${d.dealARR || '$48,000 / yr'}</div>
+              <div style="font-family:var(--font-display); font-size:1.15rem; font-weight:700; color:var(--text);">${_esc(d.companyName)}</div>
+              <div style="font-size:0.8rem; color:var(--gold-light); font-weight:700;"><i class="fas fa-coins"></i> ${_esc(d.dealARR || '$48,000 / yr')}</div>
             </div>
-            <span class="badge" style="background:rgba(217,165,33,0.2); color:var(--gold-light); font-size:0.7rem; text-transform:uppercase;">${d.status || 'confirmed'}</span>
+            <span class="badge" style="background:rgba(217,165,33,0.2); color:var(--gold-light); font-size:0.7rem; text-transform:uppercase;">${_esc(d.status || 'confirmed')}</span>
           </div>
           <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); padding:8px 12px; border-radius:8px; margin:10px 0; font-family:var(--admin-font-mono); font-size:0.75rem; color:var(--gold-light);">
-            <i class="fas fa-calendar-day"></i> ${d.date} • ${d.time || '14:00 GMT'}
+            <i class="fas fa-calendar-day"></i> ${_esc(d.date)} • ${_esc(d.time || '14:00 GMT')}
           </div>
           <div style="font-size:0.78rem; color:var(--text-mid); display:flex; flex-direction:column; gap:6px;">
-            <span><i class="fas fa-user-tie" style="color:var(--gold);"></i> <strong>${d.contactName}</strong> ${d.jobTitle ? `(${d.jobTitle})` : ''} &lt;${d.contactEmail}&gt;</span>
-            <span><i class="fas fa-users" style="color:var(--admin-cyan);"></i> Scope: <strong>${d.teamSize || 'Seats pending'}</strong> ${d.country ? `• Origin: ${d.country}` : ''}</span>
-            ${d.interest ? `<span><i class="fas fa-bullseye" style="color:var(--admin-emerald);"></i> Focus: <strong>${d.interest}</strong></span>` : ''}
+            <span><i class="fas fa-user-tie" style="color:var(--gold);"></i> <strong>${_esc(d.contactName)}</strong> ${d.jobTitle ? `(${_esc(d.jobTitle)})` : ''} &lt;${_esc(d.contactEmail)}&gt;</span>
+            <span><i class="fas fa-users" style="color:var(--admin-cyan);"></i> Scope: <strong>${_esc(d.teamSize || 'Seats pending')}</strong> ${d.country ? `• Origin: ${_esc(d.country)}` : ''}</span>
+            ${d.interest ? `<span><i class="fas fa-bullseye" style="color:var(--admin-emerald);"></i> Focus: <strong>${_esc(d.interest)}</strong></span>` : ''}
             <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); padding:8px 10px; border-radius:6px; font-size:0.75rem; margin-top:2px;">
-              <i class="fas fa-note-sticky" style="color:var(--gold-light); margin-right:4px;"></i> ${d.notes || 'VIP Intake'}
+              <i class="fas fa-note-sticky" style="color:var(--gold-light); margin-right:4px;"></i> ${_esc(d.notes || 'VIP Intake')}
             </div>
           </div>
         </div>
         <div style="margin-top:12px;">
-          <a href="${d.meetLink || 'https://meet.google.com'}" target="_blank" class="btn btn-gold btn-sm" style="width:100%; justify-content:center;"><i class="fas fa-video"></i> Launch Google Meet</a>
+          <a href="${_esc(d.meetLink || 'https://meet.google.com')}" target="_blank" class="btn btn-gold btn-sm" style="width:100%; justify-content:center;"><i class="fas fa-video"></i> Launch Google Meet</a>
         </div>
       </div>
     `).join('');
@@ -2523,7 +2530,7 @@ const AdminStore = {
       if (raw) {
         const data = JSON.parse(raw);
         if (data.active && data.message) {
-          banner.innerHTML = `<span><i class="fas fa-bullhorn"></i> <strong>ANNOUNCEMENT:</strong> ${data.message}</span> <button onclick="AdminStore.dismissGlobalBroadcast()" style="background:transparent; border:none; color:#fff; cursor:pointer;"><i class="fas fa-times"></i></button>`;
+          banner.innerHTML = `<span><i class="fas fa-bullhorn"></i> <strong>ANNOUNCEMENT:</strong> ${_esc(data.message)}</span> <button onclick="AdminStore.dismissGlobalBroadcast()" style="background:transparent; border:none; color:#fff; cursor:pointer;"><i class="fas fa-times"></i></button>`;
           banner.style.cssText = 'background:linear-gradient(90deg, #b45309, #d97706, #b45309); color:#fff; padding:8px 20px; font-size:0.82rem; font-weight:600; text-align:center; display:flex; justify-content:center; align-items:center; gap:12px;';
           return;
         }
@@ -2685,13 +2692,14 @@ const AdminStore = {
   },
 
   checkSecurityGate() {
-    const isUnlocked = sessionStorage.getItem('phyzelyne_admin_session_unlocked') === 'true' || localStorage.getItem('phyzelyne_admin_session_unlocked') === 'true';
+    // Admin access is ONLY determined by Supabase user_metadata role.
+    // No localStorage, sessionStorage, or hardcoded passcodes.
     const isWhitelisted = (typeof Auth !== 'undefined' && typeof Auth.isAdmin === 'function') ? Auth.isAdmin() : false;
 
     const gateEl = document.getElementById('admin-security-gate');
     const shellEl = document.getElementById('admin-app-shell');
 
-    if (isUnlocked || isWhitelisted) {
+    if (isWhitelisted) {
       if (gateEl) gateEl.style.display = 'none';
       if (shellEl) {
         shellEl.style.filter = 'none';
@@ -2707,31 +2715,18 @@ const AdminStore = {
   },
 
   authenticateAdminPasscode() {
-    const input = document.getElementById('admin-gate-passcode');
+    // Admin passcode verification has been removed.
+    // Access is now enforced by Supabase JWT role claims.
+    // To grant admin access, set user_metadata.role to 'admin'/'cto'/'founder'
+    // in the Supabase Dashboard → Authentication → Users.
     const errorMsg = document.getElementById('gate-error-msg');
-    const code = input ? input.value.trim() : '';
-    const validKeys = ['phyzelyne-cto', 'phyzelyne-coo', 'phyzelyne-ceo', 'phyzelyne-team', 'phyzelyne-engineers'];
-
-    if (validKeys.includes(code.toLowerCase())) {
-      sessionStorage.setItem('phyzelyne_admin_session_unlocked', 'true');
-      const gateEl = document.getElementById('admin-security-gate');
-      const shellEl = document.getElementById('admin-app-shell');
-      if (gateEl) gateEl.style.display = 'none';
-      if (shellEl) {
-        shellEl.style.filter = 'none';
-        shellEl.style.pointerEvents = 'auto';
-      }
-      if (errorMsg) errorMsg.style.display = 'none';
-      this.showToast('Executive Clearance Verified. Welcome, CTO.', 'success');
-    } else {
-      if (errorMsg) errorMsg.style.display = 'block';
-      if (input) { input.value = ''; input.focus(); }
+    if (errorMsg) {
+      errorMsg.style.display = 'block';
+      errorMsg.textContent = 'Admin access is managed through Supabase user roles. Contact your CTO to request access.';
     }
   },
 
   lockAdminSession() {
-    sessionStorage.removeItem('phyzelyne_admin_session_unlocked');
-    localStorage.removeItem('phyzelyne_admin_session_unlocked');
     window.location.reload();
   },
 
@@ -2800,7 +2795,7 @@ const AdminStore = {
   showToast(message, type = 'info') {
     const toast = document.getElementById('admin-toast');
     if (!toast) return;
-    toast.innerHTML = `<i class="fas fa-circle-info" style="margin-right:6px;"></i> ${message}`;
+    toast.textContent = message;
     toast.className = `show`;
     clearTimeout(toast._timer);
     toast._timer = setTimeout(() => toast.className = '', 3200);

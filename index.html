@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://ecxjttbbesbjpisealrp.supabase.co wss://ecxjttbbesbjpisealrp.supabase.co https://hook.us2.make.com https://api.resend.com; frame-src 'none'; object-src 'none';">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Phyzelyne — Financial infrastructure for multi-currency work</title>
@@ -10,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,500;0,600;0,700;1,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
  
 <style>
 /* ============================================================
@@ -444,7 +445,7 @@ h1,h2,h3,h4{ font-family:var(--font-display); font-weight:700; color:var(--ink);
 .chat-bubble.ai{ background:rgba(255,255,255,0.06); align-self:flex-start; border-bottom-left-radius:4px; }
 .chat-bubble.user{ background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; border-color:var(--accent); }
 .chat-suggest{ display:flex; flex-direction:column; gap:8px; }
-.chat-chip{ text-align:left; padding:11px 15px; border:1.5px solid var(--line-2); border-radius:11px; background:var(--panel); font-size:0.81rem; cursor:pointer; transition:all 0.2s; }
+.chat-chip{ text-align:left; color: white; padding:11px 15px; border:1.5px solid var(--line-2); border-radius:11px; background:var(--panel); font-size:0.81rem; cursor:pointer; transition:all 0.2s; }
 .chat-chip:hover{ background:var(--accent-dim); border-color:var(--accent); transform:translateX(2px); }
  
 .inv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:28px; }

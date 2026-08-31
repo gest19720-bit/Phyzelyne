@@ -280,8 +280,13 @@ function initGlobalBroadcastBanner() {
       banner.style.cssText = 'background:linear-gradient(90deg, #b45309, #d97706, #b45309); color:#fff; padding:10px 24px; font-size:0.85rem; font-weight:600; text-align:center; display:flex; align-items:center; justify-content:center; gap:12px; position:sticky; top:0; z-index:99999; box-shadow:0 4px 18px rgba(0,0,0,0.3);';
       document.body.prepend(banner);
     }
+    // XSS protection — escape broadcast message before rendering
+    const _escBroadcast = (s) => {
+      if (s == null) return '';
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;'})[c]);
+    };
     banner.innerHTML = `
-      <span><i class="fas fa-bullhorn"></i> <strong>ANNOUNCEMENT:</strong> ${b.message}</span>
+      <span><i class="fas fa-bullhorn"></i> <strong>ANNOUNCEMENT:</strong> ${_escBroadcast(b.message)}</span>
       <button onclick="this.parentElement.remove()" style="background:transparent; border:none; color:#fff; cursor:pointer; font-size:1.1rem; padding:0 6px;"><i class="fas fa-times"></i></button>
     `;
   } catch(e) {}

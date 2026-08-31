@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://ecxjttbbesbjpisealrp.supabase.co wss://ecxjttbbesbjpisealrp.supabase.co https://hook.us2.make.com https://api.resend.com; frame-src 'none'; object-src 'none';">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phyzelyne — Business</title>
   <link rel="icon" type="image/png" href="Phyzelyne's Logo.png">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700;800&display=swap">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
   <link rel="stylesheet" href="app.css">
   <style>
     /* ── Business tab system ── */
@@ -560,7 +561,6 @@
     }
   </style>
   <link rel="stylesheet" href="phyzelyne-theme.css">
-  <link rel="stylesheet" href="phyzelyne-polish.css">
 </head>
 <body>
 
@@ -634,7 +634,7 @@
             <button class="prompt-chip" onclick="usePrompt(this)">Give me a 3-month budget plan</button>
             <button class="prompt-chip" onclick="usePrompt(this)">How can I reduce my top expenses?</button>
             <button class="prompt-chip" onclick="usePrompt(this)">What's my financial health score?</button>
-            <button class="prompt-chip" onclick="usePrompt(this)">Best savings accounts right now?</button>
+      <button class="prompt-chip" onclick="usePrompt(this)">How can I build an emergency fund?</button>
           </div>
           <div class="coach-prompt-card">
             <div class="prompt-label"><i class="fas fa-chart-pie"></i> Business prompts</div>
@@ -871,7 +871,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js" integrity="sha384-rwykjmWNwVxboyFmvK9OXN0wj9hnMHA2aAHtits54DuACyCq0M2PrSNxhRb+hvXT" crossorigin="anonymous"></script>
 <script src="app.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════
@@ -921,7 +921,7 @@ function genId() { return Date.now().toString(36) + Math.random().toString(36).s
      the browser)
 ══════════════════════════════════════════════════════════════ */
 const AI_COACH_ENDPOINT = `${SUPABASE_URL}/functions/v1/ai-coach`;
-const MIN_THINK_MS = 15000;   // enforce ≥ 15 s of "thinking" UI
+const MIN_THINK_MS = 700;    // Keep the status visible without making simple questions feel slow.
 const WEB_TRIGGERS = [
   'best','current','rate','today','latest','right now','2025','2026',
   'interest','inflation','isa','savings account','bank','currency market','investment',
@@ -1075,7 +1075,7 @@ function appendMsg(role, text, isTyping) {
 	}
 	
 function buildSystemPrompt() {
-  return `You are Phyzelyne AI Finance Coach — a warm, sharp, deeply knowledgeable personal finance and business advisor embedded in the Phyzelyne app. You are powered by Claude Sonnet 4.6 with extended thinking enabled, which means you reason carefully before responding.
+  return `You are Phyzelyne AI Finance Coach — a warm, sharp, deeply knowledgeable personal finance and business advisor embedded in the Phyzelyne app.
 
 PERSONALITY & STYLE:
 - Warm, encouraging, never judgmental — money is emotional, treat it that way
@@ -1096,16 +1096,8 @@ CRITICAL RULES:
 ${buildFinancialContext()}`;
 }
 
-/* ─── Streaming agent loop, via the ai-coach Edge Function ─── */
+/* ─── AI coach request, via the ai-coach Edge Function ─── */
 async function runAgent(messages) {
-  let usedWeb     = false;
-  let streamDiv   = null;
-  let fullText    = '';
-  let thinkSecs   = 0;
-
-  const userMsg     = messages[messages.length - 1]?.content || '';
-  const needsSearch = WEB_TRIGGERS.some(t => userMsg.toLowerCase().includes(t));
-
   startThinkClock();
 
   const { data: { session } } = await _sb.auth.getSession();
@@ -1119,8 +1111,6 @@ async function runAgent(messages) {
     },
     body: JSON.stringify({
       messages,
-      system: buildSystemPrompt(),
-      useTools: needsSearch,
     }),
   });
 
@@ -1129,75 +1119,19 @@ async function runAgent(messages) {
     stopThinkClock();
     throw new Error(err.error || `HTTP ${resp.status}`);
   }
-
-  const reader  = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let buf = '';
-  let currentBlock = null;
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-    const lines = buf.split('\n');
-    buf = lines.pop();
-
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue;
-      const raw = line.slice(6).trim();
-      if (raw === '[DONE]') continue;
-      let evt;
-      try { evt = JSON.parse(raw); } catch { continue; }
-
-      if (evt.type === 'content_block_start') {
-        currentBlock = evt.content_block.type;
-        if (currentBlock === 'text' && !streamDiv) {
-          await enforceMinThinkTime();
-          thinkSecs = Math.round((Date.now() - _thinkStart) / 1000);
-          stopThinkClock();
-          setStatus('writing');
-          streamDiv = appendMsg('ai', '', false);
-          streamDiv.querySelector('.msg-bubble').innerHTML = '<span class="cursor"></span>';
-        }
-        if (currentBlock === 'tool_use' && evt.content_block.name === 'web_search') {
-          usedWeb = true;
-          thinkSecs = Math.round((Date.now() - _thinkStart) / 1000);
-          stopThinkClock();
-          setStatus('searching');
-        }
-      }
-
-      if (evt.type === 'content_block_delta') {
-        if (evt.delta.type === 'text_delta') {
-          fullText += evt.delta.text;
-          if (streamDiv) {
-            streamDiv.querySelector('.msg-bubble').innerHTML = mdToHtml(fullText) + '<span class="cursor"></span>';
-            document.getElementById('chat-messages').scrollTop = 9999;
-          }
-        }
-      }
-
-      if (evt.type === 'content_block_stop') {
-        if (currentBlock === 'tool_use') setStatus('reading');
-        currentBlock = null;
-      }
-    }
-  }
-
   await enforceMinThinkTime();
   stopThinkClock();
-
-  if (streamDiv) {
-    let html = mdToHtml(fullText);
-    const badges = [];
-    if (usedWeb) badges.push(`<span class="web-badge"><i class="fas fa-globe"></i> Live web data</span>`);
-    if (thinkSecs) badges.push(`<span class="web-badge" style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.3);color:#8b5cf6;"><i class="fas fa-brain"></i> Thought for ${thinkSecs}s</span>`);
-    if (badges.length) html += '<br>' + badges.join(' ');
-    streamDiv.querySelector('.msg-bubble').innerHTML = html;
-    document.getElementById('chat-messages').scrollTop = 9999;
-  }
-
-  return { text: fullText, usedWeb, thinkSecs };
+  const data = await resp.json();
+  const result = data.result || {};
+  const fullText = result.answer || 'I could not produce an answer just now.';
+  const evidence = Array.isArray(result.evidence) && result.evidence.length
+    ? `\n\n**Based on:**\n${result.evidence.map(item => `- ${item}`).join('\n')}` : '';
+  const actions = Array.isArray(result.actions) && result.actions.length
+    ? `\n\n**Suggested next steps:**\n${result.actions.map(item => `- ${item.label}${item.requires_confirmation ? ' (confirm before doing this)' : ''}`).join('\n')}` : '';
+  const disclaimer = result.disclaimer ? `\n\n_${result.disclaimer}_` : '';
+  const thinkSecs = Math.round((Date.now() - _thinkStart) / 1000);
+  appendMsg('ai', fullText + evidence + actions + disclaimer);
+  return { text: fullText + evidence + actions + disclaimer, thinkSecs };
 }
 
 /* ─── Offline fallback (used only if the Edge Function/API call fails) ─── */
@@ -1732,7 +1666,6 @@ function printInvoiceReceipt(id) {
       Generated by Phyzelyne · ${fromName} · Payment confirmed ${dt}
     </div>
     <script>window.onload=function(){window.print();}<\/script>
-    <script src="phyzelyne-polish.js"></script>
 </body></html>`);
   win.document.close();
 }

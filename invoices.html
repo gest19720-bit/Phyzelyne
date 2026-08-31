@@ -230,6 +230,24 @@
     .swatch.active { border-color: var(--text); transform: scale(1.2); }
     .swatch:hover  { transform: scale(1.15); }
 
+    /* Document template picker */
+    .template-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .template-card { appearance:none; text-align:left; cursor:pointer; color:var(--text); background:var(--glass-dim); border:1px solid var(--glass-border); border-radius:12px; padding:11px; transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
+    .template-card:hover { transform:translateY(-2px); border-color:var(--gold-border); }
+    .template-card.active { border-color:var(--gold); box-shadow:0 0 0 2px var(--gold-dim); }
+    .template-thumb { height:54px; border-radius:7px; padding:7px; margin-bottom:8px; background:#fff; border-left:5px solid #a855f7; box-shadow:0 2px 8px rgba(0,0,0,.12); }
+    .template-thumb span { display:block; height:4px; width:58%; margin-bottom:5px; border-radius:2px; background:#273444; }
+    .template-thumb i { display:block; height:3px; width:82%; margin-bottom:4px; background:#d8dee7; }
+    .template-thumb.modern { border-left:0; border-top:7px solid #1f2937; }
+    .template-thumb.modern span { width:38%; background:#a855f7; }
+    .template-thumb.minimal { border-left:0; box-shadow:none; border:1px solid #e5e7eb; }
+    .template-thumb.minimal span { width:32%; height:3px; background:#6b7280; }
+    .template-thumb.bold { border:0; background:linear-gradient(135deg,#a855f7,#6d28d9); }
+    .template-thumb.bold span,.template-thumb.bold i { background:rgba(255,255,255,.8); }
+    .template-name { font-size:.78rem; font-weight:700; }
+    .template-description { display:block; color:var(--text-dim); font-size:.68rem; margin-top:2px; line-height:1.35; }
+    @media (max-width: 760px) { .template-grid { grid-template-columns:repeat(2,minmax(130px,1fr)); overflow-x:auto; } }
+
     /* Summary row */
     .inv-summary {
       display: flex;
@@ -405,6 +423,29 @@
       color: #fff;
       text-align: center;
     }
+
+    /* Four production-ready invoice families. The document content stays
+       identical; only the hierarchy, spacing, and visual language change. */
+    .template-modern .inv-doc-header { background:#172033; color:#fff; margin:0; padding:30px 32px 24px; }
+    .template-modern .inv-doc-company-name, .template-modern .inv-doc-title, .template-modern .inv-doc-number { color:#fff !important; }
+    .template-modern .inv-doc-company-sub, .template-modern .inv-doc-dates { color:#d8deea; }
+    .template-modern .inv-doc-parties { background:#f4f6fa; border-radius:0; margin:0; padding:24px 32px; }
+    .template-modern .inv-doc-bar { height:8px; margin:0; }
+    .template-modern .inv-doc-total-row.grand { border-radius:8px; padding:12px; background:#f4f6fa; }
+    .template-minimal { padding:10px 0 !important; }
+    .template-minimal .inv-doc-header { padding-bottom:28px; border-bottom:1px solid #e5e7eb; }
+    .template-minimal .inv-doc-bar { height:2px; margin:0; opacity:.55; }
+    .template-minimal .inv-doc-parties { padding:24px 0; background:transparent; }
+    .template-minimal .inv-doc-items-header { border-bottom-width:1px !important; }
+    .template-minimal .inv-doc-total-row.grand { border-top-width:1px; font-size:1.05rem; }
+    .template-bold { padding:0 !important; }
+    .template-bold .inv-doc-header { background:var(--template-accent, #a855f7); color:#fff; margin:0; padding:30px 32px 26px; }
+    .template-bold .inv-doc-company-name, .template-bold .inv-doc-title, .template-bold .inv-doc-number { color:#fff !important; }
+    .template-bold .inv-doc-company-sub, .template-bold .inv-doc-dates { color:rgba(255,255,255,.82); }
+    .template-bold .inv-doc-bar { display:none; }
+    .template-bold .inv-doc-parties { margin:0; padding:26px 32px; background:#fafafa; }
+    .template-bold .inv-doc-total-row.grand { padding:13px 14px; border-width:3px; }
+    .template-bold .inv-doc-footer { margin-top:24px; padding:16px 32px; font-weight:700; letter-spacing:.04em; }
 
     /* ── Invoice list ── */
     .inv-list-item {
@@ -677,6 +718,24 @@
             </div>
           </div>
 
+          <div class="form-section">
+            <div class="form-section-title"><i class="fas fa-swatchbook"></i> Choose Document Templates</div>
+            <div class="form-label" style="margin-bottom:8px;">Invoice design</div>
+            <div class="template-grid" id="invoice-template-grid">
+              <button type="button" class="template-card active" data-template="classic" onclick="setTemplate('invoice','classic',this)"><span class="template-thumb classic"><span></span><i></i><i></i></span><span class="template-name">Classic</span><span class="template-description">Polished and familiar</span></button>
+              <button type="button" class="template-card" data-template="modern" onclick="setTemplate('invoice','modern',this)"><span class="template-thumb modern"><span></span><i></i><i></i></span><span class="template-name">Modern</span><span class="template-description">Clean with a strong header</span></button>
+              <button type="button" class="template-card" data-template="minimal" onclick="setTemplate('invoice','minimal',this)"><span class="template-thumb minimal"><span></span><i></i><i></i></span><span class="template-name">Minimal</span><span class="template-description">Quiet, elegant, lightweight</span></button>
+              <button type="button" class="template-card" data-template="bold" onclick="setTemplate('invoice','bold',this)"><span class="template-thumb bold"><span></span><i></i><i></i></span><span class="template-name">Bold</span><span class="template-description">High-impact branded layout</span></button>
+            </div>
+            <div class="form-label" style="margin:16px 0 8px;">Receipt design</div>
+            <div class="template-grid" id="receipt-template-grid">
+              <button type="button" class="template-card active" data-template="classic" onclick="setTemplate('receipt','classic',this)"><span class="template-thumb classic"><span></span><i></i><i></i></span><span class="template-name">Classic</span><span class="template-description">Formal payment proof</span></button>
+              <button type="button" class="template-card" data-template="modern" onclick="setTemplate('receipt','modern',this)"><span class="template-thumb modern"><span></span><i></i><i></i></span><span class="template-name">Modern</span><span class="template-description">Compact and contemporary</span></button>
+              <button type="button" class="template-card" data-template="minimal" onclick="setTemplate('receipt','minimal',this)"><span class="template-thumb minimal"><span></span><i></i><i></i></span><span class="template-name">Minimal</span><span class="template-description">Simple and printer-friendly</span></button>
+              <button type="button" class="template-card" data-template="bold" onclick="setTemplate('receipt','bold',this)"><span class="template-thumb bold"><span></span><i></i><i></i></span><span class="template-name">Bold</span><span class="template-description">Premium receipt finish</span></button>
+            </div>
+          </div>
+
           <!-- Actions -->
           <div class="form-actions">
             <button class="btn btn-glass" onclick="saveAsDraft()">
@@ -825,6 +884,8 @@
   let logoDataUrl  = null;
   let editingId    = null;
   let lineItemCount = 0;
+  let invoiceTemplate = 'classic';
+  let receiptTemplate = 'classic';
 
   const sym = () => {
     const sel = document.getElementById('inv-currency');
@@ -881,6 +942,16 @@
     accentColor = color;
     document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
     el.classList.add('active');
+    liveUpdate();
+  }
+
+  function setTemplate(kind, template, el) {
+    const allowed = ['classic', 'modern', 'minimal', 'bold'];
+    if (!allowed.includes(template)) return;
+    if (kind === 'receipt') receiptTemplate = template;
+    else invoiceTemplate = template;
+    const grid = document.getElementById(kind + '-template-grid');
+    grid?.querySelectorAll('.template-card').forEach(card => card.classList.toggle('active', card.dataset.template === template));
     liveUpdate();
   }
 
@@ -1003,6 +1074,7 @@
         </div>`;
 
     document.getElementById('invoice-doc').innerHTML = `
+      <div class="inv-doc-shell template-${invoiceTemplate}" style="--template-accent:${accentColor};">
       <div class="inv-doc-header">
         <div class="inv-doc-brand">
           ${logoDataUrl ? `<img class="inv-doc-logo" src="${h(logoDataUrl)}" alt="Logo">` : ''}
@@ -1071,7 +1143,7 @@
 
       <div class="inv-doc-footer" style="background:${accentColor};">
         Generated by Phyzelyne · ${h(fromName)}${fromEmail ? ' · '+h(fromEmail) : ''}
-      </div>`;
+      </div></div>`;
   }
 
   // ── Collect invoice data object ───────────────────────────────────────────
@@ -1100,6 +1172,8 @@
       discountVal: parseFloat(document.getElementById('discount-val').value) || 0,
       discountType: document.getElementById('discount-type').value,
       accentColor,
+      invoiceTemplate,
+      receiptTemplate,
       logo: logoDataUrl,
       items:    t.items,
       subtotal: t.subtotal,
@@ -1148,6 +1222,8 @@
     logoDataUrl   = null;
     lineItemCount = 0;
     accentColor   = '#a855f7';
+    invoiceTemplate = 'classic';
+    receiptTemplate = 'classic';
 
     ['from-name','from-tagline','from-email','from-phone','from-address',
      'to-name','to-contact','to-email','to-phone','to-address',
@@ -1171,6 +1247,7 @@
 
     // Reset accent
     document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.color === '#a855f7'));
+    document.querySelectorAll('.template-card').forEach(card => card.classList.toggle('active', card.dataset.template === 'classic'));
 
     // Auto-fill company details from saved Business Profile
     autoFillBusinessProfile();
@@ -1192,6 +1269,8 @@
     editingId   = id;
     logoDataUrl = inv.logo || null;
     accentColor = inv.accentColor || '#d4a017';
+    invoiceTemplate = ['classic','modern','minimal','bold'].includes(inv.invoiceTemplate) ? inv.invoiceTemplate : 'classic';
+    receiptTemplate = ['classic','modern','minimal','bold'].includes(inv.receiptTemplate) ? inv.receiptTemplate : 'classic';
 
     const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
     set('from-name',    inv.fromName);
@@ -1229,6 +1308,8 @@
 
     // Accent colour
     document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.color === accentColor));
+    document.querySelectorAll('#invoice-template-grid .template-card').forEach(card => card.classList.toggle('active', card.dataset.template === invoiceTemplate));
+    document.querySelectorAll('#receipt-template-grid .template-card').forEach(card => card.classList.toggle('active', card.dataset.template === receiptTemplate));
 
     // Line items
     document.getElementById('line-items').innerHTML = '';
@@ -1337,6 +1418,7 @@
       currency:   inv.currency,
       paidAt:     inv.paidAt || new Date().toISOString(),
       accentColor: inv.accentColor || '#d4a017',
+      receiptTemplate: inv.receiptTemplate || 'classic',
       items:      inv.items,
       notes:      inv.notes,
     };
@@ -1387,7 +1469,8 @@
     const win = window.open('', '_blank');
     if (!win) { showToast('Allow pop-ups to print this receipt.', 'error'); return; }
     const h = value => escapeHtml(value || '—');
-    win.document.write(`<!DOCTYPE html><html><head><title>Receipt ${r.invoiceNum}</title>
+    const receiptStyle = ['classic','modern','minimal','bold'].includes(r.receiptTemplate) ? r.receiptTemplate : 'classic';
+    win.document.write(`<!DOCTYPE html><html><head><title>Receipt ${h(r.invoiceNum)}</title>
       <style>
         body{font-family:'Inter Display','Inter',sans-serif;color:#1a1a1a;margin:0;padding:40px;background:#fff;}
         .bar{height:4px;background:${r.accentColor||'#d4a017'};margin-bottom:32px;}
@@ -1406,7 +1489,11 @@
         .tr.grand{border-top:2px solid ${r.accentColor||'#d4a017'};margin-top:6px;padding-top:8px;font-weight:700;font-size:1rem;color:#1a1a1a;}
         .footer{text-align:center;font-size:0.72rem;color:#fff;background:${r.accentColor||'#d4a017'};padding:12px;margin-top:32px;border-radius:4px;}
         .paid-stamp{display:inline-block;border:3px solid #27ae60;color:#27ae60;border-radius:4px;padding:4px 14px;font-size:1.1rem;font-weight:900;letter-spacing:0.1em;transform:rotate(-12deg);margin-bottom:20px;}
-      </style></head><body>
+        body.modern .bar{height:9px;border-radius:0 0 8px 8px;margin:-40px -40px 32px;} body.modern .parties{background:#eef2f7;border-radius:0;border-left:5px solid ${r.accentColor||'#d4a017'};}
+        body.minimal{padding:32px;} body.minimal .bar{height:2px;margin-bottom:28px;} body.minimal .parties{background:#fff;border-top:1px solid #eee;border-bottom:1px solid #eee;border-radius:0;padding:18px 0;} body.minimal .footer{background:#fff;color:#777;border-top:1px solid #eee;border-radius:0;}
+        body.bold .bar{height:96px;margin:-40px -40px 28px;background:${r.accentColor||'#d4a017'} !important;} body.bold h1{font-size:2.2rem;} body.bold .parties{background:${r.accentColor||'#d4a017'};color:#fff;} body.bold .parties .label,body.bold .parties .name,body.bold .parties div{color:#fff !important;} body.bold .footer{font-weight:700;letter-spacing:.04em;}
+        @media(max-width:600px){body{padding:24px 18px}.parties{grid-template-columns:1fr;gap:14px}table{font-size:.76rem}.total-box{width:100%;max-width:260px}}
+      </style></head><body class="${receiptStyle}">
       <div class="bar"></div>
       <h1>Receipt</h1>
       <div class="meta">Receipt ID: ${h(r.id)} · Invoice: ${h(r.invoiceNum)} · ${dt}</div>

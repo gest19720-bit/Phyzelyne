@@ -1888,6 +1888,22 @@ canvas { max-width: 100%; }
     row-gap: 4px;
   }
 }
+
+/* Prevent iOS Safari from auto-zooming the whole page when a form control
+   receives focus. Safari zooms controls below 16px; keeping the text size at
+   the platform's readable minimum fixes the jump without disabling pinch zoom
+   or reducing accessibility. */
+@media (max-width: 768px) {
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  button, a, [role="button"] { touch-action: manipulation; }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea,
+  .form-input {
+    font-size: 16px !important;
+  }
+}
+
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr !important; }
   #data-stats { grid-template-columns: 1fr !important; }
@@ -2182,3 +2198,85 @@ canvas { max-width: 100%; }
     bottom: 96px;
   }
 }
+
+/* ─── iOS-inspired visual system ────────────────────────────────────────
+   Shared override: system typography, grouped surfaces, Apple-blue actions,
+   soft borders, and safe-area-aware navigation. This remains web-native and
+   does not depend on Apple-only APIs. */
+:root {
+  --gold: #007aff;
+  --gold-light: #5ac8fa;
+  --gold-dim: rgba(0,122,255,.11);
+  --gold-border: rgba(0,122,255,.26);
+  --accent-rgb: 0,122,255;
+  --bg: #f2f2f7;
+  --bg2: #e5e5ea;
+  --surface: #ffffff;
+  --off-white: #ffffff;
+  --text: #1c1c1e;
+  --text-mid: #636366;
+  --text-dim: #8e8e93;
+  --glass: rgba(255,255,255,.88);
+  --glass-heavy: rgba(255,255,255,.96);
+  --glass-dim: rgba(255,255,255,.68);
+  --glass-border: rgba(60,60,67,.16);
+  --glass-edge: rgba(60,60,67,.22);
+  --glass-shine: rgba(255,255,255,.72);
+  --glass-liquid: rgba(255,255,255,.64);
+  --red: #ff3b30;
+  --red-dim: rgba(255,59,48,.11);
+  --green: #34c759;
+  --green-dim: rgba(52,199,89,.12);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --blur: blur(24px) saturate(180%);
+  --shadow: 0 8px 24px rgba(60,60,67,.08);
+  --shadow-lg: 0 14px 38px rgba(60,60,67,.12);
+  --transition: .22s cubic-bezier(.2,.8,.2,1);
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+}
+
+html, body { background: var(--bg); }
+body { font-family: var(--font-body); letter-spacing: -.01em; }
+body::before, body::after { opacity: .18; filter: blur(8px); }
+.sidebar { background: rgba(255,255,255,.78); border-right-color: rgba(60,60,67,.13); box-shadow: 4px 0 18px rgba(60,60,67,.04); }
+.sidebar-logo-text, .page-header h1, .section-title, .modal h2 { font-family: var(--font-display); letter-spacing: -.035em; }
+.glass-card, .stat-card, .settings-card, .form-panel, .preview-wrap, .modal { border-color: rgba(60,60,67,.12); box-shadow: var(--shadow); }
+.glass-card:hover, .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.form-input { background: rgba(255,255,255,.72); border-color: rgba(60,60,67,.18); box-shadow: inset 0 1px 0 rgba(255,255,255,.9); }
+.form-input:focus { background: #fff; border-color: rgba(0,122,255,.55); box-shadow: 0 0 0 4px rgba(0,122,255,.13); transform: none; }
+.btn-gold { background: #007aff; color: #fff; border-color: #007aff; box-shadow: 0 4px 12px rgba(0,122,255,.22); }
+.btn-gold:hover { background: #006ee6; border-color: #006ee6; transform: translateY(-1px); }
+.btn-glass { background: rgba(255,255,255,.72); border-color: rgba(60,60,67,.16); color: var(--text); }
+.btn-glass:hover { background: rgba(0,122,255,.09); border-color: var(--gold-border); color: var(--gold); }
+.type-btn.active, .period-tab.active { background: var(--gold-dim); border-color: var(--gold-border); color: var(--gold); }
+.bottom-nav { background: rgba(255,255,255,.78); border-color: rgba(60,60,67,.16); box-shadow: 0 8px 30px rgba(60,60,67,.13); backdrop-filter: blur(22px) saturate(180%); -webkit-backdrop-filter: blur(22px) saturate(180%); }
+.bottom-nav-item { color: #8e8e93; }
+.bottom-nav-item.active { color: #007aff; }
+.bottom-nav-item.active::before, .bottom-nav-item.active::after { background: rgba(0,122,255,.11); }
+.toast { border-radius: 14px; box-shadow: 0 8px 24px rgba(60,60,67,.18); }
+
+html.dark-pre, html.dark-pre body, body.dark {
+  --bg: #000000;
+  --bg2: #1c1c1e;
+  --surface: #1c1c1e;
+  --off-white: #000000;
+  --text: #f2f2f7;
+  --text-mid: #aeaeb2;
+  --text-dim: #8e8e93;
+  --glass: rgba(28,28,30,.9);
+  --glass-heavy: rgba(28,28,30,.97);
+  --glass-dim: rgba(255,255,255,.08);
+  --glass-border: rgba(235,235,245,.18);
+  --glass-edge: rgba(235,235,245,.24);
+  --glass-shine: rgba(255,255,255,.08);
+  --glass-liquid: rgba(255,255,255,.1);
+  --gold: #0a84ff;
+  --gold-dim: rgba(10,132,255,.18);
+  --gold-border: rgba(10,132,255,.38);
+  --red: #ff453a;
+  --green: #30d158;
+}
+html.dark-pre .sidebar, body.dark .sidebar { background: rgba(28,28,30,.9); border-right-color: rgba(235,235,245,.14); }
+html.dark-pre .bottom-nav, body.dark .bottom-nav { background: rgba(28,28,30,.82); border-color: rgba(235,235,245,.18); }

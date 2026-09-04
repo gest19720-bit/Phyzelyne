@@ -691,31 +691,30 @@
 <!-- Global Broadcast In-App Banner -->
 <div id="admin-global-broadcast-banner"></div>
 
-<!-- Executive Security Gate / Access Guard Overlay -->
+<!-- Supabase role-based access guard -->
 <div id="admin-security-gate" class="admin-modal-overlay" style="display:flex; z-index:999999; background:rgba(9,9,11,0.96); backdrop-filter:blur(24px);">
   <div class="admin-modal" style="max-width:440px; text-align:center; border:1px solid rgba(217,165,33,0.35); box-shadow:0 30px 80px rgba(0,0,0,0.7);">
     <div style="padding:36px 28px 24px 28px;">
       <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg, rgba(217,165,33,0.2), rgba(217,165,33,0.05)); border:1px solid var(--gold-border); display:flex; align-items:center; justify-content:center; margin:0 auto 20px auto; color:var(--gold-light); font-size:1.8rem;">
         <i class="fas fa-shield-halved"></i>
       </div>
-      <h2 style="font-family:var(--font-display); font-size:1.45rem; color:var(--text); margin-bottom:8px;">Executive Clearance Required</h2>
+      <h2 style="font-family:var(--font-display); font-size:1.45rem; color:var(--text); margin-bottom:8px;">Administrator access required</h2>
       <p style="font-size:0.82rem; color:var(--text-mid); line-height:1.5; margin-bottom:24px;">
-        This telemetry console contains confidential metrics, live Supabase queries, Gmail threads, and user rosters restricted to Phyzelyne Founders & CTO.
+        Your Supabase session does not have an administrator role. Access is controlled by Supabase authentication and row-level security.
       </p>
-
-      <form onsubmit="event.preventDefault(); AdminStore.authenticateAdminPasscode();">
-        <div class="admin-input-group" style="text-align:left; margin-bottom:16px;">
-          <label class="admin-label" style="font-size:0.72rem;"><i class="fas fa-key"></i> Master CTO Key / Passcode</label>
-          <input type="password" id="admin-gate-passcode" class="admin-input" placeholder="Enter executive master key..." autocomplete="current-password" autofocus style="text-align:center; letter-spacing:0.1em; font-family:var(--admin-font-mono);">
-          <div id="gate-error-msg" style="color:var(--admin-rose); font-size:0.75rem; margin-top:6px; display:none;">
-            <i class="fas fa-circle-exclamation"></i> Invalid key. Clearance rejected.
-          </div>
+      <form onsubmit="event.preventDefault(); AdminStore.loginAdmin();" style="text-align:left;">
+        <div class="admin-input-group" style="margin-bottom:12px;">
+          <label class="admin-label" for="admin-login-email">Administrator email</label>
+          <input type="email" id="admin-login-email" class="admin-input" autocomplete="username" required placeholder="you@example.com">
         </div>
-
-        <button type="submit" class="btn btn-gold btn-sm" style="width:100%; padding:12px; justify-content:center; font-size:0.88rem; margin-bottom:10px;">
-          <i class="fas fa-unlock"></i> Authenticate & Unlock
+        <div class="admin-input-group" style="margin-bottom:8px;">
+          <label class="admin-label" for="admin-login-password">Supabase password</label>
+          <input type="password" id="admin-login-password" class="admin-input" autocomplete="current-password" required minlength="8" placeholder="Your Supabase account password">
+        </div>
+        <div id="gate-error-msg" style="color:var(--admin-rose); font-size:0.75rem; margin:8px 0 12px; display:none;"></div>
+        <button type="submit" id="admin-login-submit" class="btn btn-gold btn-sm" style="width:100%; padding:12px; justify-content:center; font-size:0.88rem; margin-bottom:10px;">
+          <i class="fas fa-right-to-bracket"></i> Sign in to Admin Console
         </button>
-
         <a href="dashboard.html" class="btn btn-glass btn-sm" style="width:100%; padding:10px; justify-content:center; font-size:0.82rem;">
           <i class="fas fa-arrow-left"></i> Return to Main App
         </a>
@@ -763,7 +762,7 @@
         <!-- Live Sessions -->
         <div style="background:rgba(255,255,255,0.04); border:1px solid var(--border); padding:6px 12px; border-radius:10px; display:flex; align-items:center; gap:8px;">
           <span style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase; font-weight:700;">Live Session</span>
-          <span style="font-family:var(--admin-font-mono); font-size:0.95rem; font-weight:800; color:var(--gold-light);" id="live-online-count">1</span>
+<span style="font-family:var(--admin-font-mono); font-size:0.95rem; font-weight:800; color:var(--gold-light);" id="live-online-count">—</span>
         </div>
 
         <!-- Quick Actions -->
@@ -786,7 +785,7 @@
       <div class="ticker-item"><i class="fas fa-gauge-high" style="color:var(--admin-cyan);"></i> <strong>LATENCY:</strong> <span id="ticker-latency-val">-- ms</span></div>
       <div class="ticker-item"><i class="fas fa-server" style="color:var(--admin-emerald);"></i> <strong>DB HEALTH:</strong> <span class="ticker-up" id="ticker-health-val">Sync Active</span></div>
       <div class="ticker-item"><i class="fas fa-arrows-spin" style="color:var(--gold);"></i> <strong>TOTAL RECORDS:</strong> <span id="ticker-total-records-val">0 Rows</span></div>
-      <div class="ticker-item"><i class="fab fa-google" style="color:#ea4335;"></i> <strong>GMAIL / CONTACT:</strong> founders@phyzelyne.com</div>
+<div class="ticker-item"><i class="fas fa-database" style="color:#6fe3a8;"></i> <strong>DATA SOURCE:</strong> Supabase session</div>
     </div>
 
     <!-- Navigation Tabs -->
@@ -824,7 +823,7 @@
       <div class="admin-metrics-grid">
         <div class="admin-metric-card gold">
           <div class="metric-top">
-            <span class="metric-label">Total Registered Users</span>
+            <span class="metric-label">Registered Users</span>
             <div class="metric-icon-wrap gold"><i class="fas fa-user-plus"></i></div>
           </div>
           <div class="metric-val" id="metric-total-users">0</div>
@@ -833,7 +832,7 @@
 
         <div class="admin-metric-card emerald">
           <div class="metric-top">
-            <span class="metric-label">Active Users / Cohorts</span>
+            <span class="metric-label">Active Users</span>
             <div class="metric-icon-wrap emerald"><i class="fas fa-fire"></i></div>
           </div>
           <div class="metric-val" id="metric-dau">0</div>
@@ -842,7 +841,7 @@
 
         <div class="admin-metric-card cyan">
           <div class="metric-top">
-            <span class="metric-label">Product NPS / CSAT</span>
+            <span class="metric-label">Feedback Score</span>
             <div class="metric-icon-wrap cyan"><i class="fas fa-star"></i></div>
           </div>
           <div class="metric-val" id="metric-nps">N/A</div>
@@ -851,16 +850,16 @@
 
         <div class="admin-metric-card rose">
           <div class="metric-top">
-            <span class="metric-label">Inbound Inquiries / Gmail</span>
+            <span class="metric-label">External Inbox</span>
             <div class="metric-icon-wrap rose"><i class="fas fa-envelope"></i></div>
           </div>
           <div class="metric-val" id="metric-unread-emails">0</div>
-          <div class="metric-sub"><span>founders@phyzelyne.com</span></div>
+            <div class="metric-sub"><span>No inbox integration connected</span></div>
         </div>
 
         <div class="admin-metric-card purple">
           <div class="metric-top">
-            <span class="metric-label">Enterprise Demo Pipeline</span>
+            <span class="metric-label">External Demo Pipeline</span>
             <div class="metric-icon-wrap purple"><i class="fas fa-handshake"></i></div>
           </div>
           <div class="metric-val" id="metric-demos-pipeline">0 Booked</div>
@@ -869,7 +868,7 @@
 
         <div class="admin-metric-card emerald">
           <div class="metric-top">
-            <span class="metric-label">Supabase DB Sync</span>
+            <span class="metric-label">Supabase Records</span>
             <div class="metric-icon-wrap emerald"><i class="fas fa-database"></i></div>
           </div>
           <div class="metric-val" id="metric-sb-records">0 Rows</div>
@@ -883,7 +882,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <div>
               <h3 style="font-family:var(--font-display); font-size:1.1rem; color:var(--text);">User Activity & Transaction Volume Trend</h3>
-              <p style="font-size:0.75rem; color:var(--text-dim);">Real-time activity recorded in Supabase transactions & settings</p>
+          <p style="font-size:0.75rem; color:var(--text-dim);">Transaction records returned by the current Supabase session</p>
             </div>
             <span class="tier-badge pro" id="chart-growth-badge"><i class="fas fa-chart-line"></i> Real-time Ingestion</span>
           </div>
@@ -953,7 +952,7 @@
             <input type="text" id="sb-config-url" class="admin-input" placeholder="https://your-project.supabase.co" style="font-family:var(--admin-font-mono); font-size:0.8rem;">
           </div>
           <div class="admin-input-group" style="margin-bottom:0;">
-            <label class="admin-label">Supabase Anon / Service Key</label>
+            <label class="admin-label">Supabase publishable key</label>
             <div style="position:relative;">
               <input type="password" id="sb-config-key" class="admin-input" placeholder="sb_publishable_..." style="font-family:var(--admin-font-mono); font-size:0.8rem; padding-right:36px;">
               <i class="fas fa-eye" id="toggle-sb-key-eye" style="position:absolute; right:12px; top:12px; color:var(--text-dim); cursor:pointer;" onclick="AdminStore.toggleSbKeyVisibility()"></i>
@@ -1036,7 +1035,7 @@
               <option value="enterprise">Enterprise</option>
               <option value="founder">Founder VIP</option>
               <option value="pro">Pro</option>
-              <option value="free">Free Beta</option>
+              <option value="free">Free</option>
             </select>
 
             <select id="user-status-filter" class="admin-select" style="width:120px; height:36px; font-size:0.8rem;" onchange="AdminStore.renderUsersTable()">
@@ -1140,7 +1139,7 @@
           <div style="padding:8px; border-bottom:1px solid var(--border); margin-bottom:6px;">
             <div style="font-size:0.68rem; color:var(--text-dim); text-transform:uppercase;">Connected Mailbox</div>
             <div style="font-size:0.78rem; color:var(--gold-light); font-family:var(--admin-font-mono); margin-top:2px; word-break:break-all;">
-              founders@phyzelyne.com
+              Not connected
             </div>
           </div>
 
@@ -1294,7 +1293,7 @@
 
         <div class="admin-input-group">
           <label class="admin-label">Announcement Message</label>
-          <input type="text" id="broadcast-input-text" class="admin-input" placeholder="e.g. 🚀 Welcome to Phyzelyne Beta! Real-time Multi-Currency & Invoicing is live.">
+<input type="text" id="broadcast-input-text" class="admin-input" placeholder="Write an announcement for authenticated app users">
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;">
@@ -1374,7 +1373,7 @@
     <div class="admin-input-group">
       <label class="admin-label">Account Tier</label>
       <select id="drawer-tier-select" class="admin-select">
-        <option value="free">Free Beta</option>
+<option value="free">Free</option>
         <option value="pro">Pro Tier</option>
         <option value="enterprise">Enterprise</option>
         <option value="founder">Founder VIP</option>
@@ -1546,27 +1545,34 @@ const AdminStore = {
   feedback: [],
   demos: [],
   tableCounts: {
-    transactions: 0,
-    settings: 0,
-    invoices: 0,
-    goals: 0,
-    receipts: 0
+    transactions: null,
+    settings: null,
+    invoices: null,
+    goals: null,
+    receipts: null,
+    feedback_posts: null,
+    feedback_comments: null,
+    feedback_votes: null
   },
+  tableErrors: {},
+  lastRefreshAt: null,
+  realtimeStatus: 'CONNECTING',
+  refreshInFlight: null,
+  refreshQueued: false,
   liveTableRows: [],
   liveTransactions: [],
   liveSettings: [],
   liveInvoices: [],
   liveGoals: [],
   liveReceipts: [],
+  liveFeedbackPosts: [],
+  liveFeedbackComments: [],
+  liveFeedbackVotes: [],
 
   async init() {
     this.checkSecurityGate();
     this.initSupabaseClient();
-    this.loadLocalState();
     this.bindEvents();
-    this.checkGlobalBroadcast();
-    
-    // Initial fetch of real data
     await this.refreshAllRealtimeData();
     this.startRealtimePulse();
   },
@@ -1600,8 +1606,12 @@ const AdminStore = {
           .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => this.refreshAllRealtimeData())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => this.refreshAllRealtimeData())
           .on('postgres_changes', { event: '*', schema: 'public', table: 'goals' }, () => this.refreshAllRealtimeData())
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'receipts' }, () => this.refreshAllRealtimeData())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'receipts' }, () => this.scheduleRealtimeRefresh())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_posts' }, () => this.scheduleRealtimeRefresh())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_comments' }, () => this.scheduleRealtimeRefresh())
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback_votes' }, () => this.scheduleRealtimeRefresh())
           .subscribe((status) => {
+            this.realtimeStatus = status;
             const tickerHealth = document.getElementById('ticker-health-val');
             const sysCluster = document.getElementById('sys-cluster-status');
             const pulse = document.getElementById('header-telemetry-pulse');
@@ -1609,6 +1619,10 @@ const AdminStore = {
               if (tickerHealth) tickerHealth.textContent = 'Realtime WebSocket Active';
               if (sysCluster) sysCluster.textContent = 'Realtime Connected';
               if (pulse) pulse.classList.remove('disconnected');
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+              if (tickerHealth) tickerHealth.textContent = `Realtime ${status.toLowerCase().replace('_',' ')}`;
+              if (sysCluster) sysCluster.textContent = 'Realtime unavailable';
+              if (pulse) pulse.classList.add('disconnected');
             }
           });
       }
@@ -1691,87 +1705,99 @@ const AdminStore = {
 
   // ── Load Real State from DB & Storage ──
   loadLocalState() {
-    try {
-      this.users = JSON.parse(localStorage.getItem(this.STORAGE_KEY_USERS) || '[]');
-      this.emails = JSON.parse(localStorage.getItem(this.STORAGE_KEY_EMAILS) || '[]');
-      this.feedback = JSON.parse(localStorage.getItem(this.STORAGE_KEY_FEEDBACK) || '[]');
-      this.demos = JSON.parse(localStorage.getItem(this.STORAGE_KEY_DEMOS) || '[]');
-      if (this.emails.length > 0 && !this.selectedThreadId) {
-        this.selectedThreadId = this.emails[0].id;
-      }
-    } catch (e) {
-      console.warn('[Admin] Local state parse error:', e);
-    }
+    // Deliberately disabled: Supabase is the only source of truth for this console.
+    this.users = [];
+    this.emails = [];
+    this.feedback = [];
+    this.demos = [];
   },
 
   saveLocalState() {
-    try {
-      localStorage.setItem(this.STORAGE_KEY_USERS, JSON.stringify(this.users));
-      localStorage.setItem(this.STORAGE_KEY_EMAILS, JSON.stringify(this.emails));
-      localStorage.setItem(this.STORAGE_KEY_FEEDBACK, JSON.stringify(this.feedback));
-      localStorage.setItem(this.STORAGE_KEY_DEMOS, JSON.stringify(this.demos));
-    } catch (e) {
-      console.warn('[Admin] Failed to save state to localStorage:', e);
-    }
+    // Deliberately disabled: admin edits must be implemented through authorized Supabase writes.
   },
 
   // ── Master Real-Time Data Ingestion ──
   async refreshAllRealtimeData() {
-    const startTime = performance.now();
-    let totalRows = 0;
-
-    if (this.sbClient) {
+    if (this.refreshInFlight) { this.refreshQueued = true; return this.refreshInFlight; }
+    this.refreshInFlight = (async () => {
+      const startTime = performance.now();
+      if (!this.sbClient) throw new Error('Supabase client is not available.');
       try {
-        const [txRes, stRes, invRes, goRes, recRes] = await Promise.allSettled([
-          this.sbClient.from('transactions').select('*').order('date', { ascending: false }).limit(200),
-          this.sbClient.from('settings').select('*').limit(100),
-          this.sbClient.from('invoices').select('*').order('created_at', { ascending: false }).limit(100),
-          this.sbClient.from('goals').select('*').limit(100),
-          this.sbClient.from('receipts').select('*').order('created_at', { ascending: false }).limit(100)
-        ]);
-
-        this.liveTransactions = (txRes.status === 'fulfilled' && txRes.value.data) ? txRes.value.data : (typeof Store !== 'undefined' ? Store.getTransactions() : []);
-        this.liveSettings = (stRes.status === 'fulfilled' && stRes.value.data) ? stRes.value.data : [];
-        this.liveInvoices = (invRes.status === 'fulfilled' && invRes.value.data) ? invRes.value.data : (typeof Store !== 'undefined' ? Store.getInvoices() : []);
-        this.liveGoals = (goRes.status === 'fulfilled' && goRes.value.data) ? goRes.value.data : (typeof Store !== 'undefined' ? Store.getGoals() : []);
-        this.liveReceipts = (recRes.status === 'fulfilled' && recRes.value.data) ? recRes.value.data : (typeof Store !== 'undefined' ? Store.getReceipts() : []);
-
-        this.tableCounts.transactions = this.liveTransactions.length;
-        this.tableCounts.settings = this.liveSettings.length;
-        this.tableCounts.invoices = this.liveInvoices.length;
-        this.tableCounts.goals = this.liveGoals.length;
-        this.tableCounts.receipts = this.liveReceipts.length;
-
-        totalRows = this.liveTransactions.length + this.liveSettings.length + this.liveInvoices.length + this.liveGoals.length + this.liveReceipts.length;
-
-        // Build authentic user directory from database records
-        this.buildRealUserDirectory();
-
-        const latency = Math.round(performance.now() - startTime);
+      const specs = {
+        transactions: q => q.from('transactions').select('*').order('date', { ascending: false }).limit(200),
+        settings: q => q.from('settings').select('*').limit(100),
+        invoices: q => q.from('invoices').select('*').order('created_at', { ascending: false }).limit(100),
+        goals: q => q.from('goals').select('*').limit(100),
+        receipts: q => q.from('receipts').select('*').order('created_at', { ascending: false }).limit(100),
+        feedback_posts: q => q.from('feedback_posts').select('*').order('created_at', { ascending: false }).limit(200),
+        feedback_comments: q => q.from('feedback_comments').select('*').order('created_at', { ascending: false }).limit(500),
+        feedback_votes: q => q.from('feedback_votes').select('*').limit(500)
+      };
+      const results = await Promise.all(Object.entries(specs).map(async ([table, run]) => [table, await run(this.sbClient)]));
+      this.tableErrors = {};
+      for (const [table, result] of results) {
+        if (result.error) {
+          this.tableCounts[table] = null;
+          this.tableErrors[table] = result.error.message;
+          if (table === 'transactions') this.liveTransactions = [];
+          if (table === 'settings') this.liveSettings = [];
+          if (table === 'invoices') this.liveInvoices = [];
+          if (table === 'goals') this.liveGoals = [];
+          if (table === 'receipts') this.liveReceipts = [];
+          if (table === 'feedback_posts') { this.liveFeedbackPosts = []; this.feedback = []; }
+          if (table === 'feedback_comments') this.liveFeedbackComments = [];
+          if (table === 'feedback_votes') this.liveFeedbackVotes = [];
+          continue;
+        }
+        this.tableCounts[table] = result.data?.length ?? 0;
+        if (table === 'transactions') this.liveTransactions = result.data || [];
+        if (table === 'settings') this.liveSettings = result.data || [];
+        if (table === 'invoices') this.liveInvoices = result.data || [];
+        if (table === 'goals') this.liveGoals = result.data || [];
+        if (table === 'receipts') this.liveReceipts = result.data || [];
+        if (table === 'feedback_posts') { this.liveFeedbackPosts = result.data || []; this.feedback = this.liveFeedbackPosts; }
+        if (table === 'feedback_comments') this.liveFeedbackComments = result.data || [];
+        if (table === 'feedback_votes') this.liveFeedbackVotes = result.data || [];
+      }
+      this.lastRefreshAt = new Date();
+      const latency = Math.round(performance.now() - startTime);
+      const totalRows = Object.values(this.tableCounts).reduce((sum, n) => sum + (Number.isFinite(n) ? n : 0), 0);
         const pillText = document.getElementById('supabase-pill-text');
         const pill = document.getElementById('supabase-header-pill');
         const tickerLatency = document.getElementById('ticker-latency-val');
         const sysLatency = document.getElementById('sys-latency-val');
         const tickerSb = document.getElementById('ticker-sb-status');
 
-        if (pillText) pillText.textContent = `Supabase: Connected (${latency}ms)`;
+        if (pillText) pillText.textContent = Object.keys(this.tableErrors).length ? `Supabase: Partial access (${latency}ms)` : `Supabase: Connected (${latency}ms)`;
         if (pill) pill.classList.remove('disconnected');
         if (tickerLatency) tickerLatency.textContent = `${latency}ms`;
         if (sysLatency) sysLatency.textContent = `${latency}ms`;
-        if (tickerSb) tickerSb.textContent = `Connected (${totalRows} live rows)`;
+        if (tickerSb) tickerSb.textContent = `${Object.keys(this.tableErrors).length ? 'Partial access' : 'Connected'} (${totalRows} live rows)`;
       } catch (err) {
-        console.warn('[Admin] Live refresh error:', err);
+        this.setLiveError(err.message || 'Unable to read Supabase.');
+      } finally {
+        this.refreshInFlight = null;
+        if (this.refreshQueued) { this.refreshQueued = false; this.refreshAllRealtimeData(); }
       }
-    }
+      Object.keys(this.tableCounts).forEach(tbl => { const el = document.getElementById(`sb-count-${tbl}`); if (el) el.textContent = this.tableCounts[tbl] == null ? '—' : this.tableCounts[tbl]; });
+      this.renderAll();
+    })();
+    return this.refreshInFlight;
+  },
 
-    // Update table count pills
-    ['transactions', 'settings', 'invoices', 'goals', 'receipts'].forEach(tbl => {
-      const el = document.getElementById(`sb-count-${tbl}`);
-      if (el) el.textContent = this.tableCounts[tbl] || 0;
-    });
+  setLiveError(message) {
+    this.tableErrors = { _connection: message };
+    const pill = document.getElementById('supabase-header-pill');
+    const pillText = document.getElementById('supabase-pill-text');
+    if (pill) pill.classList.add('disconnected');
+    if (pillText) pillText.textContent = 'Supabase: Unavailable';
+    const status = document.getElementById('sb-connection-status-text');
+    if (status) status.textContent = `Live data unavailable: ${message}`;
+  },
 
-    // Update real metrics and views
-    this.renderAll();
+  scheduleRealtimeRefresh() {
+    clearTimeout(this._realtimeRefreshTimer);
+    this._realtimeRefreshTimer = setTimeout(() => this.refreshAllRealtimeData(), 250);
   },
 
   buildRealUserDirectory() {
@@ -1798,7 +1824,8 @@ const AdminStore = {
 
     // 2. Map all settings rows
     this.liveSettings.forEach(s => {
-      const uid = s.user_id || s.id || 'usr_' + Math.random().toString(36).substr(2, 6);
+      const uid = s.user_id || s.id;
+      if (!uid) return;
       const existing = userMap.get(uid) || {};
       userMap.set(uid, {
         id: uid,
@@ -1891,39 +1918,19 @@ const AdminStore = {
   },
 
   renderMetricsSummary() {
-    const totalUsers = this.users.length;
-    const totalRecords = this.tableCounts.transactions + this.tableCounts.settings + this.tableCounts.invoices + this.tableCounts.goals + this.tableCounts.receipts;
-    const unreadEmails = this.emails.filter(e => e.unread).length;
-    const confirmedDemos = this.demos.filter(d => d.status === 'confirmed');
+    const totalUsers = null;
+    const totalRecords = Object.values(this.tableCounts).every(Number.isFinite) ? Object.values(this.tableCounts).reduce((a, b) => a + b, 0) : null;
+    const unreadEmails = null;
+    const confirmedDemos = [];
 
     // Calculate real ARR pipeline from booked demos
-    let totalARR = 0;
-    this.demos.forEach(d => {
-      if (d.dealARR) {
-        const num = parseFloat(d.dealARR.replace(/[^0-9.]/g, ''));
-        if (!isNaN(num)) totalARR += num;
-      }
-    });
+    const totalARR = null;
 
     // Calculate real NPS score
-    let npsDisplay = 'N/A';
-    let npsSub = `${this.feedback.length} submissions`;
-    let avgRating = '0.0 / 5.0';
-    let triageRate = '0%';
-
-    if (this.feedback.length > 0) {
-      const promoters = this.feedback.filter(f => f.rating >= 4).length;
-      const detractors = this.feedback.filter(f => f.rating <= 2).length;
-      const score = Math.round(((promoters - detractors) / this.feedback.length) * 100);
-      npsDisplay = (score >= 0 ? `+${score}` : `${score}`) + ' NPS';
-      
-      const sumRatings = this.feedback.reduce((acc, f) => acc + (Number(f.rating) || 5), 0);
-      avgRating = (sumRatings / this.feedback.length).toFixed(1) + ' / 5.0';
-
-      const resolved = this.feedback.filter(f => f.status === 'resolved' || f.reply).length;
-      triageRate = Math.round((resolved / this.feedback.length) * 100) + '%';
-      npsSub = `${promoters}/${this.feedback.length} Promoters`;
-    }
+    const npsDisplay = 'N/A';
+    const npsSub = this.tableCounts.feedback_posts == null ? 'Feedback source unavailable' : `${this.feedback.length} posts; no rating data`;
+    const avgRating = 'N/A';
+    const triageRate = 'N/A';
 
     // Update KPI card DOM elements
     const elTotalUsers = document.getElementById('metric-total-users');
@@ -1936,15 +1943,15 @@ const AdminStore = {
     const elSbRecords = document.getElementById('metric-sb-records');
     const elSbRecordsSub = document.getElementById('metric-sb-records-sub');
 
-    if (elTotalUsers) elTotalUsers.textContent = totalUsers.toLocaleString();
-    if (elDau) elDau.textContent = this.users.filter(u => u.status === 'active').length.toLocaleString();
+    if (elTotalUsers) elTotalUsers.textContent = 'Unavailable';
+    if (elDau) elDau.textContent = 'Unavailable';
     if (elNps) elNps.textContent = npsDisplay;
     if (elNpsSub) elNpsSub.innerHTML = `<span class="ticker-up"><i class="fas fa-heart"></i> ${npsSub}</span>`;
-    if (elUnreadEmails) elUnreadEmails.textContent = unreadEmails;
-    if (elDemos) elDemos.textContent = `${confirmedDemos.length} Booked`;
-    if (elDemosArr) elDemosArr.textContent = `$${totalARR.toLocaleString()} ARR Pipeline`;
-    if (elSbRecords) elSbRecords.textContent = `${totalRecords.toLocaleString()} Rows`;
-    if (elSbRecordsSub) elSbRecordsSub.innerHTML = `<span class="ticker-up">5 tables synchronized</span>`;
+    if (elUnreadEmails) elUnreadEmails.textContent = 'Not connected';
+    if (elDemos) elDemos.textContent = 'Not connected';
+    if (elDemosArr) elDemosArr.textContent = 'No source configured';
+    if (elSbRecords) elSbRecords.textContent = totalRecords == null ? 'Partial' : `${totalRecords.toLocaleString()} Rows`;
+    if (elSbRecordsSub) elSbRecordsSub.innerHTML = `<span>${Object.keys(this.tableErrors).length ? 'Some tables unavailable' : 'Live table reads complete'}</span>`;
 
     // Feedback hub specific cards
     const hubNps = document.getElementById('nps-hub-score');
@@ -1952,27 +1959,27 @@ const AdminStore = {
     const hubAvg = document.getElementById('nps-hub-avg');
     const hubTriage = document.getElementById('nps-hub-triage');
     if (hubNps) hubNps.textContent = npsDisplay;
-    if (hubSub) hubSub.textContent = `${this.feedback.length} verified submissions`;
-    if (hubAvg) hubAvg.textContent = avgRating;
-    if (hubTriage) hubTriage.textContent = triageRate;
+    if (hubSub) hubSub.textContent = `${this.tableCounts.feedback_posts == null ? 'Feedback table unavailable' : `${this.feedback.length} posts`}`;
+    if (hubAvg) hubAvg.textContent = this.tableCounts.feedback_posts == null ? 'Unavailable' : avgRating;
+    if (hubTriage) hubTriage.textContent = this.tableCounts.feedback_posts == null ? 'Unavailable' : triageRate;
 
     // Badges in navigation tabs
     const bUsers = document.getElementById('badge-count-users');
     const bFb = document.getElementById('badge-count-feedback');
     const bGm = document.getElementById('badge-count-gmail');
     const bDm = document.getElementById('badge-count-demos');
-    if (bUsers) bUsers.textContent = totalUsers;
-    if (bFb) bFb.textContent = this.feedback.length;
-    if (bGm) bGm.textContent = unreadEmails;
-    if (bDm) bDm.textContent = confirmedDemos.length;
+    if (bUsers) bUsers.textContent = '—';
+    if (bFb) bFb.textContent = this.tableCounts.feedback_posts == null ? '—' : this.feedback.length;
+    if (bGm) bGm.textContent = '—';
+    if (bDm) bDm.textContent = '—';
 
     // Ticker totals
     const tickerOnline = document.getElementById('ticker-online-val');
     const tickerRecords = document.getElementById('ticker-total-records-val');
     const liveOnlineCount = document.getElementById('live-online-count');
-    if (tickerOnline) tickerOnline.textContent = `${totalUsers} active roster`;
-    if (tickerRecords) tickerRecords.textContent = `${totalRecords.toLocaleString()} Rows`;
-    if (liveOnlineCount) liveOnlineCount.textContent = totalUsers > 0 ? totalUsers : 1;
+    if (tickerOnline) tickerOnline.textContent = 'Auth roster unavailable';
+    if (tickerRecords) tickerRecords.textContent = totalRecords == null ? 'Partial live rows' : `${totalRecords.toLocaleString()} Rows`;
+    if (liveOnlineCount) liveOnlineCount.textContent = '—';
   },
 
   // ── Supabase Explorer View ──
@@ -2003,7 +2010,7 @@ const AdminStore = {
           <td colspan="3">
             <div class="empty-state-box">
               <i class="fas fa-database"></i>
-              <p>No rows recorded in <strong>public.${this.activeSbTable}</strong> yet. Real user entries saved in the app will sync here live.</p>
+              <p>${this.tableErrors[this.activeSbTable] ? `Unable to read <strong>public.${this.activeSbTable}</strong>: ${_esc(this.tableErrors[this.activeSbTable])}` : `No rows currently returned by <strong>public.${this.activeSbTable}</strong>.`}</p>
             </div>
           </td>
         </tr>
@@ -2018,7 +2025,7 @@ const AdminStore = {
         ${keys.map(k => {
           const val = row[k];
           const display = (typeof val === 'object') ? JSON.stringify(val).slice(0, 32) : String(val ?? '');
-          return `<td style="font-family:var(--admin-font-mono); font-size:0.8rem;">${display}</td>`;
+          return `<td style="font-family:var(--admin-font-mono); font-size:0.8rem;">${_esc(display)}</td>`;
         }).join('')}
       </tr>
     `).join('');
@@ -2056,7 +2063,7 @@ const AdminStore = {
           <td colspan="7">
             <div class="empty-state-box">
               <i class="fas fa-users-slash"></i>
-              <p>No user accounts matching query. Real users registered via Supabase Auth will appear here automatically.</p>
+              <p>Supabase Auth users are not exposed to this browser client. Connect an authorized server-side admin endpoint to populate this directory.</p>
             </div>
           </td>
         </tr>
@@ -2315,7 +2322,7 @@ const AdminStore = {
         <div style="border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:16px;">
           <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--text); margin-bottom:4px;">${_esc(email.subject)}</h3>
           <div style="font-size:0.8rem; color:var(--text-mid);"><strong>${_esc(email.fromName)}</strong> &lt;${_esc(email.fromEmail)}&gt;</div>
-          <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--admin-font-mono); margin-top:2px;">To: founders@phyzelyne.com • ${email.date || ''}</div>
+          <div style="font-size:0.72rem; color:var(--text-dim); font-family:var(--admin-font-mono); margin-top:2px;">External inbox not connected • ${email.date || ''}</div>
         </div>
         <div class="email-content-text">${email.body || email.snippet || 'No message content.'}</div>
       </div>
@@ -2466,7 +2473,7 @@ const AdminStore = {
     this.liveSettings.forEach(s => { if (s.currencyCode) currencySet.add(s.currencyCode); });
     if (currencySet.size === 0) currencySet.add('USD');
 
-    const totalActions = Math.max(1, txCount + invCount + goalCount + recCount);
+    const totalActions = txCount + invCount + goalCount + recCount;
     const features = [
       { name: 'Multi-Currency Realtime Converter', uses: `${fxCount} conversions`, pct: Math.min(100, Math.round((fxCount / totalActions) * 100)) },
       { name: 'Business Invoicing Engine & PDF Export', uses: `${invCount} invoices`, pct: Math.min(100, Math.round((invCount / totalActions) * 100)) },
@@ -2591,7 +2598,6 @@ const AdminStore = {
       // Build 7-day timeline from real data timestamps
       const days = [];
       const txCounts = [];
-      const cumulativeUsers = [];
       const now = new Date();
 
       for (let i = 6; i >= 0; i--) {
@@ -2604,14 +2610,12 @@ const AdminStore = {
         const txOnDay = this.liveTransactions.filter(t => t.date === dateStr).length;
         txCounts.push(txOnDay);
 
-        // Real cumulative active roster count up to this day
-        cumulativeUsers.push(Math.max(1, this.users.length));
       }
 
       if (this._growthChartInstance) {
         this._growthChartInstance.data.labels = days;
         this._growthChartInstance.data.datasets[0].data = txCounts;
-        this._growthChartInstance.data.datasets[1].data = cumulativeUsers;
+        this._growthChartInstance.data.datasets[1].data = [];
         this._growthChartInstance.update();
       } else {
         const ctx = growthCanvas.getContext('2d');
@@ -2621,7 +2625,7 @@ const AdminStore = {
             labels: days,
             datasets: [
               { label: 'Transactions Logged', data: txCounts, borderColor: '#d9a521', backgroundColor: 'rgba(217, 165, 33, 0.12)', fill: true, tension: 0.35, borderWidth: 2 },
-              { label: 'Registered Accounts', data: cumulativeUsers, borderColor: '#2fae72', backgroundColor: 'transparent', borderDash: [5, 5], tension: 0.35, borderWidth: 2 }
+              { label: 'Registered Accounts (not available)', data: [], borderColor: '#2fae72', backgroundColor: 'transparent', borderDash: [5, 5], tension: 0.35, borderWidth: 2 }
             ]
           },
           options: {
@@ -2644,10 +2648,8 @@ const AdminStore = {
       const inv = this.liveInvoices.length;
       const goals = this.liveGoals.length;
       const rec = this.liveReceipts.length;
-      const demo = this.demos.length;
-
-      const labels = ['Transactions', 'Invoices', 'Goals', 'Receipts', 'Demos'];
-      const dataValues = [tx || 1, inv || 0, goals || 0, rec || 0, demo || 0];
+      const labels = ['Transactions', 'Invoices', 'Goals', 'Receipts', 'Feedback posts'];
+      const dataValues = [tx, inv, goals, rec, this.tableCounts.feedback_posts == null ? 0 : this.feedback.length];
 
       if (this._featureChartInstance) {
         this._featureChartInstance.data.datasets[0].data = dataValues;
@@ -2726,6 +2728,27 @@ const AdminStore = {
     }
   },
 
+  async loginAdmin() {
+    const email = document.getElementById('admin-login-email')?.value.trim();
+    const password = document.getElementById('admin-login-password')?.value;
+    const errorMsg = document.getElementById('gate-error-msg');
+    const submit = document.getElementById('admin-login-submit');
+    if (!email || !password || typeof Auth === 'undefined' || typeof Auth.login !== 'function') return;
+    if (submit) { submit.disabled = true; submit.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Signing in...'; }
+    if (errorMsg) { errorMsg.style.display = 'none'; errorMsg.textContent = ''; }
+    try {
+      const result = await Auth.login(email, password);
+      if (!result?.success) throw new Error(result?.message || 'Sign-in failed.');
+      this.checkSecurityGate();
+      if (!Auth.isAdmin()) throw new Error('Signed in, but this account is not assigned an admin role.');
+      await this.refreshAllRealtimeData();
+    } catch (error) {
+      if (errorMsg) { errorMsg.style.display = 'block'; errorMsg.textContent = error.message; }
+    } finally {
+      if (submit) { submit.disabled = false; submit.innerHTML = '<i class="fas fa-right-to-bracket"></i> Sign in to Admin Console'; }
+    }
+  },
+
   lockAdminSession() {
     window.location.reload();
   },
@@ -2747,32 +2770,16 @@ const AdminStore = {
     const userSearch = document.getElementById('user-search-input');
     if (userSearch) userSearch.addEventListener('input', e => this.renderUsersTable(e.target.value));
 
-    // Listen for live cross-tab demo submissions from rdf.html & other tabs
-    window.addEventListener('storage', (e) => {
-      if (e.key === this.STORAGE_KEY_DEMOS || e.key === this.STORAGE_KEY_EMAILS || e.key === this.STORAGE_KEY_FEEDBACK) {
-        this.loadLocalState();
-        this.renderAll();
-      }
-    });
-
-    window.addEventListener('phyzelyne:new-demo-booked', (e) => {
-      this.loadLocalState();
-      this.renderAll();
-      if (e.detail?.companyName) {
-        this.showToast(`New Demo Booked: ${e.detail.companyName}!`, 'success');
-      }
-    });
-
-    // Listen for Store mutations
+    // App mutations are advisory only; Supabase remains the source of truth.
     document.addEventListener('phyzelyne:data-changed', () => {
-      this.refreshAllRealtimeData();
+      this.scheduleRealtimeRefresh();
     });
 
     if (typeof BroadcastChannel !== 'undefined') {
       try {
         const bc = new BroadcastChannel('phyzelyne_data_sync');
         bc.onmessage = () => {
-          this.refreshAllRealtimeData();
+          this.scheduleRealtimeRefresh();
         };
       } catch(e) {}
     }

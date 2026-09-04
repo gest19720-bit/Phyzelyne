@@ -318,7 +318,7 @@ function _adoptAnonymousLocalData() {
 async function _syncCacheToSupabase() {
   // Never push an empty/unverified cache over a user's remote data. A
   // transient auth, network, or RLS failure must not look like an empty DB.
-  if (!_cache.userId || !_sb || !_cache.remoteLoaded || _cache.remoteLoadFailed) return;
+  if (!_cache.userId || !_sb || !_cache.remoteLoaded) return;
   const uid = _cache.userId;
 
   // Bulk upsert each table in parallel — one Supabase call per table
@@ -331,6 +331,7 @@ async function _syncCacheToSupabase() {
   ];
 
   const upserts = tables.map(({ name, rows }) => {
+    if (_cache.remoteErrors?.[name]) return Promise.resolve();
     if (!rows.length) return Promise.resolve();
     const payload = rows.map(r => ({ ...r, user_id: uid }));
     return _sb.from(name).upsert(payload, { onConflict: 'id' })
@@ -341,7 +342,7 @@ _warn('[Phyzelyne] bulk sync network error:', name, e.message));
   });
 
   // Settings is a single row with user_id as PK
-  if (_cache.settings && Object.keys(_cache.settings).length) {
+  if (_cache.settings && Object.keys(_cache.settings).length && !_cache.remoteErrors?.settings) {
     upserts.push(
       _sb.from('settings').upsert({ ..._cache.settings, user_id: uid }, { onConflict: 'user_id' })
         .then(({ error }) => { if (error) 
@@ -355,7 +356,7 @@ _warn('[Phyzelyne] bulk sync network error: settings', e.message))
 }
 
 async function _loadRemoteData(uid) {
-  const [txRes, stRes, goRes, invRes, recRes] = await Promise.all([
+  const results = await Promise.all([
     _sb.from('transactions').select('*').eq('user_id', uid).order('date', { ascending: false }),
     _sb.from('settings').select('*').eq('user_id', uid).maybeSingle(),
     _sb.from('goals').select('*').eq('user_id', uid),
@@ -363,15 +364,19 @@ async function _loadRemoteData(uid) {
     _sb.from('receipts').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
   ]);
 
-  const failed = [txRes, stRes, goRes, invRes, recRes].find(result => result.error);
-  if (failed?.error) throw failed.error;
+  const [txRes, stRes, goRes, invRes, recRes] = results;
+  const errors = {};
+  results.forEach((result, index) => {
+    if (result.error) errors[['transactions', 'settings', 'goals', 'invoices', 'receipts'][index]] = result.error;
+  });
 
   return {
-    transactions: _stripUserIds(txRes.data || []),
-    settings: _stripUserId(stRes.data || {}) || {},
-    goals: _stripUserIds(goRes.data || []),
-    invoices: _stripUserIds(invRes.data || []),
-    receipts: _stripUserIds(recRes.data || []),
+    transactions: txRes.error ? null : _stripUserIds(txRes.data || []),
+    settings: stRes.error ? null : (_stripUserId(stRes.data || {}) || {}),
+    goals: goRes.error ? null : _stripUserIds(goRes.data || []),
+    invoices: invRes.error ? null : _stripUserIds(invRes.data || []),
+    receipts: recRes.error ? null : _stripUserIds(recRes.data || []),
+    errors
   };
 }
 
@@ -401,13 +406,22 @@ async function _refreshCacheFromSupabase({ notify = true, preserveLocal = true }
       _readLocalDecrypted('invoices', _cache.invoices || []),
       _readLocalDecrypted('receipts', _cache.receipts || []),
     ]);
-    _cache.transactions = mergeRows(remote.transactions, localTransactions, 'transactions');
-    _cache.goals        = mergeRows(remote.goals, localGoals, 'goals');
-    _cache.invoices     = mergeRows(remote.invoices, localInvoices, 'invoices');
-    _cache.receipts     = mergeRows(remote.receipts, localReceipts, 'receipts');
-    _cache.settings     = _mergeSettings(remote.settings, localSettings);
+    // A single unavailable table must not hide cloud data from every other
+    // table. Successful tables are hydrated from Supabase independently;
+    // failed tables retain their local backup and remain queued for retry.
+    _cache.transactions = remote.transactions === null
+      ? localTransactions : mergeRows(remote.transactions, localTransactions, 'transactions');
+    _cache.goals = remote.goals === null
+      ? localGoals : mergeRows(remote.goals, localGoals, 'goals');
+    _cache.invoices = remote.invoices === null
+      ? localInvoices : mergeRows(remote.invoices, localInvoices, 'invoices');
+    _cache.receipts = remote.receipts === null
+      ? localReceipts : mergeRows(remote.receipts, localReceipts, 'receipts');
+    _cache.settings = remote.settings === null
+      ? localSettings : _mergeSettings(remote.settings, localSettings);
+    _cache.remoteErrors = remote.errors || {};
     _cache.remoteLoaded = true;
-    _cache.remoteLoadFailed = false;
+    _cache.remoteLoadFailed = Object.keys(_cache.remoteErrors).length > 0;
 
     const changed = 
       oldTxns !== JSON.stringify(_cache.transactions) ||

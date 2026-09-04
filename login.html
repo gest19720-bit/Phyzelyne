@@ -274,6 +274,19 @@
           <a href="#" class="forgot-link" onclick="forgotPassword(event)">Forgot password?</a>
         </div>
 
+        <div id="recovery-panel" style="display:none; margin:14px 0; padding:14px; border:1px solid rgba(217,165,33,.35); border-radius:12px; background:rgba(217,165,33,.08);">
+          <strong style="font-size:.84rem;">Need to reset your password?</strong>
+          <p id="recovery-copy" style="font-size:.76rem; color:var(--text-mid); margin:6px 0 10px;">You have entered an incorrect password three times. We can send a secure reset link to this email.</p>
+          <button type="button" class="btn btn-glass btn-full" id="recovery-btn" onclick="forgotPassword(event)">Email me a secure reset link</button>
+        </div>
+
+        <div id="new-password-panel" style="display:none; margin:14px 0; padding:14px; border:1px solid rgba(47,174,114,.4); border-radius:12px; background:rgba(47,174,114,.08);">
+          <strong style="font-size:.84rem;">Set a new password</strong>
+          <input class="form-input" id="recovery-new-password" type="password" minlength="8" autocomplete="new-password" placeholder="New password" style="margin-top:10px;">
+          <input class="form-input" id="recovery-confirm-password" type="password" minlength="8" autocomplete="new-password" placeholder="Confirm new password" style="margin-top:8px;">
+          <button type="button" class="btn btn-gold btn-full" onclick="completePasswordReset()" style="margin-top:10px;">Save new password</button>
+        </div>
+
         <button class="btn btn-gold btn-full" id="login-btn" onclick="handleLogin()">
           <i class="fas fa-arrow-right-to-bracket"></i> Sign In
         </button>
@@ -337,6 +350,31 @@
     document.getElementById('error-msg').classList.add('show');
   }
   function hideError() { document.getElementById('error-msg').classList.remove('show'); }
+
+  function showRecoveryPanel(fromRecoveryLink = false) {
+    const panel = document.getElementById(fromRecoveryLink ? 'new-password-panel' : 'recovery-panel');
+    if (panel) panel.style.display = 'block';
+    if (fromRecoveryLink) {
+      document.getElementById('recovery-copy')?.remove();
+      document.getElementById('login-email')?.setAttribute('disabled', 'disabled');
+      document.getElementById('login-password')?.setAttribute('disabled', 'disabled');
+      document.getElementById('login-btn')?.setAttribute('disabled', 'disabled');
+    }
+  }
+
+  async function completePasswordReset() {
+    const password = document.getElementById('recovery-new-password').value;
+    const confirm = document.getElementById('recovery-confirm-password').value;
+    if (password.length < 8) { showError('Use at least 8 characters for your new password.'); return; }
+    if (password !== confirm) { showError('The new passwords do not match.'); return; }
+    try {
+      const { error } = await _sb.auth.updateUser({ password });
+      if (error) throw error;
+      showToast('Password updated. You can now sign in.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      window.location.reload();
+    } catch (error) { showError(error.message || 'Unable to update your password.'); }
+  }
 
   function togglePwd(id, btn) {
     const input = document.getElementById(id);
@@ -420,6 +458,8 @@
         startLockoutTimer(d.lockedUntil - Date.now());
       } else {
         showError(result.message || 'Incorrect email or password.');
+        const attempts = Auth._getRateData(email)?.attempts || 0;
+        if (attempts >= 3) showRecoveryPanel();
       }
     }
   }
@@ -431,7 +471,7 @@
 
     try {
       const { error } = await _sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password.html'
+        redirectTo: new URL('login.html', window.location.href).href
       });
       if (error) throw error;
       showToast('Password reset email sent — check your inbox.');
@@ -439,6 +479,10 @@
       // Don't reveal whether the address exists
       showToast('If that email is registered, a reset link is on its way.');
     }
+  }
+
+  if (/[#?&]type=recovery(?:&|$)/.test(window.location.hash + window.location.search)) {
+    showRecoveryPanel(true);
   }
 
   // Social login — Supabase OAuth

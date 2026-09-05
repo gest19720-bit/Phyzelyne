@@ -1101,7 +1101,10 @@ async function runAgent(messages) {
   startThinkClock();
 
   const { data: { session } } = await _sb.auth.getSession();
-  if (!session) throw new Error('Not signed in');
+  if (!session) {
+    stopThinkClock();
+    throw new Error('Not signed in');
+  }
 
   const resp = await fetch(AI_COACH_ENDPOINT, {
     method: 'POST',
@@ -1117,7 +1120,10 @@ async function runAgent(messages) {
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
     stopThinkClock();
-    throw new Error(err.error || `HTTP ${resp.status}`);
+    const failure = new Error(err.error || `HTTP ${resp.status}`);
+    failure.code = resp.status === 429 ? 'RATE_LIMIT' : 'AI_REQUEST_FAILED';
+    failure.retryAfter = Number(err.retry_after_seconds || resp.headers.get('Retry-After') || 0);
+    throw failure;
   }
   await enforceMinThinkTime();
   stopThinkClock();
@@ -1187,7 +1193,10 @@ async function sendMessage(overrideText, fromVoice) {
   } catch (err) {
     console.error(err);
     setStatus(null);
-    const fallback = localReply(text);
+    const retryMessage = err?.code === 'RATE_LIMIT'
+      ? `I've reached your AI Coach limit for now. Please try again in about ${Math.max(1, Math.ceil((err.retryAfter || 60) / 60))} minute(s).`
+      : null;
+    const fallback = retryMessage || localReply(text);
     appendMsg('ai', fallback);
     chatHistory.push({ role: 'assistant', content: fallback });
     saveBusinessChatHistory();

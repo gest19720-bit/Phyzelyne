@@ -1,7 +1,10 @@
 // ==========================================================
-// Phyzelyne AI Coach — Edge Function proxy
-// Deploy: supabase functions deploy ai-coach
-// Secret: supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+// LEGACY PROTOTYPE — DO NOT DEPLOY.
+//
+// The live ChatGPT implementation is at:
+//   supabase/functions/ai-coach/index.ts
+// Deploy that function with: supabase functions deploy ai-coach
+// This file is retained only as historical reference.
 // ==========================================================
 // Why this exists: the browser can never hold the Anthropic
 // API key. This function sits between the coach UI and
